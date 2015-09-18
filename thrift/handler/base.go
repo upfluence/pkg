@@ -2,6 +2,10 @@ package handler
 
 import "github.com/upfluence/base/base_service"
 
+const (
+	BASE_EXCHANGE_NAME = "monitoring-exchange"
+)
+
 type Base struct {
 	UnitName  string
 	Version   string
