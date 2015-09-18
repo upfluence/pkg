@@ -1,33 +1,26 @@
-package http
+package thrift
 
 import (
 	"github.com/upfluence/goutils/error_logger/opbeat"
-	"github.com/upfluence/thrift-http-go/http_thrift"
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
 type Server struct {
-	processor  thrift.TProcessor
-	listenAddr string
+	processor thrift.TProcessor
+	transport thrift.TServerTransport
 }
 
-func NewServer(processor thrift.TProcessor, listenAddr string) *Server {
+func NewServer(processor thrift.TProcessor, transport thrift.TServerTransport) *Server {
 	return &Server{
-		processor:  processor,
-		listenAddr: listenAddr,
+		processor: processor,
+		transport: transport,
 	}
 }
 
 func (s *Server) Start() error {
-	httpServer, err := http_thrift.NewTHTTPServer(s.listenAddr)
-
-	if err != nil {
-		return err
-	}
-
 	server := thrift.NewTSimpleServer4(
 		s.processor,
-		httpServer,
+		s.transport,
 		thrift.NewTTransportFactory(),
 		thrift.NewTBinaryProtocolFactoryDefault(),
 	)
