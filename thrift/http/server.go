@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/upfluence/goutils/error_logger/opbeat"
 	"github.com/upfluence/thrift-http-go/http_thrift"
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
@@ -30,6 +31,13 @@ func (s *Server) Start() error {
 		thrift.NewTTransportFactory(),
 		thrift.NewTBinaryProtocolFactoryDefault(),
 	)
+
+	opbeatLogger := opbeat.NewErrorLogger()
+	errLog := func(err error) {
+		opbeatLogger.Capture(err, nil)
+	}
+
+	server.SetErrorLogger(errLog)
 
 	return server.Serve()
 }
