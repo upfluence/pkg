@@ -6,11 +6,11 @@ import (
 )
 
 type Server struct {
-	processor  *thrift.TProcessor
+	processor  thrift.TProcessor
 	listenAddr string
 }
 
-func NewServer(processor *thrift.TProcessor, listenAddr string) *Server {
+func NewServer(processor thrift.TProcessor, listenAddr string) *Server {
 	return &Server{
 		processor:  processor,
 		listenAddr: listenAddr,
@@ -25,7 +25,7 @@ func (s *Server) Start() error {
 	}
 
 	server := thrift.NewTSimpleServer4(
-		*s.processor,
+		s.processor,
 		httpServer,
 		thrift.NewTTransportFactory(),
 		thrift.NewTBinaryProtocolFactoryDefault(),
