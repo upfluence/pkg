@@ -1,6 +1,7 @@
-package rabbitmq
+package server
 
 import (
+	"github.com/upfluence/goutils/error_logger/opbeat"
 	"github.com/upfluence/thrift-amqp-go/amqp_thrift"
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
@@ -31,6 +32,13 @@ func (s *Server) Serve() error {
 		thrift.NewTTransportFactory(),
 		thrift.NewTBinaryProtocolFactoryDefault(),
 	)
+
+	opbeatLogger := opbeat.NewErrorLogger()
+	errLog := func(err error) {
+		opbeatLogger.Capture(err, nil)
+	}
+
+	server.SetErrorLogger(errLog)
 
 	return server.Serve()
 }
