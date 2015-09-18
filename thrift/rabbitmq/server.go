@@ -1,4 +1,4 @@
-package server
+package rabbitmq
 
 import (
 	"github.com/upfluence/goutils/error_logger/opbeat"
