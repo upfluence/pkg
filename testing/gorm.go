@@ -14,7 +14,8 @@ func BuildDatabase(path string) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db, err := gorm.Open("sqlite3", ":memory:")
+	f, _ := ioutil.TempFile("/tmp", "sqlite")
+	db, err := gorm.Open("sqlite3", f.Name())
 
 	if err != nil {
 		return nil, err
