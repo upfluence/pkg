@@ -7,7 +7,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func BuildDabase(path string) (*gorm.DB, error) {
+func BuildDatabase(path string) (*gorm.DB, error) {
 	blob, err := ioutil.ReadFile(path)
 
 	if err != nil {

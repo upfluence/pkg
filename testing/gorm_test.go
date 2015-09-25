@@ -6,7 +6,7 @@ import (
 )
 
 func TestBuildDatabaseNotExist(t *test.T) {
-	if _, err := BuildDabase("/foo/bar"); err == nil {
+	if _, err := BuildDatabase("/foo/bar"); err == nil {
 		t.Errorf("Wrong file")
 	}
 }
@@ -16,7 +16,7 @@ func TestBuildDatabaseNotValid(t *test.T) {
 
 	f.WriteString("foo;\nbar;")
 
-	if _, err := BuildDabase(f.Name()); err == nil {
+	if _, err := BuildDatabase(f.Name()); err == nil {
 		t.Errorf("Execute wrong command")
 	}
 }
@@ -31,7 +31,7 @@ func TestBuildDatabaseValid(t *test.T) {
 		`,
 	)
 
-	db, err := BuildDabase(f.Name())
+	db, err := BuildDatabase(f.Name())
 
 	if err != nil {
 		t.Errorf("Cannot execute sql command")
