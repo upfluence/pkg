@@ -27,3 +27,7 @@ func (l *Logger) Capture(err error, opts *error_logger.Options) error {
 
 	return l.client.CaptureError(err, options)
 }
+
+func (l *Logger) Close() {
+	l.client.Close()
+}
