@@ -32,5 +32,7 @@ func (s *Server) Start() error {
 
 	server.SetErrorLogger(errLog)
 
-	return server.Serve()
+	err := server.Serve()
+	opbeatLogger.Close()
+	return err
 }
