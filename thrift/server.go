@@ -5,34 +5,39 @@ import (
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
+var (
+	DefaultTransportFactory thrift.TTransportFactory = thrift.NewTTransportFactory()
+	DefaultProtocolFactory  thrift.TProtocolFactory  = thrift.NewTBinaryProtocolFactoryDefault()
+)
+
 type Server struct {
-	processor thrift.TProcessor
-	transport thrift.TServerTransport
+	server thrift.TServer
+}
+
+func NewServerFromTServer(server thrift.TServer) *Server {
+	return &Server{server}
 }
 
 func NewServer(processor thrift.TProcessor, transport thrift.TServerTransport) *Server {
 	return &Server{
-		processor: processor,
-		transport: transport,
+		thrift.NewTSimpleServer4(
+			processor,
+			transport,
+			DefaultTransportFactory,
+			DefaultProtocolFactory,
+		),
 	}
 }
 
 func (s *Server) Start() error {
-	server := thrift.NewTSimpleServer4(
-		s.processor,
-		s.transport,
-		thrift.NewTTransportFactory(),
-		thrift.NewTBinaryProtocolFactoryDefault(),
-	)
-
 	opbeatLogger := opbeat.NewErrorLogger()
 	errLog := func(err error) {
 		opbeatLogger.Capture(err, nil)
 	}
 
-	server.SetErrorLogger(errLog)
+	s.server.SetErrorLogger(errLog)
 
-	err := server.Serve()
+	err := s.server.Serve()
 	opbeatLogger.Close()
 	return err
 }
