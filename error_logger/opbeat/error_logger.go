@@ -3,6 +3,7 @@ package opbeat
 import (
 	opbeatClient "github.com/roncohen/opbeat-go"
 	"github.com/upfluence/goutils/error_logger"
+	"runtime"
 )
 
 type Logger struct {
@@ -16,14 +17,19 @@ func NewErrorLogger() *Logger {
 func (l *Logger) Capture(err error, opts *error_logger.Options) error {
 	var options *opbeatClient.Options
 
+	extra := make(opbeatClient.Extra)
+	trace := make([]byte, 16384)
+	runtime.Stack(trace, true)
+
+	extra["stacktrace"] = string(trace)
+
 	if opts != nil {
-		extra := make(opbeatClient.Extra)
 		for k, v := range *opts {
 			extra[k] = v
 		}
-
-		options = &opbeatClient.Options{Extra: &extra}
 	}
+
+	options = &opbeatClient.Options{Extra: &extra}
 
 	return l.client.CaptureError(err, options)
 }
