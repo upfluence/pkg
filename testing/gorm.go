@@ -3,7 +3,6 @@ package testing
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 	"runtime"
 
@@ -34,15 +33,11 @@ func BuildDatabase(schemaPath string) (*gorm.DB, error) {
 	_, file, _, _ := runtime.Caller(1)
 	dbPath := fmt.Sprintf("sqlite3://%s", f.Name())
 	migrationsPath := path.Join(path.Dir(file), "..", "..", "migrations")
-	if _, err := os.Stat(migrationsPath); err == nil {
-		errs, ok := migrate.UpSync(dbPath, migrationsPath)
-		if !ok {
-			for migrationError := range errs {
-				fmt.Println(migrationError)
-			}
+	errs, ok := migrate.UpSync(dbPath, migrationsPath)
+	if !ok {
+		for _, migrationError := range errs {
+			fmt.Errorf(migrationError.Error())
 		}
-	} else {
-		fmt.Println("No migrations directory...")
 	}
 
 	return &db, err
