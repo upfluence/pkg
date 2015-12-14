@@ -42,7 +42,7 @@ func TestBuildDatabaseValid(t *test.T) {
 		"SELECT COUNT(*) FROM sqlite_master WHERE type = \"table\";",
 	).Scan(&r)
 
-	if r != 2 {
+	if r != 4 {
 		t.Errorf("Wrong number of table: %v", r)
 	}
 }
