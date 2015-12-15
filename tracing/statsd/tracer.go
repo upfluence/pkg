@@ -40,3 +40,7 @@ func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 		return nil
 	}
 }
+
+func (t *Tracer) Count(bucket string, value uint64) error {
+	return nil
+}
