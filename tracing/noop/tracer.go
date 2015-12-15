@@ -19,3 +19,7 @@ func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 
 	return nil
 }
+
+func (t *Tracer) Count(bucket string, value int) error {
+	return nil
+}
