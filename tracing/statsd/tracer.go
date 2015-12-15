@@ -41,6 +41,6 @@ func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 	}
 }
 
-func (t *Tracer) Count(bucket string, value uint64) error {
-	return nil
+func (t *Tracer) Count(bucket string, value int) error {
+	return t.Increment(fmt.Sprintf("%s,%s", t.namespace, bucket), value, 1.0)
 }
