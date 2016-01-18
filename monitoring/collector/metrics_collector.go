@@ -1,4 +1,4 @@
-package monitoring
+package collector
 
 import (
 	"fmt"
