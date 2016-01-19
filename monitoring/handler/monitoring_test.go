@@ -17,7 +17,7 @@ func TestHandlerWithMetric(t *testing.T) {
 
 	query := []string{"m1", "m2"}
 
-	handler := NewMonitoringHandler(metrics)
+	handler := NewMonitoringHandler("hey", metrics)
 
 	res, err := handler.Collect(query)
 
@@ -29,7 +29,7 @@ func TestHandlerWithMetric(t *testing.T) {
 		t.Errorf("Expected 2 results, got [%d]", l)
 	}
 
-	if r, ok := res["m1"]; ok {
+	if r, ok := res["hey.m1"]; ok {
 		if r != 1.0 {
 			t.Errorf("Expected 1.0 for m1 value, got [%f]", r)
 		}
@@ -37,7 +37,7 @@ func TestHandlerWithMetric(t *testing.T) {
 		t.Error("Expected to find result for metric m1")
 	}
 
-	if r, ok := res["m2"]; ok {
+	if r, ok := res["hey.m2"]; ok {
 		if r != 2.0 {
 			t.Errorf("Expected 2.0 for m2 value, got [%f]", r)
 		}
@@ -55,7 +55,7 @@ func TestHandlerWithUnknownMetric(t *testing.T) {
 
 	query := []string{"m1", "m4"}
 
-	handler := NewMonitoringHandler(metrics)
+	handler := NewMonitoringHandler("hey", metrics)
 
 	res, err := handler.Collect(query)
 

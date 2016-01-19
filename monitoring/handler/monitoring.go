@@ -1,16 +1,22 @@
 package handler
 
 import (
+	"fmt"
+
 	"github.com/upfluence/base/monitoring"
 	"github.com/upfluence/goutils/monitoring/metric"
 )
 
 type MonitoringHandler struct {
+	prefix  string
 	metrics map[monitoring.MetricID]metric.Metric
 }
 
-func NewMonitoringHandler(metrics map[monitoring.MetricID]metric.Metric) *MonitoringHandler {
-	return &MonitoringHandler{metrics}
+func NewMonitoringHandler(
+	prefix string,
+	metrics map[monitoring.MetricID]metric.Metric,
+) *MonitoringHandler {
+	return &MonitoringHandler{prefix, metrics}
 }
 
 // Can't understand why thrift inteface declares a []string instead of
@@ -32,7 +38,7 @@ func (m *MonitoringHandler) Collect(metrics []string) (
 	}
 
 	for id, promise := range promises {
-		results[id] = <-promise
+		results[monitoring.MetricID(fmt.Sprintf("%s.%s", m.prefix, id))] = <-promise
 	}
 
 	return results, nil
