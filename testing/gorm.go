@@ -1,10 +1,12 @@
 package testing
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path"
 	"runtime"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattes/migrate/driver/sqlite3"
@@ -35,9 +37,11 @@ func BuildDatabase(schemaPath string) (*gorm.DB, error) {
 	migrationsPath := path.Join(path.Dir(file), "..", "..", "migrations")
 	errs, ok := migrate.UpSync(dbPath, migrationsPath)
 	if !ok {
+		strErrs := []string{}
 		for _, migrationError := range errs {
-			fmt.Errorf(migrationError.Error())
+			strErrs = append(strErrs, migrationError.Error())
 		}
+		return nil, errors.New(strings.Join(strErrs, ","))
 	}
 
 	return &db, err
