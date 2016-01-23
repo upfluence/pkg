@@ -1,22 +1,3 @@
-dependencies:
-  pre:
-    - bash contrib/install_utils.sh
-
 test:
   override:
-    - sudo apt-get install jq
-    - go get github.com/upfluence/goutils/error_logger
-    - go get github.com/roncohen/opbeat-go
-    - go get github.com/jinzhu/gorm
-    - go get github.com/mattes/migrate/driver/sqlite3
-    - go get github.com/mattes/migrate/migrate
-    - go get github.com/mattn/go-sqlite3
-    - go get github.com/cyberdelia/statsd
-    - go get github.com/upfluence/thrift/lib/go/thrift
     - go test ./...
-
-deployment:
-  master:
-    branch: 'master'
-    commands:
-      - go test ./...
