@@ -3,7 +3,7 @@ package handler
 import (
 	"testing"
 
-	"github.com/upfluence/base/monitoring"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/monitoring"
 	"github.com/upfluence/goutils/monitoring/metric"
 	"github.com/upfluence/goutils/monitoring/metric/mock"
 )

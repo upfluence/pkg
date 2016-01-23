@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/mattes/migrate/driver/sqlite3"
-	"github.com/mattes/migrate/migrate"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/jinzhu/gorm"
+	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver/sqlite3"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
+	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattn/go-sqlite3"
 )
 
 func BuildDatabase(

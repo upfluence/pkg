@@ -1,0 +1,74 @@
+{
+	"ImportPath": "github.com/upfluence/goutils",
+	"GoVersion": "go1.4",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/cyberdelia/statsd",
+			"Rev": "b1a41df90100a1421f276a4bacd664803a7b7f0b"
+		},
+		{
+			"ImportPath": "github.com/hallas/stacko",
+			"Comment": "v1.0-19-g99a53f4",
+			"Rev": "99a53f49231b370726f1598972988fa1eda64623"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/gorm",
+			"Rev": "19aacb8fbbc8b93f55a428d53839469a5828b890"
+		},
+		{
+			"ImportPath": "github.com/lib/pq/hstore",
+			"Comment": "go1.0-cutoff-58-g0dad96c",
+			"Rev": "0dad96c0b94f8dee039aa40467f767467392a0af"
+		},
+		{
+			"ImportPath": "github.com/mattes/migrate/driver",
+			"Comment": "v1.2.0-64-g6028882",
+			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+		},
+		{
+			"ImportPath": "github.com/mattes/migrate/file",
+			"Comment": "v1.2.0-64-g6028882",
+			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+		},
+		{
+			"ImportPath": "github.com/mattes/migrate/migrate",
+			"Comment": "v1.2.0-64-g6028882",
+			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+		},
+		{
+			"ImportPath": "github.com/mattes/migrate/pipe",
+			"Comment": "v1.2.0-64-g6028882",
+			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Comment": "v1.0.0-6-g8897bf1",
+			"Rev": "8897bf145272af4dd0305518cfb725a5b6d0541c"
+		},
+		{
+			"ImportPath": "github.com/qor/inflection",
+			"Rev": "45321e63b98c756df17369c027c1df89298e1288"
+		},
+		{
+			"ImportPath": "github.com/roncohen/opbeat-go",
+			"Rev": "958512be4c1d824e3a89d75b47e6f29751a76a3d"
+		},
+		{
+			"ImportPath": "github.com/upfluence/base/base_service",
+			"Comment": "v0.0.8",
+			"Rev": "v0.0.8"
+		},
+		{
+			"ImportPath": "github.com/upfluence/base/monitoring",
+			"Comment": "v0.0.8",
+			"Rev": "v0.0.8"
+		},
+		{
+			"ImportPath": "github.com/upfluence/thrift/lib/go/thrift",
+			"Rev": "ca8e55f8d817a9036cff3cddd54d65735824caa7"
+		}
+	]
+}

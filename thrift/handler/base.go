@@ -1,6 +1,6 @@
 package handler
 
-import "github.com/upfluence/base/base_service"
+import "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/base_service"
 
 const (
 	BASE_EXCHANGE_NAME = "monitoring-exchange"

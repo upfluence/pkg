@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	statsdClient "github.com/cyberdelia/statsd"
+	statsdClient "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/cyberdelia/statsd"
 )
 
 const (
