@@ -1,10 +1,10 @@
 package testing
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
-	"path"
-	"runtime"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattes/migrate/driver/sqlite3"
@@ -12,13 +12,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func BuildDatabase(schemaPath string) (*gorm.DB, error) {
-	blob, err := ioutil.ReadFile(schemaPath)
-
-	if err != nil {
-		return nil, err
-	}
-
+func BuildDatabase(
+	schemaPath *string,
+	migrationsPath *string,
+) (*gorm.DB, error) {
 	f, _ := ioutil.TempFile("/tmp", "sqlite")
 	db, err := gorm.Open("sqlite3", f.Name())
 
@@ -26,19 +23,30 @@ func BuildDatabase(schemaPath string) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if _, err := db.DB().Exec(string(blob)); err != nil {
-		return nil, err
-	}
+	if schemaPath != nil {
+		blob, err := ioutil.ReadFile(*schemaPath)
 
-	_, file, _, _ := runtime.Caller(1)
-	dbPath := fmt.Sprintf("sqlite3://%s", f.Name())
-	migrationsPath := path.Join(path.Dir(file), "..", "..", "migrations")
-	errs, ok := migrate.UpSync(dbPath, migrationsPath)
-	if !ok {
-		for _, migrationError := range errs {
-			fmt.Errorf(migrationError.Error())
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := db.DB().Exec(string(blob)); err != nil {
+			return nil, err
 		}
 	}
 
-	return &db, err
+	if migrationsPath != nil {
+		dbPath := fmt.Sprintf("sqlite3://%s", f.Name())
+		errs, ok := migrate.UpSync(dbPath, *migrationsPath)
+
+		if !ok {
+			strErrs := []string{}
+			for _, migrationError := range errs {
+				strErrs = append(strErrs, migrationError.Error())
+			}
+			return nil, errors.New(strings.Join(strErrs, ","))
+		}
+	}
+
+	return &db, nil
 }
