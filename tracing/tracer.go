@@ -8,4 +8,5 @@ type Tracer interface {
 	Trace(string, func(), *sync.WaitGroup) error
 
 	Count(string, int) error
+	Timing(string, time.Duration) error
 }

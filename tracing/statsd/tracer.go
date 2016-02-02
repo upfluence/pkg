@@ -3,6 +3,7 @@ package statsd
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	statsdClient "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/cyberdelia/statsd"
 )
@@ -13,7 +14,7 @@ const (
 )
 
 type Tracer struct {
-	*statsdClient.Client
+	client        *statsdClient.Client
 	namespace     string
 	rateTime      float64
 	rateIncrement float64
@@ -29,16 +30,24 @@ func NewTracer(statsdUrl, namespace string) (*Tracer, error) {
 	return &Tracer{c, namespace, defaultRateTime, defaultRateIncrement}, nil
 }
 
+func (t *Tracer) Timing(name string, duration time.Duration) error {
+	return t.client.Timing(name, int(duration/time.Millisecond), t.rateTime)
+}
+
 func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 	if wg == nil {
-		return t.Time(fmt.Sprintf("%s.%s", t.namespace, name), t.rateTime, fn)
+		return t.client.Time(
+			fmt.Sprintf("%s.%s", t.namespace, name),
+			t.rateTime,
+			fn,
+		)
 	} else {
 		wg.Add(1)
 
 		go func() {
 			defer wg.Done()
 
-			t.Time(fmt.Sprintf("%s.%s", t.namespace, name), t.rateTime, fn)
+			t.client.Time(fmt.Sprintf("%s.%s", t.namespace, name), t.rateTime, fn)
 		}()
 
 		return nil
@@ -46,7 +55,7 @@ func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 }
 
 func (t *Tracer) Count(bucket string, value int) error {
-	return t.Increment(
+	return t.client.Increment(
 		fmt.Sprintf("%s.%s", t.namespace, bucket),
 		value,
 		t.rateIncrement,

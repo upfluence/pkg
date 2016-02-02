@@ -1,6 +1,9 @@
 package noop
 
-import "sync"
+import (
+	"sync"
+	"time"
+)
 
 type Tracer struct{}
 
@@ -17,6 +20,10 @@ func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 		}()
 	}
 
+	return nil
+}
+
+func (t *Tracer) Timing(name string, duration time.Duration) error {
 	return nil
 }
 
