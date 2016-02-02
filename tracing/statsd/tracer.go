@@ -31,7 +31,11 @@ func NewTracer(statsdUrl, namespace string) (*Tracer, error) {
 }
 
 func (t *Tracer) Timing(name string, duration time.Duration) error {
-	return t.client.Timing(name, int(duration/time.Millisecond), t.rateTime)
+	return t.client.Timing(
+		fmt.Sprintf("%s.%s", t.namespace, name),
+		int(duration/time.Millisecond),
+		t.rateTime,
+	)
 }
 
 func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
