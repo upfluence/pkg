@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/monitoring"
 	"github.com/upfluence/goutils/monitoring/metric"
@@ -25,20 +25,34 @@ func (m *MonitoringHandler) Collect(metrics []string) (
 	monitoring.Metrics,
 	error,
 ) {
-	promises := map[monitoring.MetricID]<-chan float64{}
+	promises := make(map[monitoring.MetricID]chan []metric.Point)
 	results := monitoring.Metrics{}
 
 	for _, id := range metrics {
-		metricId := monitoring.MetricID(id) // <- what the F*** thrift
-		if metric, ok := m.metrics[metricId]; ok {
-			promises[metricId] = metric.Collect()
+		metricId := monitoring.MetricID(id)
+
+		if met, ok := m.metrics[metricId]; ok {
+			result := make(chan []metric.Point)
+			promises[metricId] = result
+
+			go func() {
+				result <- met.Collect()
+			}()
 		} else {
 			return nil, &monitoring.UnknownMetric{metricId}
 		}
 	}
 
 	for id, promise := range promises {
-		results[monitoring.MetricID(fmt.Sprintf("%s.%s", m.prefix, id))] = <-promise
+		for _, point := range <-promise {
+			splittedName := []string{m.prefix, string(id)}
+			if v := point.Suffix; v != "" {
+				splittedName = append(splittedName, v)
+			}
+
+			metricName := monitoring.MetricID(strings.Join(splittedName, "."))
+			results[metricName] = point.Value
+		}
 	}
 
 	return results, nil
