@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 
@@ -29,10 +28,16 @@ func BuildDatabase(
 
 	postgresURLSlipped := strings.Split(postgresURL, "/")
 
-	database := strings.Split(postgresURLSlipped[len(postgresURLSlipped)-1], "?")[0]
+	database := strings.Split(
+		postgresURLSlipped[len(postgresURLSlipped)-1],
+		"?",
+	)[0]
+
 	plainURL := postgresURLSlipped[0 : len(postgresURLSlipped)-1]
-	log.Println(strings.Join(plainURL, "/") + "?sslmode=disable")
-	plainDB, err := sql.Open("postgres", strings.Join(plainURL, "/")+"?sslmode=disable")
+	plainDB, err := sql.Open(
+		"postgres",
+		fmt.Sprintf("%s?sslmode=disable", strings.Join(plainURL, "/")),
+	)
 
 	if err != nil {
 		return nil, err
@@ -72,7 +77,7 @@ func BuildDatabase(
 			for _, migrationError := range errs {
 				strErrs = append(strErrs, migrationError.Error())
 			}
-			log.Println(postgresURL)
+
 			db.Close()
 			return nil, errors.New(strings.Join(strErrs, ","))
 		}
