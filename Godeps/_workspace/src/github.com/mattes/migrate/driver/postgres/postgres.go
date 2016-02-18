@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/lib/pq"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/lib/pq"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/file"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate/direction"
