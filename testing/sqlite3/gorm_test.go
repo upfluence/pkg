@@ -1,19 +1,21 @@
-package testing
+package sqlite3
 
 import (
 	"fmt"
 	"io/ioutil"
-	test "testing"
+	"testing"
 )
 
-func TestBuildDatabaseNotExist(t *test.T) {
+var fixturesPath = "../../fixtures"
+
+func TestBuildDatabaseNotExist(t *testing.T) {
 	dbPath := "/foo/bar"
 	if _, err := BuildDatabase(&dbPath, nil); err == nil {
 		t.Errorf("Wrong file")
 	}
 }
 
-func TestBuildDatabaseNotValid(t *test.T) {
+func TestBuildDatabaseNotValid(t *testing.T) {
 	f, _ := ioutil.TempFile("/tmp", "fo")
 	fName := f.Name()
 
@@ -24,7 +26,7 @@ func TestBuildDatabaseNotValid(t *test.T) {
 	}
 }
 
-func TestBuildDatabaseValid(t *test.T) {
+func TestBuildDatabaseValid(t *testing.T) {
 	f, _ := ioutil.TempFile("/tmp", "fo")
 	fName := f.Name()
 
@@ -52,10 +54,9 @@ func TestBuildDatabaseValid(t *test.T) {
 	}
 }
 
-func TestBuildDatabaseValidFromMigration(t *test.T) {
+func TestBuildDatabaseValidFromMigration(t *testing.T) {
 	f, _ := ioutil.TempFile("/tmp", "fo")
 	fName := f.Name()
-	fixturesPath := "../fixtures"
 
 	f.WriteString(
 		`
@@ -67,7 +68,7 @@ func TestBuildDatabaseValidFromMigration(t *test.T) {
 	db, err := BuildDatabase(&fName, &fixturesPath)
 
 	if err != nil {
-		t.Errorf("Cannot execute sql command")
+		t.Errorf("Cannot execute sql command: %s", err.Error())
 	}
 
 	for _, l := range []string{"x", "y", "z"} {
@@ -81,9 +82,7 @@ func TestBuildDatabaseValidFromMigration(t *test.T) {
 	}
 }
 
-func TestBuildDatabaseValidFromOnlyMigration(t *test.T) {
-	fixturesPath := "../fixtures"
-
+func TestBuildDatabaseValidFromOnlyMigration(t *testing.T) {
 	db, err := BuildDatabase(nil, &fixturesPath)
 
 	if err != nil {
