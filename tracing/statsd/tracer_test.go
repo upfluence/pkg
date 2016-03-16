@@ -18,3 +18,14 @@ func TestStatsdfy(t *testing.T) {
 		}
 	}
 }
+
+func TestMetricName(t *testing.T) {
+	for _, tCase := range []testCase{
+		testCase{"namespace", "namespace.foo"},
+		testCase{"", "foo"},
+	} {
+		if v := (&Tracer{namespace: tCase.in}).metricName("foo"); tCase.out != v {
+			t.Errorf("Wrong metricName of %s: %s", tCase.in, v)
+		}
+	}
+}

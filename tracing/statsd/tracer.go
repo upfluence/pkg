@@ -37,9 +37,17 @@ func statsdfyName(name string) string {
 	return name
 }
 
+func (t *Tracer) metricName(name string) string {
+	if t.namespace != "" {
+		name = fmt.Sprintf("%s.%s", t.namespace, name)
+	}
+
+	return statsdfyName(name)
+}
+
 func (t *Tracer) Timing(name string, duration time.Duration) error {
 	return t.client.Timing(
-		statsdfyName(fmt.Sprintf("%s.%s", t.namespace, name)),
+		t.metricName(name),
 		int(duration/time.Millisecond),
 		t.rateTime,
 	)
@@ -47,22 +55,13 @@ func (t *Tracer) Timing(name string, duration time.Duration) error {
 
 func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 	if wg == nil {
-		return t.client.Time(
-			statsdfyName(fmt.Sprintf("%s.%s", t.namespace, name)),
-			t.rateTime,
-			fn,
-		)
+		return t.client.Time(t.metricName(name), t.rateTime, fn)
 	} else {
 		wg.Add(1)
 
 		go func() {
 			defer wg.Done()
-
-			t.client.Time(
-				statsdfyName(fmt.Sprintf("%s.%s", t.namespace, name)),
-				t.rateTime,
-				fn,
-			)
+			t.client.Time(t.metricName(name), t.rateTime, fn)
 		}()
 
 		return nil
@@ -70,9 +69,5 @@ func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 }
 
 func (t *Tracer) Count(bucket string, value int) error {
-	return t.client.Increment(
-		statsdfyName(fmt.Sprintf("%s.%s", t.namespace, bucket)),
-		value,
-		t.rateIncrement,
-	)
+	return t.client.Increment(t.metricName(bucket), value, t.rateIncrement)
 }
