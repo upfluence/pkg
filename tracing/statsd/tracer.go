@@ -2,6 +2,7 @@ package statsd
 
 import (
 	"fmt"
+	"regexp"
 	"sync"
 	"time"
 
@@ -30,9 +31,15 @@ func NewTracer(statsdUrl, namespace string) (*Tracer, error) {
 	return &Tracer{c, namespace, defaultRateTime, defaultRateIncrement}, nil
 }
 
+func statsdfyName(name string) string {
+	name = regexp.MustCompile("(-|@)").ReplaceAllString(name, "_")
+	name = regexp.MustCompile("[^a-zA-Z0-9_\\.]").ReplaceAllString(name, "")
+	return name
+}
+
 func (t *Tracer) Timing(name string, duration time.Duration) error {
 	return t.client.Timing(
-		fmt.Sprintf("%s.%s", t.namespace, name),
+		statsdfyName(fmt.Sprintf("%s.%s", t.namespace, name)),
 		int(duration/time.Millisecond),
 		t.rateTime,
 	)
@@ -41,7 +48,7 @@ func (t *Tracer) Timing(name string, duration time.Duration) error {
 func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 	if wg == nil {
 		return t.client.Time(
-			fmt.Sprintf("%s.%s", t.namespace, name),
+			statsdfyName(fmt.Sprintf("%s.%s", t.namespace, name)),
 			t.rateTime,
 			fn,
 		)
@@ -51,7 +58,11 @@ func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 		go func() {
 			defer wg.Done()
 
-			t.client.Time(fmt.Sprintf("%s.%s", t.namespace, name), t.rateTime, fn)
+			t.client.Time(
+				statsdfyName(fmt.Sprintf("%s.%s", t.namespace, name)),
+				t.rateTime,
+				fn,
+			)
 		}()
 
 		return nil
@@ -60,7 +71,7 @@ func (t *Tracer) Trace(name string, fn func(), wg *sync.WaitGroup) error {
 
 func (t *Tracer) Count(bucket string, value int) error {
 	return t.client.Increment(
-		fmt.Sprintf("%s.%s", t.namespace, bucket),
+		statsdfyName(fmt.Sprintf("%s.%s", t.namespace, bucket)),
 		value,
 		t.rateIncrement,
 	)
