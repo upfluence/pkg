@@ -27,7 +27,6 @@ type Interface interface {
 type Base struct {
 	UnitName   string
 	SpawnDate  int64
-	Version    *version.Version
 	Interfaces []Interface
 }
 
