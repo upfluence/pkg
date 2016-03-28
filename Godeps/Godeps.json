@@ -57,14 +57,9 @@
 			"Rev": "958512be4c1d824e3a89d75b47e6f29751a76a3d"
 		},
 		{
-			"ImportPath": "github.com/upfluence/base/base_service",
-			"Comment": "v0.0.8",
-			"Rev": "v0.0.8"
-		},
-		{
-			"ImportPath": "github.com/upfluence/base/monitoring",
-			"Comment": "v0.0.8",
-			"Rev": "v0.0.8"
+			"ImportPath": "github.com/upfluence/base",
+			"Comment": "v0.0.11",
+			"Rev": "v0.0.11"
 		},
 		{
 			"ImportPath": "github.com/upfluence/thrift/lib/go/thrift",

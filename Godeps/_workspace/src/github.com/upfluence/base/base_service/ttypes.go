@@ -6,6 +6,7 @@ package base_service
 import (
 	"bytes"
 	"fmt"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/version"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift"
 	"time"
 )
@@ -16,6 +17,7 @@ var _ = fmt.Printf
 var _ = bytes.Equal
 var _ = time.Now()
 
+var _ = version.GoUnusedProtection__
 var GoUnusedProtection__ int
 
 type Status int64
