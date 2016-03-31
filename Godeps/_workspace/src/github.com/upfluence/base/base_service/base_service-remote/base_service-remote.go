@@ -21,7 +21,8 @@ func Usage() {
 	flag.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "\nFunctions:")
 	fmt.Fprintln(os.Stderr, "  string getName()")
-	fmt.Fprintln(os.Stderr, "  string getVersion()")
+	fmt.Fprintln(os.Stderr, "  Version getVersion()")
+	fmt.Fprintln(os.Stderr, "   getInterfaceVersions()")
 	fmt.Fprintln(os.Stderr, "  status getStatus()")
 	fmt.Fprintln(os.Stderr, "  i64 aliveSince()")
 	fmt.Fprintln(os.Stderr)
@@ -132,6 +133,14 @@ func main() {
 			flag.Usage()
 		}
 		fmt.Print(client.GetVersion())
+		fmt.Print("\n")
+		break
+	case "getInterfaceVersions":
+		if flag.NArg()-1 != 0 {
+			fmt.Fprintln(os.Stderr, "GetInterfaceVersions requires 0 args")
+			flag.Usage()
+		}
+		fmt.Print(client.GetInterfaceVersions())
 		fmt.Print("\n")
 		break
 	case "getStatus":

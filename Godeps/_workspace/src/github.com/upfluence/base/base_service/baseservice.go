@@ -6,6 +6,7 @@ package base_service
 import (
 	"bytes"
 	"fmt"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/version"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift"
 	"time"
 )
@@ -16,9 +17,12 @@ var _ = fmt.Printf
 var _ = bytes.Equal
 var _ = time.Now()
 
+var _ = version.GoUnusedProtection__
+
 type BaseService interface {
 	GetName() (r string, err error)
-	GetVersion() (r string, err error)
+	GetVersion() (r *version.Version, err error)
+	GetInterfaceVersions() (r map[string]*version.Version, err error)
 	GetStatus() (r Status, err error)
 	AliveSince() (r int64, err error)
 }
@@ -131,7 +135,7 @@ func (p *BaseServiceClient) recvGetName() (value string, err error) {
 	return
 }
 
-func (p *BaseServiceClient) GetVersion() (r string, err error) {
+func (p *BaseServiceClient) GetVersion() (r *version.Version, err error) {
 	t0 := time.Now().UnixNano()
 	if err = p.sendGetVersion(); err != nil {
 		return
@@ -167,7 +171,7 @@ func (p *BaseServiceClient) sendGetVersion() (err error) {
 	return oprot.Flush()
 }
 
-func (p *BaseServiceClient) recvGetVersion() (value string, err error) {
+func (p *BaseServiceClient) recvGetVersion() (value *version.Version, err error) {
 	iprot := p.InputProtocol
 	if iprot == nil {
 		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -203,6 +207,88 @@ func (p *BaseServiceClient) recvGetVersion() (value string, err error) {
 		return
 	}
 	result := BaseServiceGetVersionResult{}
+	if err = result.Read(iprot); err != nil {
+		return
+	}
+	if err = iprot.ReadMessageEnd(); err != nil {
+		return
+	}
+	value = result.GetSuccess()
+	return
+}
+
+func (p *BaseServiceClient) GetInterfaceVersions() (r map[string]*version.Version, err error) {
+	t0 := time.Now().UnixNano()
+	if err = p.sendGetInterfaceVersions(); err != nil {
+		return
+	}
+	r, err = p.recvGetInterfaceVersions()
+	t1 := time.Now().UnixNano()
+	thrift.Metrics.Timing("BaseService.GetInterfaceVersions.client", t1-t0)
+	if err == nil {
+		thrift.Metrics.Incr("BaseService.GetInterfaceVersions.client.success")
+	} else {
+		thrift.Metrics.Incr("BaseService.GetInterfaceVersions.client.exceptions.application_error")
+	}
+	return
+}
+
+func (p *BaseServiceClient) sendGetInterfaceVersions() (err error) {
+	oprot := p.OutputProtocol
+	if oprot == nil {
+		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.OutputProtocol = oprot
+	}
+	p.SeqId++
+	if err = oprot.WriteMessageBegin("getInterfaceVersions", thrift.CALL, p.SeqId); err != nil {
+		return
+	}
+	args := BaseServiceGetInterfaceVersionsArgs{}
+	if err = args.Write(oprot); err != nil {
+		return
+	}
+	if err = oprot.WriteMessageEnd(); err != nil {
+		return
+	}
+	return oprot.Flush()
+}
+
+func (p *BaseServiceClient) recvGetInterfaceVersions() (value map[string]*version.Version, err error) {
+	iprot := p.InputProtocol
+	if iprot == nil {
+		iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+		p.InputProtocol = iprot
+	}
+	method, mTypeId, seqId, err := iprot.ReadMessageBegin()
+	if err != nil {
+		return
+	}
+	if method != "getInterfaceVersions" {
+		err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "getInterfaceVersions failed: wrong method name")
+		return
+	}
+	if p.SeqId != seqId {
+		err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "getInterfaceVersions failed: out of sequence response")
+		return
+	}
+	if mTypeId == thrift.EXCEPTION {
+		error4 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error5 error
+		error5, err = error4.Read(iprot)
+		if err != nil {
+			return
+		}
+		if err = iprot.ReadMessageEnd(); err != nil {
+			return
+		}
+		err = error5
+		return
+	}
+	if mTypeId != thrift.REPLY {
+		err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "getInterfaceVersions failed: invalid message type")
+		return
+	}
+	result := BaseServiceGetInterfaceVersionsResult{}
 	if err = result.Read(iprot); err != nil {
 		return
 	}
@@ -268,16 +354,16 @@ func (p *BaseServiceClient) recvGetStatus() (value Status, err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error4 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error5 error
-		error5, err = error4.Read(iprot)
+		error6 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error7 error
+		error7, err = error6.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error5
+		err = error7
 		return
 	}
 	if mTypeId != thrift.REPLY {
@@ -350,16 +436,16 @@ func (p *BaseServiceClient) recvAliveSince() (value int64, err error) {
 		return
 	}
 	if mTypeId == thrift.EXCEPTION {
-		error6 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-		var error7 error
-		error7, err = error6.Read(iprot)
+		error8 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+		var error9 error
+		error9, err = error8.Read(iprot)
 		if err != nil {
 			return
 		}
 		if err = iprot.ReadMessageEnd(); err != nil {
 			return
 		}
-		err = error7
+		err = error9
 		return
 	}
 	if mTypeId != thrift.REPLY {
@@ -397,12 +483,13 @@ func (p *BaseServiceProcessor) ProcessorMap() map[string]thrift.TProcessorFuncti
 
 func NewBaseServiceProcessor(handler BaseService) *BaseServiceProcessor {
 
-	self8 := &BaseServiceProcessor{handler: handler, processorMap: make(map[string]thrift.TProcessorFunction)}
-	self8.processorMap["getName"] = &baseServiceProcessorGetName{handler: handler}
-	self8.processorMap["getVersion"] = &baseServiceProcessorGetVersion{handler: handler}
-	self8.processorMap["getStatus"] = &baseServiceProcessorGetStatus{handler: handler}
-	self8.processorMap["aliveSince"] = &baseServiceProcessorAliveSince{handler: handler}
-	return self8
+	self10 := &BaseServiceProcessor{handler: handler, processorMap: make(map[string]thrift.TProcessorFunction)}
+	self10.processorMap["getName"] = &baseServiceProcessorGetName{handler: handler}
+	self10.processorMap["getVersion"] = &baseServiceProcessorGetVersion{handler: handler}
+	self10.processorMap["getInterfaceVersions"] = &baseServiceProcessorGetInterfaceVersions{handler: handler}
+	self10.processorMap["getStatus"] = &baseServiceProcessorGetStatus{handler: handler}
+	self10.processorMap["aliveSince"] = &baseServiceProcessorAliveSince{handler: handler}
+	return self10
 }
 
 func (p *BaseServiceProcessor) Process(iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
@@ -415,12 +502,12 @@ func (p *BaseServiceProcessor) Process(iprot, oprot thrift.TProtocol) (success b
 	}
 	iprot.Skip(thrift.STRUCT)
 	iprot.ReadMessageEnd()
-	x9 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function "+name)
+	x11 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function "+name)
 	oprot.WriteMessageBegin(name, thrift.EXCEPTION, seqId)
-	x9.Write(oprot)
+	x11.Write(oprot)
 	oprot.WriteMessageEnd()
 	oprot.Flush()
-	return false, x9
+	return false, x11
 
 }
 
@@ -497,7 +584,7 @@ func (p *baseServiceProcessorGetVersion) Process(seqId int32, iprot, oprot thrif
 
 	iprot.ReadMessageEnd()
 	result := BaseServiceGetVersionResult{}
-	var retval string
+	var retval *version.Version
 	var err2 error
 	t0 := time.Now().UnixNano()
 	if retval, err2 = p.handler.GetVersion(); err2 != nil {
@@ -510,13 +597,68 @@ func (p *baseServiceProcessorGetVersion) Process(seqId int32, iprot, oprot thrif
 		return true, err2
 	} else {
 		thrift.Metrics.Incr("BaseService.getVersion.server.success")
-		result.Success = &retval
+		result.Success = retval
 	}
 
 	t1 := time.Now().UnixNano()
 	thrift.Metrics.Timing("BaseService.getVersion.server", t1-t0)
 
 	if err2 = oprot.WriteMessageBegin("getVersion", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type baseServiceProcessorGetInterfaceVersions struct {
+	handler BaseService
+}
+
+func (p *baseServiceProcessorGetInterfaceVersions) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := BaseServiceGetInterfaceVersionsArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("getInterfaceVersions", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	result := BaseServiceGetInterfaceVersionsResult{}
+	var retval map[string]*version.Version
+	var err2 error
+	t0 := time.Now().UnixNano()
+	if retval, err2 = p.handler.GetInterfaceVersions(); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing getInterfaceVersions: "+err2.Error())
+		oprot.WriteMessageBegin("getInterfaceVersions", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush()
+		thrift.Metrics.Incr("BaseService.getInterfaceVersions.server.exceptions.application_error")
+		return true, err2
+	} else {
+		thrift.Metrics.Incr("BaseService.getInterfaceVersions.server.success")
+		result.Success = retval
+	}
+
+	t1 := time.Now().UnixNano()
+	thrift.Metrics.Timing("BaseService.getInterfaceVersions.server", t1-t0)
+
+	if err2 = oprot.WriteMessageBegin("getInterfaceVersions", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -857,20 +999,20 @@ func (p *BaseServiceGetVersionArgs) String() string {
 // Attributes:
 //  - Success
 type BaseServiceGetVersionResult struct {
-	Success *string `thrift:"success,0" json:"success,omitempty"`
+	Success *version.Version `thrift:"success,0" json:"success,omitempty"`
 }
 
 func NewBaseServiceGetVersionResult() *BaseServiceGetVersionResult {
 	return &BaseServiceGetVersionResult{}
 }
 
-var BaseServiceGetVersionResult_Success_DEFAULT string
+var BaseServiceGetVersionResult_Success_DEFAULT *version.Version
 
-func (p *BaseServiceGetVersionResult) GetSuccess() string {
+func (p *BaseServiceGetVersionResult) GetSuccess() *version.Version {
 	if !p.IsSetSuccess() {
 		return BaseServiceGetVersionResult_Success_DEFAULT
 	}
-	return *p.Success
+	return p.Success
 }
 func (p *BaseServiceGetVersionResult) IsSetSuccess() bool {
 	return p.Success != nil
@@ -910,10 +1052,9 @@ func (p *BaseServiceGetVersionResult) Read(iprot thrift.TProtocol) error {
 }
 
 func (p *BaseServiceGetVersionResult) ReadField0(iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadString(); err != nil {
-		return thrift.PrependError("error reading field 0: ", err)
-	} else {
-		p.Success = &v
+	p.Success = version.NewVersion()
+	if err := p.Success.Read(iprot); err != nil {
+		return thrift.PrependError(fmt.Sprintf("%T error reading struct: ", p.Success), err)
 	}
 	return nil
 }
@@ -936,11 +1077,11 @@ func (p *BaseServiceGetVersionResult) Write(oprot thrift.TProtocol) error {
 
 func (p *BaseServiceGetVersionResult) writeField0(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSuccess() {
-		if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
+		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
 			return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err)
 		}
-		if err := oprot.WriteString(string(*p.Success)); err != nil {
-			return thrift.PrependError(fmt.Sprintf("%T.success (0) field write error: ", p), err)
+		if err := p.Success.Write(oprot); err != nil {
+			return thrift.PrependError(fmt.Sprintf("%T error writing struct: ", p.Success), err)
 		}
 		if err := oprot.WriteFieldEnd(); err != nil {
 			return thrift.PrependError(fmt.Sprintf("%T write field end error 0:success: ", p), err)
@@ -954,6 +1095,186 @@ func (p *BaseServiceGetVersionResult) String() string {
 		return "<nil>"
 	}
 	return fmt.Sprintf("BaseServiceGetVersionResult(%+v)", *p)
+}
+
+type BaseServiceGetInterfaceVersionsArgs struct {
+}
+
+func NewBaseServiceGetInterfaceVersionsArgs() *BaseServiceGetInterfaceVersionsArgs {
+	return &BaseServiceGetInterfaceVersionsArgs{}
+}
+
+func (p *BaseServiceGetInterfaceVersionsArgs) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		if err := iprot.Skip(fieldTypeId); err != nil {
+			return err
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+	}
+	return nil
+}
+
+func (p *BaseServiceGetInterfaceVersionsArgs) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("getInterfaceVersions_args"); err != nil {
+		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return thrift.PrependError("write field stop error: ", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return thrift.PrependError("write struct stop error: ", err)
+	}
+	return nil
+}
+
+func (p *BaseServiceGetInterfaceVersionsArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("BaseServiceGetInterfaceVersionsArgs(%+v)", *p)
+}
+
+// Attributes:
+//  - Success
+type BaseServiceGetInterfaceVersionsResult struct {
+	Success map[string]*version.Version `thrift:"success,0" json:"success,omitempty"`
+}
+
+func NewBaseServiceGetInterfaceVersionsResult() *BaseServiceGetInterfaceVersionsResult {
+	return &BaseServiceGetInterfaceVersionsResult{}
+}
+
+var BaseServiceGetInterfaceVersionsResult_Success_DEFAULT map[string]*version.Version
+
+func (p *BaseServiceGetInterfaceVersionsResult) GetSuccess() map[string]*version.Version {
+	return p.Success
+}
+func (p *BaseServiceGetInterfaceVersionsResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *BaseServiceGetInterfaceVersionsResult) Read(iprot thrift.TProtocol) error {
+	if _, err := iprot.ReadStructBegin(); err != nil {
+		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+		if err != nil {
+			return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+		switch fieldId {
+		case 0:
+			if err := p.ReadField0(iprot); err != nil {
+				return err
+			}
+		default:
+			if err := iprot.Skip(fieldTypeId); err != nil {
+				return err
+			}
+		}
+		if err := iprot.ReadFieldEnd(); err != nil {
+			return err
+		}
+	}
+	if err := iprot.ReadStructEnd(); err != nil {
+		return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+	}
+	return nil
+}
+
+func (p *BaseServiceGetInterfaceVersionsResult) ReadField0(iprot thrift.TProtocol) error {
+	_, _, size, err := iprot.ReadMapBegin()
+	if err != nil {
+		return thrift.PrependError("error reading map begin: ", err)
+	}
+	tMap := make(map[string]*version.Version, size)
+	p.Success = tMap
+	for i := 0; i < size; i++ {
+		var _key12 string
+		if v, err := iprot.ReadString(); err != nil {
+			return thrift.PrependError("error reading field 0: ", err)
+		} else {
+			_key12 = v
+		}
+		_val13 := version.NewVersion()
+		if err := _val13.Read(iprot); err != nil {
+			return thrift.PrependError(fmt.Sprintf("%T error reading struct: ", _val13), err)
+		}
+		p.Success[_key12] = _val13
+	}
+	if err := iprot.ReadMapEnd(); err != nil {
+		return thrift.PrependError("error reading map end: ", err)
+	}
+	return nil
+}
+
+func (p *BaseServiceGetInterfaceVersionsResult) Write(oprot thrift.TProtocol) error {
+	if err := oprot.WriteStructBegin("getInterfaceVersions_result"); err != nil {
+		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+	}
+	if err := p.writeField0(oprot); err != nil {
+		return err
+	}
+	if err := oprot.WriteFieldStop(); err != nil {
+		return thrift.PrependError("write field stop error: ", err)
+	}
+	if err := oprot.WriteStructEnd(); err != nil {
+		return thrift.PrependError("write struct stop error: ", err)
+	}
+	return nil
+}
+
+func (p *BaseServiceGetInterfaceVersionsResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err := oprot.WriteFieldBegin("success", thrift.MAP, 0); err != nil {
+			return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err)
+		}
+		if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRUCT, len(p.Success)); err != nil {
+			return thrift.PrependError("error writing map begin: ", err)
+		}
+		for k, v := range p.Success {
+			if err := oprot.WriteString(string(k)); err != nil {
+				return thrift.PrependError(fmt.Sprintf("%T. (0) field write error: ", p), err)
+			}
+			if err := v.Write(oprot); err != nil {
+				return thrift.PrependError(fmt.Sprintf("%T error writing struct: ", v), err)
+			}
+		}
+		if err := oprot.WriteMapEnd(); err != nil {
+			return thrift.PrependError("error writing map end: ", err)
+		}
+		if err := oprot.WriteFieldEnd(); err != nil {
+			return thrift.PrependError(fmt.Sprintf("%T write field end error 0:success: ", p), err)
+		}
+	}
+	return err
+}
+
+func (p *BaseServiceGetInterfaceVersionsResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("BaseServiceGetInterfaceVersionsResult(%+v)", *p)
 }
 
 type BaseServiceGetStatusArgs struct {
