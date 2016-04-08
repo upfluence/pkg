@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/upfluence/goutils/log"
 
 func main() {
-	fmt.Println("noop")
+	log.Notice("foo")
 }
