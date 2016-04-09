@@ -8,7 +8,7 @@ import (
 const defaultLevel = logging.NOTICE
 
 var (
-	logger = logging.MustGetLogger("upfluence")
+	logger = &logging.Logger{Module: "upfluence", ExtraCalldepth: 1}
 	format = logging.MustStringFormatter(
 		`[%{level:.1s} %{time:060102 15:04:05} %{shortfile}] %{message}`,
 	)
