@@ -78,43 +78,43 @@
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/driver",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/driver/cassandra",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/driver/postgres",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/driver/sqlite3",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/file",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/migrate",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/migrate/direction",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/pipe",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
