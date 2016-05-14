@@ -35,7 +35,6 @@ func BuildKeySpace(migrationsPath *string) (gocassa.KeySpace, error) {
 	}
 
 	cluster := gocql.NewCluster(cassandraIP)
-	cluster.Keyspace = keySpace
 	cluster.Consistency = gocql.All
 	cluster.ProtoVersion = protocolVersion
 
