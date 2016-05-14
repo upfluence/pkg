@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hailocab/gocassa"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/hailocab/gocassa"
 	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver/cassandra"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
 )

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gocql/gocql"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/gocql/gocql"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/file"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate/direction"
