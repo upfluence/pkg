@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/gocql/gocql"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/hailocab/gocassa"
 	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver/cassandra"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
@@ -33,11 +34,18 @@ func BuildKeySpace(migrationsPath *string) (gocassa.KeySpace, error) {
 		keySpace = fmt.Sprintf("%s%d", defaultKeyspace, rand.Int31())
 	}
 
-	conn, err := gocassa.Connect([]string{cassandraIP}, "", "")
+	cluster := gocql.NewCluster(cassandraIP)
+	cluster.Keyspace = keySpace
+	cluster.Consistency = gocql.All
+	cluster.ProtoVersion = protocolVersion
+
+	session, err := cluster.CreateSession()
 
 	if err != nil {
 		return nil, err
 	}
+
+	conn := gocassa.NewConnection(gocassa.GoCQLSessionToQueryExecutor(session))
 
 	conn.DropKeySpace(keySpace)
 	conn.CreateKeySpace(keySpace)
