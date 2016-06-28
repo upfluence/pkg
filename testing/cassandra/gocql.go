@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/gocql/gocql"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/hailocab/gocassa"
 	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver/cassandra"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
 )
@@ -20,7 +19,7 @@ const (
 	protocolVersion    = 3
 )
 
-func BuildKeySpace(migrationsPath *string) (gocassa.KeySpace, error) {
+func BuildKeySpace(migrationsPath *string) (*gocql.Session, error) {
 	var (
 		cassandraIP = os.Getenv("CASSANDRA_IP")
 		keySpace    = os.Getenv("CASSANDRA_KEY_SPACE")
@@ -44,10 +43,8 @@ func BuildKeySpace(migrationsPath *string) (gocassa.KeySpace, error) {
 		return nil, err
 	}
 
-	conn := gocassa.NewConnection(gocassa.GoCQLSessionToQueryExecutor(session))
-
-	conn.DropKeySpace(keySpace)
-	conn.CreateKeySpace(keySpace)
+	session.Query(`DROP KEYSPACE IF EXISTS ` + keySpace).Exec()
+	session.Query(`CREATE KEYSPACE ` + keySpace).Exec()
 
 	if migrationsPath != nil {
 		errs, ok := migrate.UpSync(
@@ -67,13 +64,10 @@ func BuildKeySpace(migrationsPath *string) (gocassa.KeySpace, error) {
 				strErrs = append(strErrs, migrationError.Error())
 			}
 
-			conn.Close()
+			session.Close()
 			return nil, errors.New(strings.Join(strErrs, ","))
 		}
 	}
 
-	ks := conn.KeySpace(keySpace)
-	ks.DebugMode(true)
-
-	return ks, nil
+	return session, nil
 }
