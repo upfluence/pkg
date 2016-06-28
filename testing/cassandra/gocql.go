@@ -43,6 +43,8 @@ func BuildKeySpace(migrationsPath *string) (*gocql.Session, error) {
 		return nil, err
 	}
 
+	defer session.Close()
+
 	session.Query(`DROP KEYSPACE IF EXISTS ` + keySpace).Exec()
 	session.Query(`CREATE KEYSPACE ` + keySpace).Exec()
 
@@ -64,10 +66,10 @@ func BuildKeySpace(migrationsPath *string) (*gocql.Session, error) {
 				strErrs = append(strErrs, migrationError.Error())
 			}
 
-			session.Close()
 			return nil, errors.New(strings.Join(strErrs, ","))
 		}
 	}
 
-	return session, nil
+	cluster.Keyspace = keySpace
+	return cluster.CreateSession()
 }
