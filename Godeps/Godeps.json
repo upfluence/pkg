@@ -1,7 +1,6 @@
 {
 	"ImportPath": "github.com/upfluence/goutils",
 	"GoVersion": "go1.4",
-	"GodepVersion": "v67",
 	"Packages": [
 		"./..."
 	],
@@ -16,41 +15,12 @@
 			"Rev": "6c910921faab44389a426721cf57599fcd0a10d5"
 		},
 		{
-			"ImportPath": "github.com/gocql/gocql/internal/lru",
-			"Comment": "pre-node-events-297-g6c91092",
-			"Rev": "6c910921faab44389a426721cf57599fcd0a10d5"
-		},
-		{
-			"ImportPath": "github.com/gocql/gocql/internal/murmur",
-			"Comment": "pre-node-events-297-g6c91092",
-			"Rev": "6c910921faab44389a426721cf57599fcd0a10d5"
-		},
-		{
-			"ImportPath": "github.com/gocql/gocql/internal/streams",
-			"Comment": "pre-node-events-297-g6c91092",
-			"Rev": "6c910921faab44389a426721cf57599fcd0a10d5"
-		},
-		{
 			"ImportPath": "github.com/golang/snappy",
 			"Rev": "d7b1e156f50d3c4664f683603af70e3e47fa0aa2"
 		},
 		{
-			"ImportPath": "github.com/google/btree",
-			"Rev": "00edb8c3163323f673bbe3c04afd9429eb12117d"
-		},
-		{
 			"ImportPath": "github.com/hailocab/go-hostpool",
 			"Rev": "e80d13ce29ede4452c43dea11e79b9bc8a15b478"
-		},
-		{
-			"ImportPath": "github.com/hailocab/gocassa",
-			"Comment": "v1.2.0-7-gd3c840d",
-			"Rev": "d3c840df87884c07d5ca67f08ecf62f4877ac79a"
-		},
-		{
-			"ImportPath": "github.com/hailocab/gocassa/reflect",
-			"Comment": "v1.2.0-7-gd3c840d",
-			"Rev": "d3c840df87884c07d5ca67f08ecf62f4877ac79a"
 		},
 		{
 			"ImportPath": "github.com/hallas/stacko",
@@ -67,32 +37,7 @@
 			"Rev": "69552e54d2a9d4c6a2438926a774930f7bc398ec"
 		},
 		{
-			"ImportPath": "github.com/lib/pq/hstore",
-			"Comment": "go1.0-cutoff-81-g69552e5",
-			"Rev": "69552e54d2a9d4c6a2438926a774930f7bc398ec"
-		},
-		{
-			"ImportPath": "github.com/lib/pq/oid",
-			"Comment": "go1.0-cutoff-81-g69552e5",
-			"Rev": "69552e54d2a9d4c6a2438926a774930f7bc398ec"
-		},
-		{
 			"ImportPath": "github.com/mattes/migrate/driver",
-			"Comment": "v1.2.0-70-gce1b59b",
-			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
-		},
-		{
-			"ImportPath": "github.com/mattes/migrate/driver/cassandra",
-			"Comment": "v1.2.0-70-gce1b59b",
-			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
-		},
-		{
-			"ImportPath": "github.com/mattes/migrate/driver/postgres",
-			"Comment": "v1.2.0-70-gce1b59b",
-			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
-		},
-		{
-			"ImportPath": "github.com/mattes/migrate/driver/sqlite3",
 			"Comment": "v1.2.0-70-gce1b59b",
 			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
@@ -107,11 +52,6 @@
 			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
-			"ImportPath": "github.com/mattes/migrate/migrate/direction",
-			"Comment": "v1.2.0-70-gce1b59b",
-			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
-		},
-		{
 			"ImportPath": "github.com/mattes/migrate/pipe",
 			"Comment": "v1.2.0-70-gce1b59b",
 			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
@@ -120,10 +60,6 @@
 			"ImportPath": "github.com/mattn/go-sqlite3",
 			"Comment": "v1.0.0-6-g8897bf1",
 			"Rev": "8897bf145272af4dd0305518cfb725a5b6d0541c"
-		},
-		{
-			"ImportPath": "github.com/mitchellh/mapstructure",
-			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
 		},
 		{
 			"ImportPath": "github.com/op/go-logging",
@@ -140,23 +76,8 @@
 		},
 		{
 			"ImportPath": "github.com/upfluence/base",
-			"Comment": "v0.0.11",
-			"Rev": "v0.0.11"
-		},
-		{
-			"ImportPath": "github.com/upfluence/base/base_service",
-			"Comment": "v0.0.11",
-			"Rev": "v0.0.11"
-		},
-		{
-			"ImportPath": "github.com/upfluence/base/monitoring",
-			"Comment": "v0.0.11",
-			"Rev": "v0.0.11"
-		},
-		{
-			"ImportPath": "github.com/upfluence/base/version",
-			"Comment": "v0.0.11",
-			"Rev": "v0.0.11"
+			"Comment": "v0.0.13",
+			"Rev": "v0.0.13"
 		},
 		{
 			"ImportPath": "github.com/upfluence/thrift/lib/go/thrift",
