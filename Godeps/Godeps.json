@@ -10,6 +10,19 @@
 			"Rev": "b1a41df90100a1421f276a4bacd664803a7b7f0b"
 		},
 		{
+			"ImportPath": "github.com/gocql/gocql",
+			"Comment": "pre-node-events-297-g6c91092",
+			"Rev": "6c910921faab44389a426721cf57599fcd0a10d5"
+		},
+		{
+			"ImportPath": "github.com/golang/snappy",
+			"Rev": "d7b1e156f50d3c4664f683603af70e3e47fa0aa2"
+		},
+		{
+			"ImportPath": "github.com/hailocab/go-hostpool",
+			"Rev": "e80d13ce29ede4452c43dea11e79b9bc8a15b478"
+		},
+		{
 			"ImportPath": "github.com/hallas/stacko",
 			"Comment": "v1.0-19-g99a53f4",
 			"Rev": "99a53f49231b370726f1598972988fa1eda64623"
@@ -25,23 +38,23 @@
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/driver",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/file",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/migrate",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattes/migrate/pipe",
-			"Comment": "v1.2.0-64-g6028882",
-			"Rev": "602888252929b4290c98a89956877e4f9bb033cc"
+			"Comment": "v1.2.0-70-gce1b59b",
+			"Rev": "ce1b59bb819416ca67422929b1cb48bb342720b6"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
@@ -63,12 +76,20 @@
 		},
 		{
 			"ImportPath": "github.com/upfluence/base",
-			"Comment": "v0.0.11",
-			"Rev": "v0.0.11"
+			"Comment": "v0.0.13",
+			"Rev": "v0.0.13"
 		},
 		{
 			"ImportPath": "github.com/upfluence/thrift/lib/go/thrift",
 			"Rev": "ca8e55f8d817a9036cff3cddd54d65735824caa7"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "96dbb961a39ddccf16860cdd355bfa639c497f23"
+		},
+		{
+			"ImportPath": "gopkg.in/inf.v0",
+			"Rev": "3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4"
 		}
 	]
 }
