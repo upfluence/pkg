@@ -46,7 +46,9 @@ func BuildKeySpace(migrationsPath *string) (*gocql.Session, error) {
 	defer session.Close()
 
 	session.Query(`DROP KEYSPACE IF EXISTS ` + keySpace).Exec()
-	session.Query(`CREATE KEYSPACE ` + keySpace).Exec()
+	session.Query(
+		`CREATE KEYSPACE ` + keySpace + ` WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }`,
+	).Exec()
 
 	if migrationsPath != nil {
 		errs, ok := migrate.UpSync(
