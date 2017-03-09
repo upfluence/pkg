@@ -1,15 +1,14 @@
 package cassandra
 
 import (
-	"errors"
 	"fmt"
-	"math/rand"
 	"os"
 	"strings"
+	"sync"
 
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/gocql/gocql"
-	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver/cassandra"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
+	"github.com/upfluence/tracking-server/Godeps/_workspace/src/github.com/gocql/gocql"
+	_ "github.com/upfluence/tracking-server/Godeps/_workspace/src/github.com/mattes/migrate/driver/cassandra"
+	"github.com/upfluence/tracking-server/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
 )
 
 const (
@@ -19,7 +18,9 @@ const (
 	protocolVersion    = 3
 )
 
-func BuildKeySpace(migrationsPath *string) (*gocql.Session, error) {
+var keyspaceMutex = &sync.Mutex{}
+
+func BuildKeySpace(migrationsPath *string, tables []string) (*gocql.Session, *sync.Mutex) {
 	var (
 		cassandraIP = os.Getenv("CASSANDRA_IP")
 		keySpace    = os.Getenv("CASSANDRA_KEY_SPACE")
@@ -30,7 +31,7 @@ func BuildKeySpace(migrationsPath *string) (*gocql.Session, error) {
 	}
 
 	if keySpace == "" {
-		keySpace = fmt.Sprintf("%s%d", defaultKeyspace, rand.Int31())
+		keySpace = defaultKeyspace
 	}
 
 	cluster := gocql.NewCluster(cassandraIP)
@@ -40,15 +41,16 @@ func BuildKeySpace(migrationsPath *string) (*gocql.Session, error) {
 	session, err := cluster.CreateSession()
 
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	defer session.Close()
 
-	session.Query(`DROP KEYSPACE IF EXISTS ` + keySpace).Exec()
-	session.Query(
+	if err = session.Query(
 		`CREATE KEYSPACE ` + keySpace + ` WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }`,
-	).Exec()
+	).Exec(); err != nil {
+		panic(err)
+	}
 
 	if migrationsPath != nil {
 		errs, ok := migrate.UpSync(
@@ -68,10 +70,24 @@ func BuildKeySpace(migrationsPath *string) (*gocql.Session, error) {
 				strErrs = append(strErrs, migrationError.Error())
 			}
 
-			return nil, errors.New(strings.Join(strErrs, ","))
+			panic(strings.Join(strErrs, ","))
 		}
 	}
 
+	keyspaceMutex.Lock()
+
 	cluster.Keyspace = keySpace
-	return cluster.CreateSession()
+	if session, err := cluster.CreateSession(); err != nil {
+		panic(err)
+	} else {
+		for _, table := range tables {
+			if err := session.Query(
+				fmt.Sprintf("TRUNCATE %s", table),
+			).Exec(); err != nil {
+				panic(err)
+			}
+		}
+
+		return session, keyspaceMutex
+	}
 }
