@@ -6,9 +6,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/upfluence/tracking-server/Godeps/_workspace/src/github.com/gocql/gocql"
-	_ "github.com/upfluence/tracking-server/Godeps/_workspace/src/github.com/mattes/migrate/driver/cassandra"
-	"github.com/upfluence/tracking-server/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/gocql/gocql"
+	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver/cassandra"
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
 )
 
 const (
@@ -46,11 +46,9 @@ func BuildKeySpace(migrationsPath *string, tables []string) (*gocql.Session, *sy
 
 	defer session.Close()
 
-	if err = session.Query(
+	session.Query(
 		`CREATE KEYSPACE ` + keySpace + ` WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }`,
-	).Exec(); err != nil {
-		panic(err)
-	}
+	).Exec()
 
 	if migrationsPath != nil {
 		errs, ok := migrate.UpSync(
