@@ -1,9 +1,13 @@
 package thrift
 
 import (
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/cyberdelia/statsd"
 	"log"
 	"os"
+	"time"
+
+	"github.com/upfluence/goutils/tracing"
+	"github.com/upfluence/goutils/tracing/noop"
+	"github.com/upfluence/goutils/tracing/statsd"
 )
 
 var (
@@ -11,34 +15,24 @@ var (
 )
 
 type Metric struct {
-	client *statsd.Client
+	tracer tracing.Tracer
 }
 
 func NewMetric(statsdURL string) *Metric {
-	var client *statsd.Client
-	var err error
-
 	if statsdURL != "" {
-		client, err = statsd.Dial(statsdURL)
-
-		if err != nil {
-			log.Println(err.Error())
-
-			return nil
+		if t, err := statsd.NewTracer(statsdURL, ""); err != nil {
+			log.Println("statsd dial: %s", err.Error())
+		} else {
+			return &Metric{t}
 		}
 	}
-
-	return &Metric{client}
+	return &Metric{&noop.Tracer{}}
 }
 
 func (m *Metric) Incr(metricName string) {
-	if m.client != nil {
-		m.client.Increment(metricName, 1, 1)
-	}
+	m.tracer.Count(metricName, 1)
 }
 
 func (m *Metric) Timing(metricName string, duration int64) {
-	if m.client != nil {
-		m.client.Timing(metricName, int(duration/1000000), 1)
-	}
+	m.tracer.Timing(metricName, time.Duration(duration))
 }

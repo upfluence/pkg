@@ -75,13 +75,21 @@
 			"Rev": "958512be4c1d824e3a89d75b47e6f29751a76a3d"
 		},
 		{
+			"ImportPath": "github.com/streadway/amqp",
+			"Rev": "b4f3ceab0337f013208d31348b578d83c0064744"
+		},
+		{
 			"ImportPath": "github.com/upfluence/base",
-			"Comment": "v0.0.13",
-			"Rev": "v0.0.13"
+			"Comment": "v0.0.19",
+			"Rev": "v0.0.19"
+		},
+		{
+			"ImportPath": "github.com/upfluence/thrift-amqp-go/amqp_thrift",
+			"Rev": "eab0d087c3d8cd895441fcd091c957f44c503d42"
 		},
 		{
 			"ImportPath": "github.com/upfluence/thrift/lib/go/thrift",
-			"Rev": "ca8e55f8d817a9036cff3cddd54d65735824caa7"
+			"Rev": "08ff64a700cc977e6785693b61fe1fb1c28e0eeb"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
