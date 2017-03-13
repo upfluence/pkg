@@ -25,16 +25,18 @@ func TestBuild(t *testing.T) {
 	)
 
 	for _, tCase := range []struct {
+		opts  *Options
 		in    *transport.Transport
 		trans thrift.TTransport
 		err   error
 	}{
 		// No transport
-		{nil, nil, errNoTransport},
-		{&transport.Transport{}, nil, errNoTransport},
+		{nil, nil, nil, errNoTransport},
+		{nil, &transport.Transport{}, nil, errNoTransport},
 
 		// HTTP transport
 		{
+			nil,
 			&transport.Transport{
 				HttpTransport: &http.Transport{
 					Method: http.Method_POST,
@@ -47,6 +49,7 @@ func TestBuild(t *testing.T) {
 
 		// Empty HTTP transport,
 		{
+			nil,
 			&transport.Transport{
 				HttpTransport: &http.Transport{},
 			},
@@ -56,6 +59,7 @@ func TestBuild(t *testing.T) {
 
 		// RabbitMQ transport
 		{
+			nil,
 			&transport.Transport{
 				RabbitmqTransport: &rabbitmq.Transport{
 					ExchangeName: "foo",
@@ -68,6 +72,7 @@ func TestBuild(t *testing.T) {
 
 		// Both transport set
 		{
+			nil,
 			&transport.Transport{
 				HttpTransport: &http.Transport{
 					Method: http.Method_POST,
@@ -82,7 +87,9 @@ func TestBuild(t *testing.T) {
 			nil,
 		},
 	} {
-		trans, prot, err := Build(&thrift_service.Service{Transport: tCase.in})
+		trans, prot, err := NewBuilder(tCase.opts).Build(
+			&thrift_service.Service{Transport: tCase.in},
+		)
 
 		if prot != protocolFactory {
 			t.Errorf("Wrong protocol factory: %v", prot)
