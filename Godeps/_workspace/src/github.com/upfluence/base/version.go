@@ -3,8 +3,8 @@ package base
 import "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/version"
 
 var (
-	semVersion  = &version.SemanticVersion{0, 0, 13}
-	gitVersion  = &version.GitVersion{"06e06196cb2c", "https://github.com/upfluence/upfluence-if", "master"}
+	semVersion  = &version.SemanticVersion{0, 0, 19}
+	gitVersion  = &version.GitVersion{"86d62e2b8121", "https://github.com/upfluence/upfluence-if", "master"}
 	baseVersion = &version.Version{semVersion, gitVersion}
 )
 
