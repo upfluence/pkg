@@ -2,9 +2,9 @@ package builder
 
 import (
 	"errors"
-	"os"
 	"time"
 
+	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/streadway/amqp"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift/transport/http"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift/transport/rabbitmq"
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift_service"
@@ -23,17 +23,52 @@ var (
 	protocolFactory       = thrift.NewTBinaryProtocolFactoryDefault()
 )
 
-func Build(service *thrift_service.Service) (thrift.TTransport, thrift.TProtocolFactory, error) {
+type Builder interface {
+	Build(service *thrift_service.Service) (thrift.TTransport, thrift.TProtocolFactory, error)
+}
+
+type builder struct {
+	opts Options
+}
+
+type RabbitMQOptions struct {
+	Connection                  *amqp.Connection
+	Channel                     *amqp.Channel
+	URL, QueueName, ConsumerTag string
+}
+
+type Options struct {
+	RabbitMQOptions        *RabbitMQOptions
+	DefaultProtocolFactory thrift.TProtocolFactory
+}
+
+func NewBuilder(opts *Options) Builder {
+	var o Options
+
+	if opts != nil {
+		o = *opts
+	}
+
+	return &builder{opts: o}
+}
+
+func (b *builder) Build(service *thrift_service.Service) (thrift.TTransport, thrift.TProtocolFactory, error) {
 	var (
 		transport thrift.TTransport
 		err       error
+
+		protFactory thrift.TProtocolFactory = protocolFactory
 	)
+
+	if fact := b.opts.DefaultProtocolFactory; fact != nil {
+		protFactory = fact
+	}
 
 	if trans := service.Transport; trans != nil {
 		if t := trans.HttpTransport; t != nil {
-			transport, err = buildHTTPTransport(t)
+			transport, err = b.buildHTTPTransport(t)
 		} else if t := trans.RabbitmqTransport; t != nil {
-			transport, err = buildRabbitMQTransport(t)
+			transport, err = b.buildRabbitMQTransport(t)
 		}
 	}
 
@@ -41,10 +76,10 @@ func Build(service *thrift_service.Service) (thrift.TTransport, thrift.TProtocol
 		err = errNoTransport
 	}
 
-	return transport, protocolFactory, err
+	return transport, protFactory, err
 }
 
-func buildHTTPTransport(transport *http.Transport) (thrift.TTransport, error) {
+func (b *builder) buildHTTPTransport(transport *http.Transport) (thrift.TTransport, error) {
 	if url := transport.GetUrl(); url == "" {
 		return nil, errHTTPTransportNoURL
 	}
@@ -52,11 +87,23 @@ func buildHTTPTransport(transport *http.Transport) (thrift.TTransport, error) {
 	return thrift.NewTHttpPostClient(transport.GetUrl())
 }
 
-func buildRabbitMQTransport(transport *rabbitmq.Transport) (thrift.TTransport, error) {
-	rabbitMQURL := os.Getenv("RABBITMQ_URL")
+func (b *builder) buildRabbitMQTransport(transport *rabbitmq.Transport) (thrift.TTransport, error) {
+	var rabbitMQURL = defaultRabbitMQURL
 
-	if rabbitMQURL == "" {
-		rabbitMQURL = defaultRabbitMQURL
+	if t := b.opts.RabbitMQOptions; t != nil {
+		if t.URL != "" {
+			rabbitMQURL = t.URL
+		}
+
+		return amqp_thrift.NewTAMQPClientFromConnAndQueue(
+			t.Connection,
+			t.Channel,
+			transport.GetExchangeName(),
+			transport.GetRoutingKey(),
+			t.ConsumerTag,
+			t.QueueName,
+			defaultOpenTimeout,
+		)
 	}
 
 	return amqp_thrift.NewTAMQPClient(
