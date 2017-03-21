@@ -2,7 +2,7 @@ package thrift
 
 import (
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift"
-	"github.com/upfluence/goutils/error_logger/opbeat"
+	"github.com/upfluence/goutils/error_logger"
 )
 
 var (
@@ -30,14 +30,13 @@ func NewServer(processor thrift.TProcessor, transport thrift.TServerTransport) *
 }
 
 func (s *Server) Start() error {
-	opbeatLogger := opbeat.NewErrorLogger()
 	errLog := func(err error) {
-		opbeatLogger.Capture(err, nil)
+		error_logger.DefaultErrorLogger.Capture(err, nil)
 	}
 
 	s.server.SetErrorLogger(errLog)
 
 	err := s.server.Serve()
-	opbeatLogger.Close()
+	error_logger.DefaultErrorLogger.Close()
 	return err
 }
