@@ -35,6 +35,7 @@ type RabbitMQOptions struct {
 	Connection                  *amqp.Connection
 	Channel                     *amqp.Channel
 	URL, QueueName, ConsumerTag string
+	OnewayMode                  bool
 }
 
 type Options struct {
@@ -103,6 +104,7 @@ func (b *builder) buildRabbitMQTransport(transport *rabbitmq.Transport) (thrift.
 			t.ConsumerTag,
 			t.QueueName,
 			defaultOpenTimeout,
+			t.OnewayMode,
 		)
 	}
 

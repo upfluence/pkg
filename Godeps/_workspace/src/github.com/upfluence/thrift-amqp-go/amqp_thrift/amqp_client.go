@@ -13,7 +13,10 @@ import (
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift"
 )
 
-var OpenTimeoutError = errors.New("Open timeout errror")
+var (
+	errOpenTimeout = errors.New("Open timeout errror")
+	errOneWay      = errors.New("Can't read from it, one way mode only")
+)
 
 type TAMQPClient struct {
 	URI                   string
@@ -29,6 +32,7 @@ type TAMQPClient struct {
 	deliveries            <-chan amqp.Delivery
 	exitChan              chan bool
 	openTimeout           time.Duration
+	isOneway              bool
 }
 
 func NewTAMQPClientFromConnAndQueue(
@@ -39,6 +43,7 @@ func NewTAMQPClientFromConnAndQueue(
 	consumerTag string,
 	queueName string,
 	openTimeout time.Duration,
+	isOneway bool,
 ) (thrift.TTransport, error) {
 	buf := make([]byte, 0, 1024)
 	cTag := fmt.Sprintf("%s-%d", consumerTag, rand.Uint32())
@@ -53,6 +58,7 @@ func NewTAMQPClientFromConnAndQueue(
 		exitChan:      make(chan bool, 1),
 		QueueName:     queueName,
 		openTimeout:   openTimeout,
+		isOneway:      isOneway,
 	}, nil
 }
 
@@ -63,6 +69,7 @@ func NewTAMQPClientFromConn(
 	routingKey string,
 	consumerTag string,
 	openTimeout time.Duration,
+	isOneway bool,
 ) (thrift.TTransport, error) {
 	return NewTAMQPClientFromConnAndQueue(
 		conn,
@@ -72,6 +79,7 @@ func NewTAMQPClientFromConn(
 		consumerTag,
 		"",
 		openTimeout,
+		isOneway,
 	)
 }
 
@@ -104,7 +112,7 @@ func (c *TAMQPClient) Open() error {
 		select {
 		case err = <-errChan:
 		case <-time.After(c.openTimeout):
-			err = OpenTimeoutError
+			err = errOpenTimeout
 		}
 	} else {
 		err = <-errChan
@@ -128,8 +136,14 @@ func (c *TAMQPClient) open() error {
 		}
 	}
 
+	if c.isOneway {
+		return nil
+	}
+
 	if c.QueueName == "" {
-		queue, err := c.Channel.QueueDeclare(
+		var queue amqp.Queue
+
+		queue, err = c.Channel.QueueDeclare(
 			"",    // name of the queue
 			true,  // durable
 			true,  // delete when usused
@@ -158,13 +172,13 @@ func (c *TAMQPClient) open() error {
 
 	c.responseReader = r
 
-	if err := r.Open(); err != nil {
+	if err = r.Open(); err != nil {
 		return err
 	}
 
 	go r.Consume()
 
-	return err
+	return nil
 }
 
 func (c *TAMQPClient) IsOpen() bool {
@@ -172,6 +186,10 @@ func (c *TAMQPClient) IsOpen() bool {
 }
 
 func (c *TAMQPClient) Close() error {
+	if c.isOneway {
+		return nil
+	}
+
 	if c.consumerTag != "" {
 		c.Channel.Cancel(c.consumerTag, true)
 	}
@@ -194,6 +212,10 @@ func (c *TAMQPClient) Close() error {
 }
 
 func (c *TAMQPClient) Read(buf []byte) (int, error) {
+	if c.isOneway {
+		return 0, errOneWay
+	}
+
 	return c.responseReader.Read(buf)
 }
 
