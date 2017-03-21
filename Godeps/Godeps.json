@@ -85,7 +85,7 @@
 		},
 		{
 			"ImportPath": "github.com/upfluence/thrift-amqp-go/amqp_thrift",
-			"Rev": "9e9aa0e0843d7ae77ab096cafa9c0de69527b9d5"
+			"Rev": "b86068314af849b8980f04e5a30520b2d8bb2bb4"
 		},
 		{
 			"ImportPath": "github.com/upfluence/thrift/lib/go/thrift",
