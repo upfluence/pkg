@@ -1,5 +1,7 @@
 package error_logger
 
+var DefaultErrorLogger ErrorLogger
+
 type Options map[string]interface{}
 
 type ErrorLogger interface {
@@ -8,6 +10,7 @@ type ErrorLogger interface {
 }
 
 func Setup(logger ErrorLogger) {
+	DefaultErrorLogger = logger
 	if e := recover(); e != nil {
 		if err, ok := e.(error); ok {
 			logger.Capture(err, nil)
