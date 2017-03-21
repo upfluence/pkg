@@ -88,6 +88,10 @@
 			"Rev": "b86068314af849b8980f04e5a30520b2d8bb2bb4"
 		},
 		{
+			"ImportPath": "github.com/upfluence/thrift-http-go/http_thrift",
+			"Rev": "04449055cbeab943dca29f746e637d89e97b2b87"
+		},
+		{
 			"ImportPath": "github.com/upfluence/thrift/lib/go/thrift",
 			"Rev": "08ff64a700cc977e6785693b61fe1fb1c28e0eeb"
 		},
