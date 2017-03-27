@@ -35,5 +35,5 @@ func (l *Logger) Capture(err error, opts *error_logger.Options) error {
 }
 
 func (l *Logger) Close() {
-	l.client.Close()
+	l.client.Wait()
 }
