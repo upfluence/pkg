@@ -85,7 +85,7 @@
 		},
 		{
 			"ImportPath": "github.com/upfluence/thrift-amqp-go/amqp_thrift",
-			"Rev": "b86068314af849b8980f04e5a30520b2d8bb2bb4"
+			"Rev": "a1f1042ab67e116d3ae590a50ac9bc1ee06ec246"
 		},
 		{
 			"ImportPath": "github.com/upfluence/thrift-http-go/http_thrift",
@@ -93,7 +93,7 @@
 		},
 		{
 			"ImportPath": "github.com/upfluence/thrift/lib/go/thrift",
-			"Rev": "08ff64a700cc977e6785693b61fe1fb1c28e0eeb"
+			"Rev": "1b6f8cbd1fc0941811525a4dd926027541e3261a"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",

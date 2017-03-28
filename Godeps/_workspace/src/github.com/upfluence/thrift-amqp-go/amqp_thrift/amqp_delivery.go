@@ -53,13 +53,9 @@ func (d *TAMQPDelivery) Flush() error {
 				Body:          d.writeBuffer.Bytes(),
 			},
 		); err != nil {
-			d.Delivery.Ack(false)
-
 			return err
-		} else {
-			return d.Delivery.Ack(false)
 		}
-	} else {
-		return d.Delivery.Ack(false)
 	}
+
+	return nil
 }
