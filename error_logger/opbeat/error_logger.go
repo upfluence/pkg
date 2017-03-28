@@ -1,9 +1,11 @@
 package opbeat
 
 import (
+	"runtime"
+
 	opbeatClient "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/roncohen/opbeat-go"
 	"github.com/upfluence/goutils/error_logger"
-	"runtime"
+	"github.com/upfluence/goutils/log"
 )
 
 type Logger struct {
@@ -15,6 +17,8 @@ func NewErrorLogger() *Logger {
 }
 
 func (l *Logger) Capture(err error, opts *error_logger.Options) error {
+	log.Error(err.Error())
+
 	var options *opbeatClient.Options
 
 	extra := make(opbeatClient.Extra)
