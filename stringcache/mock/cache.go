@@ -33,3 +33,13 @@ func (c *Cache) Delete(k string) error {
 
 	return nil
 }
+
+func (c *Cache) Keys() []string {
+	var r []string
+
+	for k := range c.st {
+		r = append(r, k)
+	}
+
+	return r
+}
