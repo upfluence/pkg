@@ -19,7 +19,7 @@ type Endpoint struct {
 }
 
 func NewEndpoint(baseHandler *handler.Base, port int) (*Endpoint, error) {
-	mux := http.NewServeMux()
+	mux := httputil.NewMux()
 	trans, err := http_thrift.NewTHTTPServerFromMux(mux, "/base")
 
 	if err != nil {
@@ -51,8 +51,6 @@ func (e *Endpoint) Mount(processor stdThrift.TProcessor, path string) error {
 }
 
 func (e *Endpoint) Serve() error {
-	e.mux.HandleFunc("/healthcheck", httputil.HealthcheckHandler)
-
 	for _, s := range e.servers {
 		go func(server *thrift.Server) { server.Start() }(s)
 	}
