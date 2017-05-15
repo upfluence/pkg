@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/lib/pq"
+	_ "github.com/lib/pq"
 )
 
 func TestBuildDatabaseNotExist(t *testing.T) {

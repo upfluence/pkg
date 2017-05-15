@@ -3,9 +3,9 @@ package rabbitmq
 import (
 	"fmt"
 
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/base_service"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift-amqp-go/amqp_thrift"
-	stdThrift "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift"
+	"github.com/upfluence/base/base_service"
+	"github.com/upfluence/thrift-amqp-go/amqp_thrift"
+	stdThrift "github.com/upfluence/thrift/lib/go/thrift"
 	"github.com/upfluence/goutils/error_logger"
 	"github.com/upfluence/goutils/thrift"
 	"github.com/upfluence/goutils/thrift/handler"

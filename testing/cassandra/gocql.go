@@ -6,9 +6,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/gocql/gocql"
-	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver/cassandra"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
+	"github.com/gocql/gocql"
+	_ "github.com/mattes/migrate/driver/cassandra"
+	"github.com/mattes/migrate/migrate"
 )
 
 const (

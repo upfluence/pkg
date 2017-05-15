@@ -4,12 +4,12 @@ import (
 	"errors"
 	"time"
 
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/streadway/amqp"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift/transport/http"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift/transport/rabbitmq"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift_service"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift-amqp-go/amqp_thrift"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift"
+	"github.com/streadway/amqp"
+	"github.com/upfluence/base/service/thrift/transport/http"
+	"github.com/upfluence/base/service/thrift/transport/rabbitmq"
+	"github.com/upfluence/base/service/thrift_service"
+	"github.com/upfluence/thrift-amqp-go/amqp_thrift"
+	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
 const (

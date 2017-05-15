@@ -1,8 +1,8 @@
 package util
 
 import (
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift-amqp-go/amqp_thrift"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift"
+	"github.com/upfluence/thrift-amqp-go/amqp_thrift"
+	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
 var defaultProtocolFactory = thrift.NewTBinaryProtocolFactoryDefault()

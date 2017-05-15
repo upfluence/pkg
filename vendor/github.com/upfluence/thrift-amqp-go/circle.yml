@@ -1,0 +1,7 @@
+general:
+  build_dir: integration
+
+test:
+  override:
+    - sleep 5
+    - go test -v -timeout=10s -parallel=1 ./...

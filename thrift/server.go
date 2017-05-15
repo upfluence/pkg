@@ -1,7 +1,7 @@
 package thrift
 
 import (
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift"
+	"github.com/upfluence/thrift/lib/go/thrift"
 	"github.com/upfluence/goutils/error_logger"
 )
 

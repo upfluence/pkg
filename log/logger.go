@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/op/go-logging"
+	"github.com/op/go-logging"
 	"os"
 )
 
