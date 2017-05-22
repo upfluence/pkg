@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/gocql/gocql"
 	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver/cassandra"
@@ -14,6 +15,7 @@ import (
 const (
 	defaultCassandraIP = "127.0.0.1"
 	defaultKeyspace    = "test"
+	defaultTimeout     = time.Minute
 	cassandraPort      = 9042
 	protocolVersion    = 3
 )
@@ -37,6 +39,7 @@ func BuildKeySpace(migrationsPath *string, tables []string) (*gocql.Session, *sy
 	cluster := gocql.NewCluster(cassandraIP)
 	cluster.Consistency = gocql.All
 	cluster.ProtoVersion = protocolVersion
+	cluster.Timeout = defaultTimeout
 
 	session, err := cluster.CreateSession()
 
