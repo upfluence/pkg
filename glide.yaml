@@ -11,7 +11,7 @@ import:
 - package: github.com/hallas/stacko
   version: 99a53f49231b370726f1598972988fa1eda64623
 - package: github.com/jinzhu/gorm
-  version: 19aacb8fbbc8b93f55a428d53839469a5828b890
+  version: v1.0
 - package: github.com/lib/pq
   version: 69552e54d2a9d4c6a2438926a774930f7bc398ec
 - package: github.com/mattes/migrate
@@ -22,7 +22,7 @@ import:
   - migrate
   - pipe
 - package: github.com/mattn/go-sqlite3
-  version: 8897bf145272af4dd0305518cfb725a5b6d0541c
+  version: cf7286f
 - package: github.com/op/go-logging
   version: 970db520ece77730c7e4724c61121037378659d9
 - package: github.com/roncohen/opbeat-go

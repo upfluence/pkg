@@ -83,5 +83,5 @@ func BuildDatabase(
 		}
 	}
 
-	return &db, nil
+	return db, nil
 }
