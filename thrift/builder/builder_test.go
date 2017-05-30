@@ -5,12 +5,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift/transport"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift/transport/http"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift/transport/rabbitmq"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/service/thrift_service"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift-amqp-go/amqp_thrift"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift"
+	"github.com/upfluence/base/service/thrift/transport"
+	"github.com/upfluence/base/service/thrift/transport/http"
+	"github.com/upfluence/base/service/thrift/transport/rabbitmq"
+	"github.com/upfluence/base/service/thrift_service"
+	"github.com/upfluence/thrift-amqp-go/amqp_thrift"
+	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
 func TestBuild(t *testing.T) {

@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/base_service"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/upfluence/base/version"
+	"github.com/upfluence/base"
+	"github.com/upfluence/base/base_service"
+	"github.com/upfluence/base/version"
 )
 
 const (

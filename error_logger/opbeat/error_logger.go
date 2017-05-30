@@ -3,7 +3,7 @@ package opbeat
 import (
 	"runtime"
 
-	opbeatClient "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/roncohen/opbeat-go"
+	opbeatClient "github.com/roncohen/opbeat-go"
 	"github.com/upfluence/goutils/error_logger"
 	"github.com/upfluence/goutils/log"
 )

@@ -8,10 +8,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/jinzhu/gorm"
-	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/lib/pq"
-	_ "github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/driver/postgres"
-	"github.com/upfluence/goutils/Godeps/_workspace/src/github.com/mattes/migrate/migrate"
+	"github.com/jinzhu/gorm"
+	_ "github.com/lib/pq"
+	_ "github.com/mattes/migrate/driver/postgres"
+	"github.com/mattes/migrate/migrate"
 )
 
 const defaultPostgresURL = "postgres://localhost:5432/test_database?sslmode=disable"
@@ -83,5 +83,5 @@ func BuildDatabase(
 		}
 	}
 
-	return &db, nil
+	return db, nil
 }
