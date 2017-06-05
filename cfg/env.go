@@ -3,9 +3,12 @@ package cfg
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/upfluence/goutils/log"
 )
+
+const listSeparator = ","
 
 func FetchString(variable, defaultValue string) string {
 	if v := os.Getenv(variable); v != "" {
@@ -24,6 +27,14 @@ func FetchInt(variable string, defaultValue int) int {
 		}
 
 		log.Errorf("fetchInt: %s", err.Error())
+	}
+
+	return defaultValue
+}
+
+func FetchStrings(variable string, defaultValue []string) []string {
+	if v := os.Getenv(variable); v != "" {
+		return strings.Split(v, listSeparator)
 	}
 
 	return defaultValue
