@@ -1,13 +1,17 @@
-hash: ea7f29220f2cb85b61924b4a9cf0a387863802eb4edb128769590ec4fc45afbd
-updated: 2017-05-25T10:49:53.743856837-04:00
+hash: bf9d4d1bdefb2262d3906b9c2335d82dcb718a26b49e12fd6db3fb02f3ab7731
+updated: 2017-07-13T14:53:45.331947871-04:00
 imports:
+- name: github.com/certifi/gocertifi
+  version: a9c833d2837d3b16888d55d5aafa9ffe9afb22b0
 - name: github.com/cyberdelia/statsd
   version: b1a41df90100a1421f276a4bacd664803a7b7f0b
 - name: github.com/garyburd/redigo
-  version: 433969511232c397de61b1442f9fd49ec06ae9ba
+  version: 836b6e58b3358112c8291565d01c35b8764070d7
   subpackages:
   - internal
   - redis
+- name: github.com/getsentry/raven-go
+  version: d175f85701dfbf44cb0510114c9943e665e60907
 - name: github.com/gocql/gocql
   version: 6c910921faab44389a426721cf57599fcd0a10d5
   subpackages:

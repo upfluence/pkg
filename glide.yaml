@@ -52,3 +52,4 @@ import:
 - package: github.com/garyburd/redigo
   subpackages:
   - redis
+- package: github.com/getsentry/raven-go
