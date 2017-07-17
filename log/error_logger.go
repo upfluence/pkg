@@ -19,7 +19,7 @@ func (b *errorLoggerBackend) Log(_ logging.Level, d int, r *logging.Record) erro
 		argIdx int
 	)
 
-	if len(r.Args) > 0 {
+	if len(r.Args) == 0 {
 		return nil
 	}
 
