@@ -2,7 +2,7 @@ package amqp_thrift
 
 import (
 	"bytes"
-	"sync"
+	"errors"
 
 	"github.com/streadway/amqp"
 )
@@ -16,7 +16,6 @@ type AMQPQueueReader struct {
 	isClosing   chan bool
 	closeChan   chan *amqp.Error
 	buffer      *bytes.Buffer
-	mutex       *sync.Mutex
 	deliveries  <-chan amqp.Delivery
 }
 
@@ -30,7 +29,6 @@ func NewAMQPQueueReader(channel *amqp.Channel, queueName string, consumerTag str
 		make(chan bool, 1),
 		make(chan *amqp.Error),
 		bytes.NewBuffer(make([]byte, 0, 1024)),
-		&sync.Mutex{},
 		nil,
 	}, nil
 }
@@ -53,16 +51,16 @@ func (r *AMQPQueueReader) Open() error {
 	return err
 }
 
-func (r *AMQPQueueReader) Consume() {
+func (r *AMQPQueueReader) Consume() error {
 	for {
 		select {
-		case <-r.closeChan:
+		case e := <-r.closeChan:
 			r.newData <- true
-			return
+			return e
 		case delivery, ok := <-r.deliveries:
 			if !ok {
 				r.newData <- true
-				return
+				return errors.New("Delivery channel close")
 			}
 
 			shouldNotify := false
@@ -77,11 +75,9 @@ func (r *AMQPQueueReader) Consume() {
 				r.newData <- true
 			}
 		case <-r.exitChan:
-			return
+			return nil
 		}
 	}
-
-	return
 }
 
 func (r *AMQPQueueReader) Read(b []byte) (int, error) {

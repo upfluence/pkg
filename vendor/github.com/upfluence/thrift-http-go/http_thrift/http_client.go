@@ -2,6 +2,7 @@ package http_thrift
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -12,11 +13,12 @@ import (
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
+var errTransportClosed = errors.New("thrift/transport/http: Transport closed")
+
 type THTTPClient struct {
 	response      *http.Response
 	url           *url.URL
 	requestBuffer *bytes.Buffer
-	header        http.Header
 	retries       uint
 	retryDelay    time.Duration
 	timeout       time.Duration
@@ -57,27 +59,13 @@ func NewTHTTPClient(urlstr string, retries uint, retryDelay, timeout time.Durati
 	return &THTTPClient{
 		url:           parsedURL,
 		requestBuffer: bytes.NewBuffer(buf),
-		header:        http.Header{},
 		retries:       retries,
 		retryDelay:    retryDelay,
 		timeout:       timeout,
 	}, nil
 }
 
-func (p *THTTPClient) SetHeader(key string, value string) {
-	p.header.Add(key, value)
-}
-
-func (p *THTTPClient) GetHeader(key string) string {
-	return p.header.Get(key)
-}
-
-func (p *THTTPClient) DelHeader(key string) {
-	p.header.Del(key)
-}
-
 func (p *THTTPClient) Open() error {
-	// do nothing
 	return nil
 }
 
@@ -111,6 +99,10 @@ func (p *THTTPClient) Read(buf []byte) (int, error) {
 }
 
 func (p *THTTPClient) Write(buf []byte) (int, error) {
+	if p.requestBuffer == nil {
+		return 0, errTransportClosed
+	}
+
 	n, err := p.requestBuffer.Write(buf)
 	return n, err
 }
@@ -121,8 +113,8 @@ func (p *THTTPClient) doRequest() (*http.Response, error) {
 	if err != nil {
 		return nil, thrift.NewTTransportExceptionFromError(err)
 	}
-	p.header.Add("Content-Type", "application/x-thrift")
-	req.Header = p.header
+
+	req.Header.Add("Content-Type", "application/x-thrift")
 
 	response, err := client.Do(req)
 
@@ -145,6 +137,10 @@ func (p *THTTPClient) Flush() error {
 		err error
 		i   uint = 1
 	)
+
+	if p.requestBuffer == nil {
+		return errTransportClosed
+	}
 
 	p.response, err = p.doRequest()
 

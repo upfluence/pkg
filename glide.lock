@@ -1,58 +1,54 @@
-hash: bf9d4d1bdefb2262d3906b9c2335d82dcb718a26b49e12fd6db3fb02f3ab7731
-updated: 2017-07-13T14:53:45.331947871-04:00
+hash: 465fa37c70341f6aa16d849b03f740585e330104722aeb04a43266f316fc48a3
+updated: 2017-07-19T17:04:16.644904918-04:00
 imports:
 - name: github.com/certifi/gocertifi
   version: a9c833d2837d3b16888d55d5aafa9ffe9afb22b0
 - name: github.com/cyberdelia/statsd
   version: b1a41df90100a1421f276a4bacd664803a7b7f0b
 - name: github.com/garyburd/redigo
-  version: 836b6e58b3358112c8291565d01c35b8764070d7
+  version: 433969511232c397de61b1442f9fd49ec06ae9ba
   subpackages:
   - internal
   - redis
 - name: github.com/getsentry/raven-go
   version: d175f85701dfbf44cb0510114c9943e665e60907
 - name: github.com/gocql/gocql
-  version: 6c910921faab44389a426721cf57599fcd0a10d5
+  version: 88748c7b290d13b288055f5dea4d1c49d44db06d
   subpackages:
   - internal/lru
   - internal/murmur
   - internal/streams
 - name: github.com/golang/snappy
-  version: d7b1e156f50d3c4664f683603af70e3e47fa0aa2
+  version: 553a641470496b2327abcac10b36396bd98e45c9
 - name: github.com/hailocab/go-hostpool
   version: e80d13ce29ede4452c43dea11e79b9bc8a15b478
 - name: github.com/hallas/stacko
-  version: 99a53f49231b370726f1598972988fa1eda64623
+  version: f35fc1c0582692ba9aef59e275f0230c0992f9ae
 - name: github.com/jinzhu/gorm
   version: 5174cc5c242a728b435ea2be8a2f7f998e15429b
 - name: github.com/jinzhu/inflection
   version: 1c35d901db3da928c72a72d8458480cc9ade058f
 - name: github.com/lib/pq
-  version: 69552e54d2a9d4c6a2438926a774930f7bc398ec
+  version: dd1fe2071026ce53f36a39112e645b4d4f5793a4
   subpackages:
   - oid
 - name: github.com/mattes/migrate
-  version: ce1b59bb819416ca67422929b1cb48bb342720b6
+  version: afc973c4e5a6b746217c2d3950fcd110ed1ba349
   subpackages:
-  - driver
   - driver/cassandra
   - driver/postgres
   - driver/sqlite3
-  - file
   - migrate
-  - migrate/direction
-  - pipe
 - name: github.com/mattn/go-sqlite3
-  version: cf7286f069c3ef596efcc87781a4653a2e7607bd
+  version: ca5e3819723d8eeaf170ad510e7da1d6d2e94a08
 - name: github.com/op/go-logging
   version: 970db520ece77730c7e4724c61121037378659d9
 - name: github.com/roncohen/opbeat-go
   version: 958512be4c1d824e3a89d75b47e6f29751a76a3d
 - name: github.com/streadway/amqp
-  version: b4f3ceab0337f013208d31348b578d83c0064744
+  version: 2cbfe40c9341ad63ba23e53013b3ddc7989d801c
 - name: github.com/upfluence/base
-  version: v0.0.19
+  version: v0.0.20
   subpackages:
   - base_service
   - monitoring
@@ -62,29 +58,28 @@ imports:
   - service/thrift_service
   - version
 - name: github.com/upfluence/thrift
-  version: 1b6f8cbd1fc0941811525a4dd926027541e3261a
+  version: f593378d777509a16cc0297622318972dfa8cd6e
   subpackages:
   - lib/go/thrift
 - name: github.com/upfluence/thrift-amqp-go
-  version: a1f1042ab67e116d3ae590a50ac9bc1ee06ec246
+  version: 7eb96921589ced2ff09ecc2438cfec2a83a0f286
   subpackages:
-  - Godeps/_workspace/src/github.com/cyberdelia/statsd
-  - Godeps/_workspace/src/github.com/op/go-logging
-  - Godeps/_workspace/src/github.com/streadway/amqp
-  - Godeps/_workspace/src/github.com/upfluence/goutils/log
-  - Godeps/_workspace/src/github.com/upfluence/goutils/tracing
-  - Godeps/_workspace/src/github.com/upfluence/goutils/tracing/noop
-  - Godeps/_workspace/src/github.com/upfluence/goutils/tracing/statsd
-  - Godeps/_workspace/src/github.com/upfluence/thrift/lib/go/thrift
   - amqp_thrift
 - name: github.com/upfluence/thrift-http-go
-  version: 04449055cbeab943dca29f746e637d89e97b2b87
+  version: 2ccd137635a989a9a8c61651dacc086ddc4faf5f
   subpackages:
   - http_thrift
 - name: golang.org/x/net
-  version: 96dbb961a39ddccf16860cdd355bfa639c497f23
+  version: 02ac38e2528ff4adea90f184d71a3faa04b4b1b0
   subpackages:
   - context
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
+- name: gopkg.in/mattes/migrate.v1
+  version: afc973c4e5a6b746217c2d3950fcd110ed1ba349
+  subpackages:
+  - driver
+  - file
+  - migrate/direction
+  - pipe
 testImports: []

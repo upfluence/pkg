@@ -7,15 +7,19 @@ import (
 	"io"
 	"math/rand"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/streadway/amqp"
+	"github.com/upfluence/goutils/log"
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
 var (
-	errOpenTimeout = errors.New("Open timeout errror")
-	errOneWay      = errors.New("Can't read from it, one way mode only")
+	errOpenTimeout = errors.New("thrift/amqp/transport: Open timeout errror")
+	errOneWay      = errors.New("thrift/amqp/transport: Can't read from it, one way mode only")
+
+	connectRetryDelay = time.Second
 )
 
 type TAMQPClient struct {
@@ -33,6 +37,7 @@ type TAMQPClient struct {
 	exitChan              chan bool
 	openTimeout           time.Duration
 	isOneway              bool
+	connectionMu          sync.Mutex
 }
 
 func NewTAMQPClientFromConnAndQueue(
@@ -59,6 +64,7 @@ func NewTAMQPClientFromConnAndQueue(
 		QueueName:     queueName,
 		openTimeout:   openTimeout,
 		isOneway:      isOneway,
+		connectionMu:  sync.Mutex{},
 	}, nil
 }
 
@@ -136,6 +142,39 @@ func (c *TAMQPClient) open() error {
 		}
 	}
 
+	channelClosing := make(chan *amqp.Error)
+	c.Channel.NotifyClose(channelClosing)
+
+	go func() {
+		var err error
+		err = <-channelClosing
+		c.connectionMu.Lock()
+		defer c.connectionMu.Unlock()
+		log.Errorf("thrift/transport/amqp: %s", err.Error())
+
+		for err != nil {
+			time.Sleep(connectRetryDelay)
+
+			log.Warning("thrift/transport/amqp: will retry connection")
+
+			if c.Connection != nil {
+				c.Connection.Close()
+			}
+
+			c.Channel = nil
+			c.Connection = nil
+			c.QueueName = ""
+
+			err = c.open()
+
+			if err != nil {
+				log.Errorf("thrift/transport/amqp: %s", err.Error())
+			} else {
+				log.Warningf("thrift/transport/amqp: Reconnected")
+			}
+		}
+	}()
+
 	if c.isOneway {
 		return nil
 	}
@@ -176,7 +215,11 @@ func (c *TAMQPClient) open() error {
 		return err
 	}
 
-	go r.Consume()
+	go func() {
+		if err := r.Consume(); err != nil {
+			log.Errorf("thrift/transport/amqp: %s", err.Error())
+		}
+	}()
 
 	return nil
 }
@@ -224,6 +267,9 @@ func (c *TAMQPClient) Write(buf []byte) (int, error) {
 }
 
 func (c *TAMQPClient) Flush() error {
+	c.connectionMu.Lock()
+	defer c.connectionMu.Unlock()
+
 	err := c.Channel.Publish(
 		c.ExchangeName,
 		c.RoutingKey,

@@ -6,14 +6,17 @@ package gocql
 
 import (
 	"fmt"
-	"log"
+	"math"
+	"math/rand"
+	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/hailocab/go-hostpool"
 )
 
-// cowHostList implements a copy on write host list, its equivilent type is []*HostInfo
+// cowHostList implements a copy on write host list, its equivalent type is []*HostInfo
 type cowHostList struct {
 	list atomic.Value
 	mu   sync.Mutex
@@ -90,7 +93,7 @@ func (c *cowHostList) update(host *HostInfo) {
 	c.mu.Unlock()
 }
 
-func (c *cowHostList) remove(addr string) bool {
+func (c *cowHostList) remove(ip net.IP) bool {
 	c.mu.Lock()
 	l := c.get()
 	size := len(l)
@@ -102,7 +105,7 @@ func (c *cowHostList) remove(addr string) bool {
 	found := false
 	newL := make([]*HostInfo, 0, size)
 	for i := 0; i < len(l); i++ {
-		if l[i].Peer() != addr {
+		if !l[i].ConnectAddress().Equal(ip) {
 			newL = append(newL, l[i])
 		} else {
 			found = true
@@ -159,11 +162,39 @@ func (s *SimpleRetryPolicy) Attempt(q RetryableQuery) bool {
 	return q.Attempts() <= s.NumRetries
 }
 
+// ExponentialBackoffRetryPolicy sleeps between attempts
+type ExponentialBackoffRetryPolicy struct {
+	NumRetries int
+	Min, Max   time.Duration
+}
+
+func (e *ExponentialBackoffRetryPolicy) Attempt(q RetryableQuery) bool {
+	if q.Attempts() > e.NumRetries {
+		return false
+	}
+	time.Sleep(e.napTime(q.Attempts()))
+	return true
+}
+
+func (e *ExponentialBackoffRetryPolicy) napTime(attempts int) time.Duration {
+	if e.Min <= 0 {
+		e.Min = 100 * time.Millisecond
+	}
+	if e.Max <= 0 {
+		e.Max = 10 * time.Second
+	}
+	minFloat := float64(e.Min)
+	napDuration := minFloat * math.Pow(2, float64(attempts-1))
+	// add some jitter
+	napDuration += rand.Float64()*minFloat - (minFloat / 2)
+	return time.Duration(napDuration)
+}
+
 type HostStateNotifier interface {
 	AddHost(host *HostInfo)
-	RemoveHost(addr string)
+	RemoveHost(host *HostInfo)
 	HostUp(host *HostInfo)
-	HostDown(addr string)
+	HostDown(host *HostInfo)
 }
 
 // HostSelectionPolicy is an interface for selecting
@@ -235,16 +266,16 @@ func (r *roundRobinHostPolicy) AddHost(host *HostInfo) {
 	r.hosts.add(host)
 }
 
-func (r *roundRobinHostPolicy) RemoveHost(addr string) {
-	r.hosts.remove(addr)
+func (r *roundRobinHostPolicy) RemoveHost(host *HostInfo) {
+	r.hosts.remove(host.ConnectAddress())
 }
 
 func (r *roundRobinHostPolicy) HostUp(host *HostInfo) {
 	r.AddHost(host)
 }
 
-func (r *roundRobinHostPolicy) HostDown(addr string) {
-	r.RemoveHost(addr)
+func (r *roundRobinHostPolicy) HostDown(host *HostInfo) {
+	r.RemoveHost(host)
 }
 
 // TokenAwareHostPolicy is a token aware host selection policy, where hosts are
@@ -263,9 +294,6 @@ type tokenAwareHostPolicy struct {
 }
 
 func (t *tokenAwareHostPolicy) SetPartitioner(partitioner string) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
 	if t.partitioner != partitioner {
 		t.fallback.SetPartitioner(partitioner)
 		t.partitioner = partitioner
@@ -278,29 +306,28 @@ func (t *tokenAwareHostPolicy) AddHost(host *HostInfo) {
 	t.hosts.add(host)
 	t.fallback.AddHost(host)
 
-	t.mu.Lock()
 	t.resetTokenRing()
-	t.mu.Unlock()
 }
 
-func (t *tokenAwareHostPolicy) RemoveHost(addr string) {
-	t.hosts.remove(addr)
-	t.fallback.RemoveHost(addr)
+func (t *tokenAwareHostPolicy) RemoveHost(host *HostInfo) {
+	t.hosts.remove(host.ConnectAddress())
+	t.fallback.RemoveHost(host)
 
-	t.mu.Lock()
 	t.resetTokenRing()
-	t.mu.Unlock()
 }
 
 func (t *tokenAwareHostPolicy) HostUp(host *HostInfo) {
 	t.AddHost(host)
 }
 
-func (t *tokenAwareHostPolicy) HostDown(addr string) {
-	t.RemoveHost(addr)
+func (t *tokenAwareHostPolicy) HostDown(host *HostInfo) {
+	t.RemoveHost(host)
 }
 
 func (t *tokenAwareHostPolicy) resetTokenRing() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	if t.partitioner == "" {
 		// partitioner not yet set
 		return
@@ -310,7 +337,7 @@ func (t *tokenAwareHostPolicy) resetTokenRing() {
 	hosts := t.hosts.get()
 	tokenRing, err := newTokenRing(t.partitioner, hosts)
 	if err != nil {
-		log.Printf("Unable to update the token ring due to error: %s", err)
+		Logger.Printf("Unable to update the token ring due to error: %s", err)
 		return
 	}
 
@@ -377,7 +404,7 @@ func (t *tokenAwareHostPolicy) Pick(qry ExecutableQuery) NextHost {
 //     // Create host selection policy using a simple host pool
 //     cluster.PoolConfig.HostSelectionPolicy = HostPoolHostPolicy(hostpool.New(nil))
 //
-//     // Create host selection policy using an epsilon greddy pool
+//     // Create host selection policy using an epsilon greedy pool
 //     cluster.PoolConfig.HostSelectionPolicy = HostPoolHostPolicy(
 //         hostpool.NewEpsilonGreedy(nil, 0, &hostpool.LinearEpsilonValueCalculator{}),
 //     )
@@ -397,8 +424,9 @@ func (r *hostPoolHostPolicy) SetHosts(hosts []*HostInfo) {
 	hostMap := make(map[string]*HostInfo, len(hosts))
 
 	for i, host := range hosts {
-		peers[i] = host.Peer()
-		hostMap[host.Peer()] = host
+		ip := host.ConnectAddress().String()
+		peers[i] = ip
+		hostMap[ip] = host
 	}
 
 	r.mu.Lock()
@@ -408,35 +436,40 @@ func (r *hostPoolHostPolicy) SetHosts(hosts []*HostInfo) {
 }
 
 func (r *hostPoolHostPolicy) AddHost(host *HostInfo) {
+	ip := host.ConnectAddress().String()
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, ok := r.hostMap[host.Peer()]; ok {
+	// If the host addr is present and isn't nil return
+	if h, ok := r.hostMap[ip]; ok && h != nil {
 		return
 	}
-
-	hosts := make([]string, 0, len(r.hostMap)+1)
-	for addr := range r.hostMap {
-		hosts = append(hosts, addr)
-	}
-	hosts = append(hosts, host.Peer())
-
-	r.hp.SetHosts(hosts)
-	r.hostMap[host.Peer()] = host
-}
-
-func (r *hostPoolHostPolicy) RemoveHost(addr string) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if _, ok := r.hostMap[addr]; !ok {
-		return
-	}
-
-	delete(r.hostMap, addr)
+	// otherwise, add the host to the map
+	r.hostMap[ip] = host
+	// and construct a new peer list to give to the HostPool
 	hosts := make([]string, 0, len(r.hostMap))
 	for addr := range r.hostMap {
 		hosts = append(hosts, addr)
+	}
+
+	r.hp.SetHosts(hosts)
+}
+
+func (r *hostPoolHostPolicy) RemoveHost(host *HostInfo) {
+	ip := host.ConnectAddress().String()
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, ok := r.hostMap[ip]; !ok {
+		return
+	}
+
+	delete(r.hostMap, ip)
+	hosts := make([]string, 0, len(r.hostMap))
+	for _, host := range r.hostMap {
+		hosts = append(hosts, host.ConnectAddress().String())
 	}
 
 	r.hp.SetHosts(hosts)
@@ -446,8 +479,8 @@ func (r *hostPoolHostPolicy) HostUp(host *HostInfo) {
 	r.AddHost(host)
 }
 
-func (r *hostPoolHostPolicy) HostDown(addr string) {
-	r.RemoveHost(addr)
+func (r *hostPoolHostPolicy) HostDown(host *HostInfo) {
+	r.RemoveHost(host)
 }
 
 func (r *hostPoolHostPolicy) SetPartitioner(partitioner string) {
@@ -490,10 +523,12 @@ func (host selectedHostPoolHost) Info() *HostInfo {
 }
 
 func (host selectedHostPoolHost) Mark(err error) {
+	ip := host.info.ConnectAddress().String()
+
 	host.policy.mu.RLock()
 	defer host.policy.mu.RUnlock()
 
-	if _, ok := host.policy.hostMap[host.info.Peer()]; !ok {
+	if _, ok := host.policy.hostMap[ip]; !ok {
 		// host was removed between pick and mark
 		return
 	}
