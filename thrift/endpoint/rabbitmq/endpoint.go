@@ -6,9 +6,9 @@ import (
 	"github.com/upfluence/base/base_service"
 	"github.com/upfluence/thrift-amqp-go/amqp_thrift"
 	stdThrift "github.com/upfluence/thrift/lib/go/thrift"
-	"github.com/upfluence/goutils/error_logger"
-	"github.com/upfluence/goutils/thrift"
-	"github.com/upfluence/goutils/thrift/handler"
+	"github.com/upfluence/pkg/error_logger"
+	"github.com/upfluence/pkg/thrift"
+	"github.com/upfluence/pkg/thrift/handler"
 )
 
 type Endpoint struct {

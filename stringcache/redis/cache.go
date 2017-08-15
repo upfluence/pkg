@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	"github.com/upfluence/goutils/stringcache"
+	"github.com/upfluence/pkg/stringcache"
 )
 
 const redisTimeout = 20 * time.Second

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/getsentry/raven-go"
-	"github.com/upfluence/goutils/thrift/handler"
+	"github.com/upfluence/pkg/thrift/handler"
 )
 
 type ErrorLogger struct {

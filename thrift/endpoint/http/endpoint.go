@@ -7,9 +7,9 @@ import (
 	"github.com/upfluence/base/base_service"
 	"github.com/upfluence/thrift-http-go/http_thrift"
 	stdThrift "github.com/upfluence/thrift/lib/go/thrift"
-	"github.com/upfluence/goutils/httputil"
-	"github.com/upfluence/goutils/thrift"
-	"github.com/upfluence/goutils/thrift/handler"
+	"github.com/upfluence/pkg/httputil"
+	"github.com/upfluence/pkg/thrift"
+	"github.com/upfluence/pkg/thrift/handler"
 )
 
 type Endpoint struct {

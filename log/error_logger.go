@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/op/go-logging"
-	"github.com/upfluence/goutils/error_logger"
+	"github.com/upfluence/pkg/error_logger"
 )
 
 type errorLoggerBackend struct {

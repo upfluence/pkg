@@ -3,7 +3,7 @@ package testutil
 import (
 	"testing"
 
-	"github.com/upfluence/goutils/stringcache"
+	"github.com/upfluence/pkg/stringcache"
 )
 
 const mockKey = "foo-bar"

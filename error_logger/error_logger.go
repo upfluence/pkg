@@ -3,9 +3,9 @@ package error_logger
 import (
 	"os"
 
-	"github.com/upfluence/goutils/error_logger/noop"
-	"github.com/upfluence/goutils/error_logger/opbeat"
-	"github.com/upfluence/goutils/error_logger/sentry"
+	"github.com/upfluence/pkg/error_logger/noop"
+	"github.com/upfluence/pkg/error_logger/opbeat"
+	"github.com/upfluence/pkg/error_logger/sentry"
 )
 
 var DefaultErrorLogger ErrorLogger

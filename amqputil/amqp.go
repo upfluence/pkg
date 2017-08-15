@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/streadway/amqp"
-	"github.com/upfluence/goutils/log"
+	"github.com/upfluence/pkg/log"
 )
 
 const defaultBackoff = 5 * time.Second

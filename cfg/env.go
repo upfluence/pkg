@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/upfluence/goutils/log"
+	"github.com/upfluence/pkg/log"
 )
 
 const listSeparator = ","

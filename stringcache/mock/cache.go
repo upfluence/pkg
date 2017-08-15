@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/upfluence/goutils/stringcache"
+import "github.com/upfluence/pkg/stringcache"
 
 type Cache struct {
 	st map[string]bool

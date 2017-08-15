@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/upfluence/base/monitoring"
-	"github.com/upfluence/goutils/monitoring/metric"
+	"github.com/upfluence/pkg/monitoring/metric"
 )
 
 type MonitoringHandler struct {

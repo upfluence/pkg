@@ -3,7 +3,7 @@ package redis
 import (
 	"testing"
 
-	"github.com/upfluence/goutils/stringcache/testutil"
+	"github.com/upfluence/pkg/stringcache/testutil"
 )
 
 func TestIntegration(t *testing.T) {

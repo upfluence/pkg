@@ -2,7 +2,7 @@ package thrift
 
 import (
 	"github.com/upfluence/thrift/lib/go/thrift"
-	"github.com/upfluence/goutils/error_logger"
+	"github.com/upfluence/pkg/error_logger"
 )
 
 var (

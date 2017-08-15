@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/upfluence/base/monitoring"
-	"github.com/upfluence/goutils/monitoring/metric"
-	"github.com/upfluence/goutils/monitoring/metric/mock"
+	"github.com/upfluence/pkg/monitoring/metric"
+	"github.com/upfluence/pkg/monitoring/metric/mock"
 )
 
 func TestHandlerWithMetric(t *testing.T) {

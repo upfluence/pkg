@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/upfluence/goutils/monitoring/metric"
+	"github.com/upfluence/pkg/monitoring/metric"
 )
 
 type mockMetric struct {
