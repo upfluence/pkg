@@ -7,19 +7,17 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/upfluence/thrift/lib/go/thrift"
-	"time"
 )
 
 // (needed to ensure safety because of naive import list construction.)
 var _ = thrift.ZERO
 var _ = fmt.Printf
 var _ = bytes.Equal
-var _ = time.Now()
 
 type Monitoring interface {
 	// Parameters:
 	//  - Metrics
-	Collect(metrics []string) (r Metrics, err error)
+	Collect(metrics []MetricID) (r Metrics, err error)
 }
 
 type MonitoringClient struct {
@@ -28,6 +26,15 @@ type MonitoringClient struct {
 	InputProtocol   thrift.TProtocol
 	OutputProtocol  thrift.TProtocol
 	SeqId           int32
+}
+
+func NewMonitoringClientFactoryProvider(p thrift.TClientProvider) (*MonitoringClient, error) {
+	t, f, err := p.Build("monitoring.Monitoring")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewMonitoringClientFactory(t, f), nil
 }
 
 func NewMonitoringClientFactory(t thrift.TTransport, f thrift.TProtocolFactory) *MonitoringClient {
@@ -50,23 +57,15 @@ func NewMonitoringClientProtocol(t thrift.TTransport, iprot thrift.TProtocol, op
 
 // Parameters:
 //  - Metrics
-func (p *MonitoringClient) Collect(metrics []string) (r Metrics, err error) {
-	t0 := time.Now().UnixNano()
+func (p *MonitoringClient) Collect(metrics []MetricID) (r Metrics, err error) {
 	if err = p.sendCollect(metrics); err != nil {
 		return
 	}
 	r, err = p.recvCollect()
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("Monitoring.Collect.client", t1-t0)
-	if err == nil {
-		thrift.Metrics.Incr("Monitoring.Collect.client.success")
-	} else {
-		thrift.Metrics.Incr("Monitoring.Collect.client.exceptions.application_error")
-	}
 	return
 }
 
-func (p *MonitoringClient) sendCollect(metrics []string) (err error) {
+func (p *MonitoringClient) sendCollect(metrics []MetricID) (err error) {
 	oprot := p.OutputProtocol
 	if oprot == nil {
 		oprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -159,8 +158,17 @@ func (p *MonitoringProcessor) ProcessorMap() map[string]thrift.TProcessorFunctio
 	return p.processorMap
 }
 
-func NewMonitoringProcessor(handler Monitoring) *MonitoringProcessor {
+func NewMonitoringServerFactoryProvider(p thrift.TServerProvider, handler Monitoring) (thrift.TServer, error) {
+	s, f, err := p.Build("monitoring.Monitoring")
 
+	if err != nil {
+		return nil, err
+	}
+
+	return s.GetServer(f, NewMonitoringProcessor(handler)), nil
+}
+
+func NewMonitoringProcessor(handler Monitoring) *MonitoringProcessor {
 	self2 := &MonitoringProcessor{handler: handler, processorMap: make(map[string]thrift.TProcessorFunction)}
 	self2.processorMap["collect"] = &monitoringProcessorCollect{handler: handler}
 	return self2
@@ -205,33 +213,23 @@ func (p *monitoringProcessorCollect) Process(seqId int32, iprot, oprot thrift.TP
 	result := MonitoringCollectResult{}
 	var retval Metrics
 	var err2 error
-	t0 := time.Now().UnixNano()
 	if retval, err2 = p.handler.Collect(args.Metrics); err2 != nil {
 		switch v := err2.(type) {
 		case *ServiceNotAvailable:
-			thrift.Metrics.Incr("Monitoring.collect.server.exceptions.*ServiceNotAvailable")
 			result.ServiceUnavailable = v
 		case *UnknownMetric:
-			thrift.Metrics.Incr("Monitoring.collect.server.exceptions.*UnknownMetric")
 			result.UnknownMetric = v
 		default:
-			thrift.Metrics.Incr("Monitoring.collect.server.success")
 			x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing collect: "+err2.Error())
 			oprot.WriteMessageBegin("collect", thrift.EXCEPTION, seqId)
 			x.Write(oprot)
 			oprot.WriteMessageEnd()
 			oprot.Flush()
-			thrift.Metrics.Incr("Monitoring.collect.server.exceptions.application_error")
 			return true, err2
 		}
 	} else {
-		thrift.Metrics.Incr("Monitoring.collect.server.success")
 		result.Success = retval
 	}
-
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("Monitoring.collect.server", t1-t0)
-
 	if err2 = oprot.WriteMessageBegin("collect", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
@@ -255,14 +253,14 @@ func (p *monitoringProcessorCollect) Process(seqId int32, iprot, oprot thrift.TP
 // Attributes:
 //  - Metrics
 type MonitoringCollectArgs struct {
-	Metrics []string `thrift:"metrics,1" json:"metrics"`
+	Metrics []MetricID `thrift:"metrics,1" json:"metrics"`
 }
 
 func NewMonitoringCollectArgs() *MonitoringCollectArgs {
 	return &MonitoringCollectArgs{}
 }
 
-func (p *MonitoringCollectArgs) GetMetrics() []string {
+func (p *MonitoringCollectArgs) GetMetrics() []MetricID {
 	return p.Metrics
 }
 func (p *MonitoringCollectArgs) Read(iprot thrift.TProtocol) error {
@@ -303,14 +301,15 @@ func (p *MonitoringCollectArgs) ReadField1(iprot thrift.TProtocol) error {
 	if err != nil {
 		return thrift.PrependError("error reading list begin: ", err)
 	}
-	tSlice := make([]string, 0, size)
+	tSlice := make([]MetricID, 0, size)
 	p.Metrics = tSlice
 	for i := 0; i < size; i++ {
-		var _elem4 string
+		var _elem4 MetricID
 		if v, err := iprot.ReadString(); err != nil {
 			return thrift.PrependError("error reading field 0: ", err)
 		} else {
-			_elem4 = v
+			temp := MetricID(v)
+			_elem4 = temp
 		}
 		p.Metrics = append(p.Metrics, _elem4)
 	}

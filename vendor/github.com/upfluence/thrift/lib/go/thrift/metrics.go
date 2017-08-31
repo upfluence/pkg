@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/upfluence/goutils/tracing"
-	"github.com/upfluence/goutils/tracing/noop"
-	"github.com/upfluence/goutils/tracing/statsd"
+	"github.com/upfluence/pkg/tracing"
+	"github.com/upfluence/pkg/tracing/noop"
+	"github.com/upfluence/pkg/tracing/statsd"
 )
 
 var (

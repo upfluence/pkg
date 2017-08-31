@@ -32,12 +32,14 @@ import:
   - service/thrift_service
   - version
 - package: github.com/upfluence/thrift-amqp-go
+  version: ^0.1.0
   subpackages:
   - amqp_thrift
 - package: github.com/upfluence/thrift-http-go
+  version: ^0.1.0
   subpackages:
   - http_thrift
 - package: github.com/upfluence/thrift
-  version: f593378d777509a16cc0297622318972dfa8cd6e
+  version: ^1.0.0
   subpackages:
   - lib/go/thrift

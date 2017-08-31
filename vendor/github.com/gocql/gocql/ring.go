@@ -1,8 +1,6 @@
 package gocql
 
 import (
-	"fmt"
-	"net"
 	"sync"
 	"sync/atomic"
 )
@@ -11,7 +9,7 @@ type ring struct {
 	// endpoints are the set of endpoints which the driver will attempt to connect
 	// to in the case it can not reach any of its hosts. They are also used to boot
 	// strap the initial connection.
-	endpoints []*HostInfo
+	endpoints []string
 
 	// hosts are the set of all hosts in the cassandra ring that we know of
 	mu    sync.RWMutex
@@ -36,9 +34,9 @@ func (r *ring) rrHost() *HostInfo {
 	return r.hostList[pos%len(r.hostList)]
 }
 
-func (r *ring) getHost(ip net.IP) *HostInfo {
+func (r *ring) getHost(addr string) *HostInfo {
 	r.mu.RLock()
-	host := r.hosts[ip.String()]
+	host := r.hosts[addr]
 	r.mu.RUnlock()
 	return host
 }
@@ -54,72 +52,42 @@ func (r *ring) allHosts() []*HostInfo {
 }
 
 func (r *ring) addHost(host *HostInfo) bool {
-	if host.invalidConnectAddr() {
-		panic(fmt.Sprintf("invalid host: %v", host))
-	}
-	ip := host.ConnectAddress().String()
-
 	r.mu.Lock()
 	if r.hosts == nil {
 		r.hosts = make(map[string]*HostInfo)
 	}
 
-	_, ok := r.hosts[ip]
-	if !ok {
-		r.hostList = append(r.hostList, host)
-	}
-
-	r.hosts[ip] = host
+	addr := host.Peer()
+	_, ok := r.hosts[addr]
+	r.hosts[addr] = host
 	r.mu.Unlock()
 	return ok
 }
 
-func (r *ring) addOrUpdate(host *HostInfo) *HostInfo {
-	if existingHost, ok := r.addHostIfMissing(host); ok {
-		existingHost.update(host)
-		host = existingHost
-	}
-	return host
-}
-
 func (r *ring) addHostIfMissing(host *HostInfo) (*HostInfo, bool) {
-	if host.invalidConnectAddr() {
-		panic(fmt.Sprintf("invalid host: %v", host))
-	}
-	ip := host.ConnectAddress().String()
-
 	r.mu.Lock()
 	if r.hosts == nil {
 		r.hosts = make(map[string]*HostInfo)
 	}
 
-	existing, ok := r.hosts[ip]
+	addr := host.Peer()
+	existing, ok := r.hosts[addr]
 	if !ok {
-		r.hosts[ip] = host
+		r.hosts[addr] = host
 		existing = host
-		r.hostList = append(r.hostList, host)
 	}
 	r.mu.Unlock()
 	return existing, ok
 }
 
-func (r *ring) removeHost(ip net.IP) bool {
+func (r *ring) removeHost(addr string) bool {
 	r.mu.Lock()
 	if r.hosts == nil {
 		r.hosts = make(map[string]*HostInfo)
 	}
 
-	k := ip.String()
-	_, ok := r.hosts[k]
-	if ok {
-		for i, host := range r.hostList {
-			if host.ConnectAddress().Equal(ip) {
-				r.hostList = append(r.hostList[:i], r.hostList[i+1:]...)
-				break
-			}
-		}
-	}
-	delete(r.hosts, k)
+	_, ok := r.hosts[addr]
+	delete(r.hosts, addr)
 	r.mu.Unlock()
 	return ok
 }

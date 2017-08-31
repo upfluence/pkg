@@ -8,15 +8,12 @@ import (
 	"fmt"
 	"github.com/upfluence/base/version"
 	"github.com/upfluence/thrift/lib/go/thrift"
-	"time"
 )
 
 // (needed to ensure safety because of naive import list construction.)
 var _ = thrift.ZERO
 var _ = fmt.Printf
 var _ = bytes.Equal
-var _ = time.Now()
-
 var _ = version.GoUnusedProtection__
 
 type BaseService interface {
@@ -33,6 +30,15 @@ type BaseServiceClient struct {
 	InputProtocol   thrift.TProtocol
 	OutputProtocol  thrift.TProtocol
 	SeqId           int32
+}
+
+func NewBaseServiceClientFactoryProvider(p thrift.TClientProvider) (*BaseServiceClient, error) {
+	t, f, err := p.Build("base_service.BaseService")
+	if err != nil {
+		return nil, err
+	}
+
+	return NewBaseServiceClientFactory(t, f), nil
 }
 
 func NewBaseServiceClientFactory(t thrift.TTransport, f thrift.TProtocolFactory) *BaseServiceClient {
@@ -54,18 +60,10 @@ func NewBaseServiceClientProtocol(t thrift.TTransport, iprot thrift.TProtocol, o
 }
 
 func (p *BaseServiceClient) GetName() (r string, err error) {
-	t0 := time.Now().UnixNano()
 	if err = p.sendGetName(); err != nil {
 		return
 	}
 	r, err = p.recvGetName()
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.GetName.client", t1-t0)
-	if err == nil {
-		thrift.Metrics.Incr("BaseService.GetName.client.success")
-	} else {
-		thrift.Metrics.Incr("BaseService.GetName.client.exceptions.application_error")
-	}
 	return
 }
 
@@ -136,18 +134,10 @@ func (p *BaseServiceClient) recvGetName() (value string, err error) {
 }
 
 func (p *BaseServiceClient) GetVersion() (r *version.Version, err error) {
-	t0 := time.Now().UnixNano()
 	if err = p.sendGetVersion(); err != nil {
 		return
 	}
 	r, err = p.recvGetVersion()
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.GetVersion.client", t1-t0)
-	if err == nil {
-		thrift.Metrics.Incr("BaseService.GetVersion.client.success")
-	} else {
-		thrift.Metrics.Incr("BaseService.GetVersion.client.exceptions.application_error")
-	}
 	return
 }
 
@@ -218,18 +208,10 @@ func (p *BaseServiceClient) recvGetVersion() (value *version.Version, err error)
 }
 
 func (p *BaseServiceClient) GetInterfaceVersions() (r map[string]*version.Version, err error) {
-	t0 := time.Now().UnixNano()
 	if err = p.sendGetInterfaceVersions(); err != nil {
 		return
 	}
 	r, err = p.recvGetInterfaceVersions()
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.GetInterfaceVersions.client", t1-t0)
-	if err == nil {
-		thrift.Metrics.Incr("BaseService.GetInterfaceVersions.client.success")
-	} else {
-		thrift.Metrics.Incr("BaseService.GetInterfaceVersions.client.exceptions.application_error")
-	}
 	return
 }
 
@@ -300,18 +282,10 @@ func (p *BaseServiceClient) recvGetInterfaceVersions() (value map[string]*versio
 }
 
 func (p *BaseServiceClient) GetStatus() (r Status, err error) {
-	t0 := time.Now().UnixNano()
 	if err = p.sendGetStatus(); err != nil {
 		return
 	}
 	r, err = p.recvGetStatus()
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.GetStatus.client", t1-t0)
-	if err == nil {
-		thrift.Metrics.Incr("BaseService.GetStatus.client.success")
-	} else {
-		thrift.Metrics.Incr("BaseService.GetStatus.client.exceptions.application_error")
-	}
 	return
 }
 
@@ -382,18 +356,10 @@ func (p *BaseServiceClient) recvGetStatus() (value Status, err error) {
 }
 
 func (p *BaseServiceClient) AliveSince() (r int64, err error) {
-	t0 := time.Now().UnixNano()
 	if err = p.sendAliveSince(); err != nil {
 		return
 	}
 	r, err = p.recvAliveSince()
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.AliveSince.client", t1-t0)
-	if err == nil {
-		thrift.Metrics.Incr("BaseService.AliveSince.client.success")
-	} else {
-		thrift.Metrics.Incr("BaseService.AliveSince.client.exceptions.application_error")
-	}
 	return
 }
 
@@ -481,8 +447,17 @@ func (p *BaseServiceProcessor) ProcessorMap() map[string]thrift.TProcessorFuncti
 	return p.processorMap
 }
 
-func NewBaseServiceProcessor(handler BaseService) *BaseServiceProcessor {
+func NewBaseServiceServerFactoryProvider(p thrift.TServerProvider, handler BaseService) (thrift.TServer, error) {
+	s, f, err := p.Build("base_service.BaseService")
 
+	if err != nil {
+		return nil, err
+	}
+
+	return s.GetServer(f, NewBaseServiceProcessor(handler)), nil
+}
+
+func NewBaseServiceProcessor(handler BaseService) *BaseServiceProcessor {
 	self10 := &BaseServiceProcessor{handler: handler, processorMap: make(map[string]thrift.TProcessorFunction)}
 	self10.processorMap["getName"] = &baseServiceProcessorGetName{handler: handler}
 	self10.processorMap["getVersion"] = &baseServiceProcessorGetVersion{handler: handler}
@@ -531,23 +506,16 @@ func (p *baseServiceProcessorGetName) Process(seqId int32, iprot, oprot thrift.T
 	result := BaseServiceGetNameResult{}
 	var retval string
 	var err2 error
-	t0 := time.Now().UnixNano()
 	if retval, err2 = p.handler.GetName(); err2 != nil {
 		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing getName: "+err2.Error())
 		oprot.WriteMessageBegin("getName", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
-		thrift.Metrics.Incr("BaseService.getName.server.exceptions.application_error")
 		return true, err2
 	} else {
-		thrift.Metrics.Incr("BaseService.getName.server.success")
 		result.Success = &retval
 	}
-
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.getName.server", t1-t0)
-
 	if err2 = oprot.WriteMessageBegin("getName", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
@@ -586,23 +554,16 @@ func (p *baseServiceProcessorGetVersion) Process(seqId int32, iprot, oprot thrif
 	result := BaseServiceGetVersionResult{}
 	var retval *version.Version
 	var err2 error
-	t0 := time.Now().UnixNano()
 	if retval, err2 = p.handler.GetVersion(); err2 != nil {
 		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing getVersion: "+err2.Error())
 		oprot.WriteMessageBegin("getVersion", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
-		thrift.Metrics.Incr("BaseService.getVersion.server.exceptions.application_error")
 		return true, err2
 	} else {
-		thrift.Metrics.Incr("BaseService.getVersion.server.success")
 		result.Success = retval
 	}
-
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.getVersion.server", t1-t0)
-
 	if err2 = oprot.WriteMessageBegin("getVersion", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
@@ -641,23 +602,16 @@ func (p *baseServiceProcessorGetInterfaceVersions) Process(seqId int32, iprot, o
 	result := BaseServiceGetInterfaceVersionsResult{}
 	var retval map[string]*version.Version
 	var err2 error
-	t0 := time.Now().UnixNano()
 	if retval, err2 = p.handler.GetInterfaceVersions(); err2 != nil {
 		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing getInterfaceVersions: "+err2.Error())
 		oprot.WriteMessageBegin("getInterfaceVersions", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
-		thrift.Metrics.Incr("BaseService.getInterfaceVersions.server.exceptions.application_error")
 		return true, err2
 	} else {
-		thrift.Metrics.Incr("BaseService.getInterfaceVersions.server.success")
 		result.Success = retval
 	}
-
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.getInterfaceVersions.server", t1-t0)
-
 	if err2 = oprot.WriteMessageBegin("getInterfaceVersions", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
@@ -696,23 +650,16 @@ func (p *baseServiceProcessorGetStatus) Process(seqId int32, iprot, oprot thrift
 	result := BaseServiceGetStatusResult{}
 	var retval Status
 	var err2 error
-	t0 := time.Now().UnixNano()
 	if retval, err2 = p.handler.GetStatus(); err2 != nil {
 		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing getStatus: "+err2.Error())
 		oprot.WriteMessageBegin("getStatus", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
-		thrift.Metrics.Incr("BaseService.getStatus.server.exceptions.application_error")
 		return true, err2
 	} else {
-		thrift.Metrics.Incr("BaseService.getStatus.server.success")
 		result.Success = &retval
 	}
-
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.getStatus.server", t1-t0)
-
 	if err2 = oprot.WriteMessageBegin("getStatus", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
@@ -751,23 +698,16 @@ func (p *baseServiceProcessorAliveSince) Process(seqId int32, iprot, oprot thrif
 	result := BaseServiceAliveSinceResult{}
 	var retval int64
 	var err2 error
-	t0 := time.Now().UnixNano()
 	if retval, err2 = p.handler.AliveSince(); err2 != nil {
 		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing aliveSince: "+err2.Error())
 		oprot.WriteMessageBegin("aliveSince", thrift.EXCEPTION, seqId)
 		x.Write(oprot)
 		oprot.WriteMessageEnd()
 		oprot.Flush()
-		thrift.Metrics.Incr("BaseService.aliveSince.server.exceptions.application_error")
 		return true, err2
 	} else {
-		thrift.Metrics.Incr("BaseService.aliveSince.server.success")
 		result.Success = &retval
 	}
-
-	t1 := time.Now().UnixNano()
-	thrift.Metrics.Timing("BaseService.aliveSince.server", t1-t0)
-
 	if err2 = oprot.WriteMessageBegin("aliveSince", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}

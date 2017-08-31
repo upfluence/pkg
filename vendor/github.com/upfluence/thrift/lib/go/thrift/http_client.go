@@ -87,7 +87,13 @@ func NewTHttpPostClient(urlstr string) (TTransport, error) {
 		return nil, err
 	}
 	buf := make([]byte, 0, 1024)
-	return &THttpClient{url: parsedURL, requestBuffer: bytes.NewBuffer(buf), header: http.Header{}}, nil
+	return &THttpClient{
+		url:           parsedURL,
+		requestBuffer: bytes.NewBuffer(buf),
+		header: http.Header{
+			"Content-Type": []string{"application/x-thrift"},
+		},
+	}, nil
 }
 
 // Set the HTTP Header for this specific Thrift Transport
@@ -176,7 +182,6 @@ func (p *THttpClient) Flush() error {
 	if err != nil {
 		return NewTTransportExceptionFromError(err)
 	}
-	p.header.Add("Content-Type", "application/x-thrift")
 	req.Header = p.header
 	response, err := client.Do(req)
 	if err != nil {

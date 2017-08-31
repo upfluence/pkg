@@ -9,16 +9,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
 )
-
-type unsetColumn struct{}
-
-var UnsetValue = unsetColumn{}
 
 const (
 	protoDirectionMask = 0x80
@@ -208,22 +205,6 @@ func ParseConsistency(s string) Consistency {
 	}
 }
 
-// ParseConsistencyWrapper wraps gocql.ParseConsistency to provide an err
-// return instead of a panic
-func ParseConsistencyWrapper(s string) (consistency Consistency, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			var ok bool
-			err, ok = r.(error)
-			if !ok {
-				err = fmt.Errorf("ParseConsistencyWrapper: %v", r)
-			}
-		}
-	}()
-	consistency = ParseConsistency(s)
-	return consistency, nil
-}
-
 type SerialConsistency uint16
 
 const (
@@ -279,7 +260,6 @@ type frameHeader struct {
 	op            frameOp
 	length        int
 	customPayload map[string][]byte
-	warnings      []string
 }
 
 func (f frameHeader) String() string {
@@ -369,7 +349,7 @@ func readHeader(r io.Reader, p []byte) (head frameHeader, err error) {
 	version := p[0] & protoVersionMask
 
 	if version < protoVersion1 || version > protoVersion4 {
-		return frameHeader{}, fmt.Errorf("gocql: unsupported protocol response version: %d", version)
+		return frameHeader{}, fmt.Errorf("gocql: unsupported response version: %d", version)
 	}
 
 	headSize := 9
@@ -473,7 +453,11 @@ func (f *framer) parseFrame() (frame frame, err error) {
 	}
 
 	if f.header.flags&flagWarning == flagWarning {
-		f.header.warnings = f.readStringList()
+		warnings := f.readStringList()
+		// what to do with warnings?
+		for _, v := range warnings {
+			log.Println(v)
+		}
 	}
 
 	if f.header.flags&flagCustomPayload == flagCustomPayload {
@@ -562,7 +546,7 @@ func (f *framer) parseErrorFrame() frame {
 		stmtId := f.readShortBytes()
 		return &RequestErrUnprepared{
 			errorFrame:  errD,
-			StatementId: copyBytes(stmtId), // defensively copy
+			StatementId: copyBytes(stmtId), // defensivly copy
 		}
 	case errReadFailure:
 		res := &RequestErrReadFailure{
@@ -1259,10 +1243,8 @@ func (f *framer) writeAuthResponseFrame(streamID int, data []byte) error {
 
 type queryValues struct {
 	value []byte
-
 	// optional name, will set With names for values flag
-	name    string
-	isUnset bool
+	name string
 }
 
 type queryParams struct {
@@ -1325,16 +1307,11 @@ func (f *framer) writeQueryParams(opts *queryParams) {
 
 	if n := len(opts.values); n > 0 {
 		f.writeShort(uint16(n))
-
 		for i := 0; i < n; i++ {
 			if names {
 				f.writeString(opts.values[i].name)
 			}
-			if opts.values[i].isUnset {
-				f.writeUnset()
-			} else {
-				f.writeBytes(opts.values[i].value)
-			}
+			f.writeBytes(opts.values[i].value)
 		}
 	}
 
@@ -1415,11 +1392,7 @@ func (f *framer) writeExecuteFrame(streamID int, preparedID []byte, params *quer
 		n := len(params.values)
 		f.writeShort(uint16(n))
 		for i := 0; i < n; i++ {
-			if params.values[i].isUnset {
-				f.writeUnset()
-			} else {
-				f.writeBytes(params.values[i].value)
-			}
+			f.writeBytes(params.values[i].value)
 		}
 		f.writeConsistency(params.consistency)
 	}
@@ -1441,9 +1414,8 @@ type writeBatchFrame struct {
 	consistency Consistency
 
 	// v3+
-	serialConsistency     SerialConsistency
-	defaultTimestamp      bool
-	defaultTimestampValue int64
+	serialConsistency SerialConsistency
+	defaultTimestamp  bool
 }
 
 func (w *writeBatchFrame) writeFrame(framer *framer, streamID int) error {
@@ -1478,11 +1450,7 @@ func (f *framer) writeBatchFrame(streamID int, w *writeBatchFrame) error {
 				flags |= flagWithNameValues
 				f.writeString(col.name)
 			}
-			if col.isUnset {
-				f.writeUnset()
-			} else {
-				f.writeBytes(col.value)
-			}
+			f.writeBytes(col.value)
 		}
 	}
 
@@ -1501,15 +1469,9 @@ func (f *framer) writeBatchFrame(streamID int, w *writeBatchFrame) error {
 		if w.serialConsistency > 0 {
 			f.writeConsistency(Consistency(w.serialConsistency))
 		}
-
 		if w.defaultTimestamp {
-			var ts int64
-			if w.defaultTimestampValue != 0 {
-				ts = w.defaultTimestampValue
-			} else {
-				ts = time.Now().UnixNano() / 1000
-			}
-			f.writeLong(ts)
+			now := time.Now().UnixNano() / 1000
+			f.writeLong(now)
 		}
 	}
 
@@ -1803,14 +1765,6 @@ func (f *framer) writeStringList(l []string) {
 	for _, s := range l {
 		f.writeString(s)
 	}
-}
-
-func (f *framer) writeUnset() {
-	// Protocol version 4 specifies that bind variables do not require having a
-	// value when executing a statement.   Bind variables without a value are
-	// called 'unset'. The 'unset' bind variable is serialized as the int
-	// value '-2' without following bytes.
-	f.writeInt(-2)
 }
 
 func (f *framer) writeBytes(p []byte) {

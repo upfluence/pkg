@@ -9,15 +9,12 @@ import (
 	"github.com/upfluence/base/service/thrift/transport/http"
 	"github.com/upfluence/base/service/thrift/transport/rabbitmq"
 	"github.com/upfluence/thrift/lib/go/thrift"
-	"time"
 )
 
 // (needed to ensure safety because of naive import list construction.)
 var _ = thrift.ZERO
 var _ = fmt.Printf
 var _ = bytes.Equal
-var _ = time.Now()
-
 var _ = http.GoUnusedProtection__
 var _ = rabbitmq.GoUnusedProtection__
 

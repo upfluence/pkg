@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net"
 	"sync"
@@ -28,10 +29,6 @@ type SetPartitioner interface {
 }
 
 func setupTLSConfig(sslOpts *SslOptions) (*tls.Config, error) {
-	if sslOpts.Config == nil {
-		sslOpts.Config = &tls.Config{}
-	}
-
 	// ca cert is optional
 	if sslOpts.CaPath != "" {
 		if sslOpts.RootCAs == nil {
@@ -58,7 +55,7 @@ func setupTLSConfig(sslOpts *SslOptions) (*tls.Config, error) {
 
 	sslOpts.InsecureSkipVerify = !sslOpts.EnableHostVerification
 
-	return sslOpts.Config, nil
+	return &sslOpts.Config, nil
 }
 
 type policyConnPool struct {
@@ -74,7 +71,9 @@ type policyConnPool struct {
 	endpoints []string
 }
 
-func connConfig(cfg *ClusterConfig) (*ConnConfig, error) {
+func connConfig(session *Session) (*ConnConfig, error) {
+	cfg := session.cfg
+
 	var (
 		err       error
 		tlsConfig *tls.Config
@@ -89,14 +88,13 @@ func connConfig(cfg *ClusterConfig) (*ConnConfig, error) {
 	}
 
 	return &ConnConfig{
-		ProtoVersion:   cfg.ProtoVersion,
-		CQLVersion:     cfg.CQLVersion,
-		Timeout:        cfg.Timeout,
-		ConnectTimeout: cfg.ConnectTimeout,
-		Compressor:     cfg.Compressor,
-		Authenticator:  cfg.Authenticator,
-		Keepalive:      cfg.SocketKeepalive,
-		tlsConfig:      tlsConfig,
+		ProtoVersion:  cfg.ProtoVersion,
+		CQLVersion:    cfg.CQLVersion,
+		Timeout:       cfg.Timeout,
+		Compressor:    cfg.Compressor,
+		Authenticator: cfg.Authenticator,
+		Keepalive:     cfg.SocketKeepalive,
+		tlsConfig:     tlsConfig,
 	}, nil
 }
 
@@ -132,10 +130,9 @@ func (p *policyConnPool) SetHosts(hosts []*HostInfo) {
 			// don't create a connection pool for a down host
 			continue
 		}
-		ip := host.ConnectAddress().String()
-		if _, exists := p.hostConnPools[ip]; exists {
+		if _, exists := p.hostConnPools[host.Peer()]; exists {
 			// still have this host, so don't remove it
-			delete(toRemove, ip)
+			delete(toRemove, host.Peer())
 			continue
 		}
 
@@ -157,8 +154,8 @@ func (p *policyConnPool) SetHosts(hosts []*HostInfo) {
 		pool := <-pools
 		createCount--
 		if pool.Size() > 0 {
-			// add pool only if there a connections available
-			p.hostConnPools[string(pool.host.ConnectAddress())] = pool
+			// add pool onyl if there a connections available
+			p.hostConnPools[pool.host.Peer()] = pool
 		}
 	}
 
@@ -180,10 +177,9 @@ func (p *policyConnPool) Size() int {
 	return count
 }
 
-func (p *policyConnPool) getPool(host *HostInfo) (pool *hostConnPool, ok bool) {
-	ip := host.ConnectAddress().String()
+func (p *policyConnPool) getPool(addr string) (pool *hostConnPool, ok bool) {
 	p.mu.RLock()
-	pool, ok = p.hostConnPools[ip]
+	pool, ok = p.hostConnPools[addr]
 	p.mu.RUnlock()
 	return
 }
@@ -200,9 +196,8 @@ func (p *policyConnPool) Close() {
 }
 
 func (p *policyConnPool) addHost(host *HostInfo) {
-	ip := host.ConnectAddress().String()
 	p.mu.Lock()
-	pool, ok := p.hostConnPools[ip]
+	pool, ok := p.hostConnPools[host.Peer()]
 	if !ok {
 		pool = newHostConnPool(
 			p.session,
@@ -212,23 +207,22 @@ func (p *policyConnPool) addHost(host *HostInfo) {
 			p.keyspace,
 		)
 
-		p.hostConnPools[ip] = pool
+		p.hostConnPools[host.Peer()] = pool
 	}
 	p.mu.Unlock()
 
 	pool.fill()
 }
 
-func (p *policyConnPool) removeHost(ip net.IP) {
-	k := ip.String()
+func (p *policyConnPool) removeHost(addr string) {
 	p.mu.Lock()
-	pool, ok := p.hostConnPools[k]
+	pool, ok := p.hostConnPools[addr]
 	if !ok {
 		p.mu.Unlock()
 		return
 	}
 
-	delete(p.hostConnPools, k)
+	delete(p.hostConnPools, addr)
 	p.mu.Unlock()
 
 	go pool.Close()
@@ -240,10 +234,10 @@ func (p *policyConnPool) hostUp(host *HostInfo) {
 	p.addHost(host)
 }
 
-func (p *policyConnPool) hostDown(ip net.IP) {
+func (p *policyConnPool) hostDown(addr string) {
 	// TODO(zariel): mark host as down so we can try to connect to it later, for
 	// now just treat it has removed.
-	p.removeHost(ip)
+	p.removeHost(addr)
 }
 
 // hostConnPool is a connection pool for a single host.
@@ -278,7 +272,7 @@ func newHostConnPool(session *Session, host *HostInfo, port, size int,
 		session:  session,
 		host:     host,
 		port:     port,
-		addr:     (&net.TCPAddr{IP: host.ConnectAddress(), Port: host.Port()}).String(),
+		addr:     JoinHostPort(host.Peer(), port),
 		size:     size,
 		keyspace: keyspace,
 		conns:    make([]*Conn, 0, size),
@@ -400,9 +394,9 @@ func (pool *hostConnPool) fill() {
 			// probably unreachable host
 			pool.fillingStopped(true)
 
-			// this is call with the connection pool mutex held, this call will
-			// then recursively try to lock it again. FIXME
-			go pool.session.handleNodeDown(pool.host.ConnectAddress(), pool.port)
+			// this is calle with the connetion pool mutex held, this call will
+			// then recursivly try to lock it again. FIXME
+			go pool.session.handleNodeDown(net.ParseIP(pool.host.Peer()), pool.port)
 			return
 		}
 
@@ -424,11 +418,11 @@ func (pool *hostConnPool) logConnectErr(err error) {
 		// connection refused
 		// these are typical during a node outage so avoid log spam.
 		if gocqlDebug {
-			Logger.Printf("unable to dial %q: %v\n", pool.host.ConnectAddress(), err)
+			log.Printf("unable to dial %q: %v\n", pool.host.Peer(), err)
 		}
 	} else if err != nil {
 		// unexpected error
-		Logger.Printf("error: failed to connect to %s due to error: %v", pool.addr, err)
+		log.Printf("error: failed to connect to %s due to error: %v", pool.addr, err)
 	}
 }
 
@@ -483,16 +477,9 @@ func (pool *hostConnPool) connect() (err error) {
 	// try to connect
 	var conn *Conn
 	for i := 0; i < maxAttempts; i++ {
-		conn, err = pool.session.connect(pool.host, pool)
+		conn, err = pool.session.connect(pool.addr, pool, pool.host)
 		if err == nil {
 			break
-		}
-		if opErr, isOpErr := err.(*net.OpError); isOpErr {
-			// if the error is not a temporary error (ex: network unreachable) don't
-			//  retry
-			if !opErr.Temporary() {
-				break
-			}
 		}
 	}
 

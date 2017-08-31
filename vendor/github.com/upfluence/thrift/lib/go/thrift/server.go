@@ -19,6 +19,10 @@
 
 package thrift
 
+type TServerFactory interface {
+	GetServer(TProtocolFactory, TProcessor) TServer
+}
+
 type TServer interface {
 	ProcessorFactory() TProcessorFactory
 	ServerTransport() TServerTransport
