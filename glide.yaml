@@ -1,4 +1,4 @@
-package: github.com/upfluence/goutils
+package: github.com/upfluence/pkg
 import:
 - package: github.com/cyberdelia/statsd
 - package: github.com/garyburd/redigo
