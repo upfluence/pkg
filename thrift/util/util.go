@@ -6,7 +6,7 @@ import (
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
-var defaultProtocolFactory = thrift.NewTBinaryProtocolFactoryDefault()
+var DefaultProtocolFactory = thrift.NewTBinaryProtocolFactoryDefault()
 
 func buildClient(trans thrift.TTransport, err error) (thrift.TTransport, thrift.TProtocolFactory, error) {
 	if err != nil {
@@ -17,7 +17,7 @@ func buildClient(trans thrift.TTransport, err error) (thrift.TTransport, thrift.
 		return nil, nil, err
 	}
 
-	return trans, defaultProtocolFactory, nil
+	return trans, DefaultProtocolFactory, nil
 }
 
 func BuildAMQPClient(amqpURL, exchangeName, routingKey string) (thrift.TTransport, thrift.TProtocolFactory, error) {
