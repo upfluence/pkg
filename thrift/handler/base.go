@@ -9,9 +9,9 @@ import (
 	"github.com/upfluence/base/version"
 )
 
-const (
-	BASE_EXCHANGE_NAME = "monitoring-exchange"
+const BASE_EXCHANGE_NAME = "monitoring-exchange"
 
+var (
 	GitCommit = ""
 	GitBranch = ""
 	GitRemote = ""
