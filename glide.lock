@@ -1,5 +1,5 @@
-hash: d6b488c137ca62eb86bd41fd4b5cc058bd8bb0ff54dd60255e4a290fb2c40ffa
-updated: 2017-08-31T10:25:34.789370846+02:00
+hash: f3a37ebe07dfebebdc6ce944e7ffca55a9a2d48caba7402060cc87a8348ee288
+updated: 2017-09-19T16:10:12.929035593-04:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -15,7 +15,7 @@ imports:
   - internal
   - redis
 - name: github.com/getsentry/raven-go
-  version: d175f85701dfbf44cb0510114c9943e665e60907
+  version: 1452f6376ddb15c546b6d7567e1d9518765391b5
 - name: github.com/gocql/gocql
   version: 405d8024aab174039d859385454fff7ccfc8a245
   subpackages:
@@ -23,7 +23,7 @@ imports:
   - internal/murmur
   - internal/streams
 - name: github.com/golang/protobuf
-  version: 83cd65fc365ace80eb6b6ecfc45203e43edfbc70
+  version: ae59567b9aab61b50b2590679a62c3c044030b61
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -37,7 +37,7 @@ imports:
 - name: github.com/jinzhu/inflection
   version: 1c35d901db3da928c72a72d8458480cc9ade058f
 - name: github.com/lib/pq
-  version: e42267488fe361b9dc034be7a6bffef5b195bceb
+  version: 23da1db4f16d9658a86ae9b717c245fc078f10f1
   subpackages:
   - oid
 - name: github.com/mattes/migrate
@@ -56,16 +56,17 @@ imports:
 - name: github.com/op/go-logging
   version: 970db520ece77730c7e4724c61121037378659d9
 - name: github.com/prometheus/client_golang
-  version: 61d8c3f402672e3f5ead16d09720c90cc4b868af
+  version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
   - prometheus
   - prometheus/promhttp
+  - prometheus/push
 - name: github.com/prometheus/client_model
   version: 6f3806018612930941127f2a7c6c453ba2c527d2
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: bc8b88226a1210b016e9993b1d75f858c9c8f778
+  version: 2f17f4a9d485bf34b4bfaccc273805040e4f86c8
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
@@ -77,7 +78,7 @@ imports:
 - name: github.com/roncohen/opbeat-go
   version: 958512be4c1d824e3a89d75b47e6f29751a76a3d
 - name: github.com/streadway/amqp
-  version: 2cbfe40c9341ad63ba23e53013b3ddc7989d801c
+  version: afe8eee29a74d213b1f3fb2586058157c397da60
 - name: github.com/upfluence/base
   version: v0.0.19
   subpackages:
@@ -101,7 +102,7 @@ imports:
   subpackages:
   - http_thrift
 - name: golang.org/x/net
-  version: 66aacef3dd8a676686c7ae3716979581e8b03c47
+  version: 8351a756f30f1297fe94bbf4b767ec589c6ea6d0
   subpackages:
   - context
 - name: gopkg.in/inf.v0
