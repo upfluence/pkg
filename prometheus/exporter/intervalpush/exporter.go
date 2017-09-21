@@ -10,10 +10,7 @@ import (
 	"github.com/upfluence/pkg/log"
 )
 
-const (
-	defaultInterval = 15 * time.Second
-	defaultURL      = "http://localhost:9000"
-)
+const defaultInterval = 15 * time.Second
 
 type exporter struct {
 	t                          *time.Ticker
@@ -22,10 +19,14 @@ type exporter struct {
 	gatherer prometheus.Gatherer
 }
 
-func NewExporter() *exporter {
+func NewExporter(url string, interval time.Duration) *exporter {
+	if interval == 0 {
+		interval = defaultInterval
+	}
+
 	return &exporter{
-		t:        time.NewTicker(defaultInterval),
-		pushURL:  defaultURL,
+		t:        time.NewTicker(interval),
+		pushURL:  url,
 		appName:  os.Getenv("APP_NAME"),
 		unitName: os.Getenv("UNIT_NAME"),
 		gatherer: prometheus.DefaultGatherer,
