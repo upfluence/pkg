@@ -40,6 +40,10 @@ func (p *Transport) GetHttpTransport() *http.Transport {
 	return p.HttpTransport
 }
 
+func (p *Transport) SetHttpTransport(v *http.Transport) {
+	p.HttpTransport = v
+}
+
 var Transport_RabbitmqTransport_DEFAULT *rabbitmq.Transport
 
 func (p *Transport) GetRabbitmqTransport() *rabbitmq.Transport {
@@ -47,6 +51,10 @@ func (p *Transport) GetRabbitmqTransport() *rabbitmq.Transport {
 		return Transport_RabbitmqTransport_DEFAULT
 	}
 	return p.RabbitmqTransport
+}
+
+func (p *Transport) SetRabbitmqTransport(v *rabbitmq.Transport) {
+	p.RabbitmqTransport = v
 }
 func (p *Transport) CountSetFieldsTransport() int {
 	count := 0

@@ -31,8 +31,16 @@ func (p *Transport) GetExchangeName() string {
 	return p.ExchangeName
 }
 
+func (p *Transport) SetExchangeName(v string) {
+	p.ExchangeName = v
+}
+
 func (p *Transport) GetRoutingKey() string {
 	return p.RoutingKey
+}
+
+func (p *Transport) SetRoutingKey(v string) {
+	p.RoutingKey = v
 }
 func (p *Transport) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {

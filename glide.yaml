@@ -21,7 +21,6 @@ import:
   version: ^1.2.0
 - package: github.com/op/go-logging
   version: 970db520ece77730c7e4724c61121037378659d9
-- package: github.com/roncohen/opbeat-go
 - package: github.com/streadway/amqp
 - package: github.com/upfluence/base
   subpackages:

@@ -70,8 +70,16 @@ func (p *Transport) GetUrl() string {
 	return p.Url
 }
 
+func (p *Transport) SetUrl(v string) {
+	p.Url = v
+}
+
 func (p *Transport) GetMethod() Method {
 	return p.Method
+}
+
+func (p *Transport) SetMethod(v Method) {
+	p.Method = v
 }
 func (p *Transport) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {

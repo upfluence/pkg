@@ -35,6 +35,10 @@ func (p *Service) GetTransport() *transport.Transport {
 	}
 	return p.Transport
 }
+
+func (p *Service) SetTransport(v *transport.Transport) {
+	p.Transport = v
+}
 func (p *Service) IsSetTransport() bool {
 	return p.Transport != nil
 }

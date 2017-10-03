@@ -6,20 +6,18 @@ package gocql
 
 import (
 	"bufio"
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/gocql/gocql/internal/lru"
 
@@ -30,6 +28,7 @@ var (
 	approvedAuthenticators = [...]string{
 		"org.apache.cassandra.auth.PasswordAuthenticator",
 		"com.instaclustr.cassandra.auth.SharedSecretAuthenticator",
+		"com.datastax.bdp.cassandra.auth.DseAuthenticator",
 	}
 )
 
@@ -79,7 +78,7 @@ func (p PasswordAuthenticator) Success(data []byte) error {
 }
 
 type SslOptions struct {
-	tls.Config
+	*tls.Config
 
 	// CertPath and KeyPath are optional depending on server
 	// config, but both fields must be omitted to avoid using a
@@ -94,13 +93,14 @@ type SslOptions struct {
 }
 
 type ConnConfig struct {
-	ProtoVersion  int
-	CQLVersion    string
-	Timeout       time.Duration
-	Compressor    Compressor
-	Authenticator Authenticator
-	Keepalive     time.Duration
-	tlsConfig     *tls.Config
+	ProtoVersion   int
+	CQLVersion     string
+	Timeout        time.Duration
+	ConnectTimeout time.Duration
+	Compressor     Compressor
+	Authenticator  Authenticator
+	Keepalive      time.Duration
+	tlsConfig      *tls.Config
 }
 
 type ConnErrorHandler interface {
@@ -152,8 +152,15 @@ type Conn struct {
 }
 
 // Connect establishes a connection to a Cassandra node.
-func Connect(host *HostInfo, addr string, cfg *ConnConfig,
-	errorHandler ConnErrorHandler, session *Session) (*Conn, error) {
+func Connect(host *HostInfo, cfg *ConnConfig, errorHandler ConnErrorHandler, session *Session) (*Conn, error) {
+	// TODO(zariel): remove these
+	if host == nil {
+		panic("host is nil")
+	} else if len(host.ConnectAddress()) == 0 {
+		panic(fmt.Sprintf("host missing connect ip address: %v", host))
+	} else if host.Port() == 0 {
+		panic(fmt.Sprintf("host missing port: %v", host))
+	}
 
 	var (
 		err  error
@@ -161,8 +168,13 @@ func Connect(host *HostInfo, addr string, cfg *ConnConfig,
 	)
 
 	dialer := &net.Dialer{
-		Timeout: cfg.Timeout,
+		Timeout: cfg.ConnectTimeout,
 	}
+
+	// TODO(zariel): handle ipv6 zone
+	translatedPeer, translatedPort := session.cfg.translateAddressPort(host.ConnectAddress(), host.Port())
+	addr := (&net.TCPAddr{IP: translatedPeer, Port: translatedPort}).String()
+	//addr := (&net.TCPAddr{IP: host.Peer(), Port: host.Port()}).String()
 
 	if cfg.tlsConfig != nil {
 		// the TLS config is safe to be reused by connections but it must not
@@ -201,8 +213,8 @@ func Connect(host *HostInfo, addr string, cfg *ConnConfig,
 		ctx    context.Context
 		cancel func()
 	)
-	if c.timeout > 0 {
-		ctx, cancel = context.WithTimeout(context.Background(), c.timeout)
+	if cfg.ConnectTimeout > 0 {
+		ctx, cancel = context.WithTimeout(context.Background(), cfg.ConnectTimeout)
 	} else {
 		ctx, cancel = context.WithCancel(context.Background())
 	}
@@ -430,6 +442,17 @@ func (c *Conn) discardFrame(head frameHeader) error {
 	return nil
 }
 
+type protocolError struct {
+	frame frame
+}
+
+func (p *protocolError) Error() string {
+	if err, ok := p.frame.(error); ok {
+		return err.Error()
+	}
+	return fmt.Sprintf("gocql: received unexpected frame on stream %d: %v", p.frame.Header().stream, p.frame)
+}
+
 func (c *Conn) recv() error {
 	// not safe for concurrent reads
 
@@ -469,11 +492,8 @@ func (c *Conn) recv() error {
 			return err
 		}
 
-		switch v := frame.(type) {
-		case error:
-			return fmt.Errorf("gocql: error on stream %d: %v", head.stream, v)
-		default:
-			return fmt.Errorf("gocql: received frame on stream %d: %v", head.stream, frame)
+		return &protocolError{
+			frame: frame,
 		}
 	}
 
@@ -481,7 +501,7 @@ func (c *Conn) recv() error {
 	call, ok := c.calls[head.stream]
 	c.mu.RUnlock()
 	if call == nil || call.framer == nil || !ok {
-		log.Printf("gocql: received response for stream which has no handler: header=%v\n", head)
+		Logger.Printf("gocql: received response for stream which has no handler: header=%v\n", head)
 		return c.discardFrame(head)
 	}
 
@@ -516,6 +536,10 @@ func (c *Conn) releaseStream(stream int) {
 	}
 	delete(c.calls, stream)
 	c.mu.Unlock()
+
+	if call.timer != nil {
+		call.timer.Stop()
+	}
 
 	streamPool.Put(call)
 	c.streams.Clear(stream)
@@ -566,11 +590,11 @@ func (c *Conn) exec(ctx context.Context, req frameWriter, tracer Tracer) (*frame
 		call = streamPool.Get().(*callReq)
 	}
 	c.calls[stream] = call
-	c.mu.Unlock()
 
 	call.framer = framer
 	call.timeout = make(chan struct{})
 	call.streamID = stream
+	c.mu.Unlock()
 
 	if tracer != nil {
 		framer.trace()
@@ -688,6 +712,7 @@ func (c *Conn) prepareStatement(ctx context.Context, stmt string, tracer Tracer)
 	if err != nil {
 		flight.err = err
 		flight.wg.Done()
+		c.session.stmtsLRU.remove(stmtCacheKey)
 		return nil, err
 	}
 
@@ -700,14 +725,14 @@ func (c *Conn) prepareStatement(ctx context.Context, stmt string, tracer Tracer)
 
 	// TODO(zariel): tidy this up, simplify handling of frame parsing so its not duplicated
 	// everytime we need to parse a frame.
-	if len(framer.traceID) > 0 {
+	if len(framer.traceID) > 0 && tracer != nil {
 		tracer.Trace(framer.traceID)
 	}
 
 	switch x := frame.(type) {
 	case *resultPreparedFrame:
 		flight.preparedStatment = &preparedStatment{
-			// defensivly copy as we will recycle the underlying buffer after we
+			// defensively copy as we will recycle the underlying buffer after we
 			// return.
 			id: copyBytes(x.preparedID),
 			// the type info's should _not_ have a reference to the framers read buffer,
@@ -729,6 +754,26 @@ func (c *Conn) prepareStatement(ctx context.Context, stmt string, tracer Tracer)
 	framerPool.Put(framer)
 
 	return flight.preparedStatment, flight.err
+}
+
+func marshalQueryValue(typ TypeInfo, value interface{}, dst *queryValues) error {
+	if named, ok := value.(*namedValue); ok {
+		dst.name = named.name
+		value = named.value
+	}
+
+	if _, ok := value.(unsetColumn); !ok {
+		val, err := Marshal(typ, value)
+		if err != nil {
+			return err
+		}
+
+		dst.value = val
+	} else {
+		dst.isUnset = true
+	}
+
+	return nil
 }
 
 func (c *Conn) executeQuery(qry *Query) *Iter {
@@ -784,17 +829,15 @@ func (c *Conn) executeQuery(qry *Query) *Iter {
 
 		params.values = make([]queryValues, len(values))
 		for i := 0; i < len(values); i++ {
-			val, err := Marshal(info.request.columns[i].TypeInfo, values[i])
-			if err != nil {
+			v := &params.values[i]
+			value := values[i]
+			typ := info.request.columns[i].TypeInfo
+			if err := marshalQueryValue(typ, value, v); err != nil {
 				return &Iter{err: err}
 			}
-
-			v := &params.values[i]
-			v.value = val
-			// TODO: handle query binding names
 		}
 
-		params.skipMeta = !qry.disableSkipMetadata
+		params.skipMeta = !(c.session.cfg.DisableSkipMetadata || qry.disableSkipMetadata)
 
 		frame = &writeExecuteFrame{
 			preparedID: info.id,
@@ -817,7 +860,7 @@ func (c *Conn) executeQuery(qry *Query) *Iter {
 		return &Iter{err: err}
 	}
 
-	if len(framer.traceID) > 0 {
+	if len(framer.traceID) > 0 && qry.trace != nil {
 		qry.trace.Trace(framer.traceID)
 	}
 
@@ -861,7 +904,7 @@ func (c *Conn) executeQuery(qry *Query) *Iter {
 		iter := &Iter{framer: framer}
 		if err := c.awaitSchemaAgreement(); err != nil {
 			// TODO: should have this behind a flag
-			log.Println(err)
+			Logger.Println(err)
 		}
 		// dont return an error from this, might be a good idea to give a warning
 		// though. The impact of this returning an error would be that the cluster
@@ -937,11 +980,12 @@ func (c *Conn) executeBatch(batch *Batch) *Iter {
 
 	n := len(batch.Entries)
 	req := &writeBatchFrame{
-		typ:               batch.Type,
-		statements:        make([]batchStatment, n),
-		consistency:       batch.Cons,
-		serialConsistency: batch.serialCons,
-		defaultTimestamp:  batch.defaultTimestamp,
+		typ:                   batch.Type,
+		statements:            make([]batchStatment, n),
+		consistency:           batch.Cons,
+		serialConsistency:     batch.serialCons,
+		defaultTimestamp:      batch.defaultTimestamp,
+		defaultTimestampValue: batch.defaultTimestampValue,
 	}
 
 	stmts := make(map[string]string, len(batch.Entries))
@@ -971,7 +1015,7 @@ func (c *Conn) executeBatch(batch *Batch) *Iter {
 			}
 
 			if len(values) != info.request.actualColCount {
-				return &Iter{err: fmt.Errorf("gocql: batch statment %d expected %d values send got %d", i, info.request.actualColCount, len(values))}
+				return &Iter{err: fmt.Errorf("gocql: batch statement %d expected %d values send got %d", i, info.request.actualColCount, len(values))}
 			}
 
 			b.preparedID = info.id
@@ -980,13 +1024,12 @@ func (c *Conn) executeBatch(batch *Batch) *Iter {
 			b.values = make([]queryValues, info.request.actualColCount)
 
 			for j := 0; j < info.request.actualColCount; j++ {
-				val, err := Marshal(info.request.columns[j].TypeInfo, values[j])
-				if err != nil {
+				v := &b.values[j]
+				value := values[j]
+				typ := info.request.columns[j].TypeInfo
+				if err := marshalQueryValue(typ, value, v); err != nil {
 					return &Iter{err: err}
 				}
-
-				b.values[j].value = val
-				// TODO: add names
 			}
 		} else {
 			b.statement = entry.Stmt
@@ -1020,7 +1063,7 @@ func (c *Conn) executeBatch(batch *Batch) *Iter {
 		if found {
 			return c.executeBatch(batch)
 		} else {
-			return &Iter{err: err, framer: framer}
+			return &Iter{err: x, framer: framer}
 		}
 	case *resultRowsFrame:
 		iter := &Iter{
@@ -1072,7 +1115,7 @@ func (c *Conn) awaitSchemaAgreement() (err error) {
 		var schemaVersion string
 		for iter.Scan(&schemaVersion) {
 			if schemaVersion == "" {
-				log.Println("skipping peer entry with empty schema_version")
+				Logger.Println("skipping peer entry with empty schema_version")
 				continue
 			}
 

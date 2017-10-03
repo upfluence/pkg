@@ -799,6 +799,10 @@ func (p *BaseServiceGetNameResult) GetSuccess() string {
 	}
 	return *p.Success
 }
+
+func (p *BaseServiceGetNameResult) SetSuccess(v string) {
+	p.Success = &v
+}
 func (p *BaseServiceGetNameResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
@@ -954,6 +958,10 @@ func (p *BaseServiceGetVersionResult) GetSuccess() *version.Version {
 	}
 	return p.Success
 }
+
+func (p *BaseServiceGetVersionResult) SetSuccess(v *version.Version) {
+	p.Success = v
+}
 func (p *BaseServiceGetVersionResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
@@ -1104,6 +1112,10 @@ var BaseServiceGetInterfaceVersionsResult_Success_DEFAULT map[string]*version.Ve
 
 func (p *BaseServiceGetInterfaceVersionsResult) GetSuccess() map[string]*version.Version {
 	return p.Success
+}
+
+func (p *BaseServiceGetInterfaceVersionsResult) SetSuccess(v map[string]*version.Version) {
+	p.Success = v
 }
 func (p *BaseServiceGetInterfaceVersionsResult) IsSetSuccess() bool {
 	return p.Success != nil
@@ -1288,6 +1300,10 @@ func (p *BaseServiceGetStatusResult) GetSuccess() Status {
 	}
 	return *p.Success
 }
+
+func (p *BaseServiceGetStatusResult) SetSuccess(v Status) {
+	p.Success = &v
+}
 func (p *BaseServiceGetStatusResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
@@ -1443,6 +1459,10 @@ func (p *BaseServiceAliveSinceResult) GetSuccess() int64 {
 		return BaseServiceAliveSinceResult_Success_DEFAULT
 	}
 	return *p.Success
+}
+
+func (p *BaseServiceAliveSinceResult) SetSuccess(v int64) {
+	p.Success = &v
 }
 func (p *BaseServiceAliveSinceResult) IsSetSuccess() bool {
 	return p.Success != nil

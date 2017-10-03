@@ -263,6 +263,10 @@ func NewMonitoringCollectArgs() *MonitoringCollectArgs {
 func (p *MonitoringCollectArgs) GetMetrics() []MetricID {
 	return p.Metrics
 }
+
+func (p *MonitoringCollectArgs) SetMetrics(v []MetricID) {
+	p.Metrics = v
+}
 func (p *MonitoringCollectArgs) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
@@ -383,6 +387,10 @@ func (p *MonitoringCollectResult) GetSuccess() Metrics {
 	return p.Success
 }
 
+func (p *MonitoringCollectResult) SetSuccess(v Metrics) {
+	p.Success = v
+}
+
 var MonitoringCollectResult_ServiceUnavailable_DEFAULT *ServiceNotAvailable
 
 func (p *MonitoringCollectResult) GetServiceUnavailable() *ServiceNotAvailable {
@@ -392,6 +400,10 @@ func (p *MonitoringCollectResult) GetServiceUnavailable() *ServiceNotAvailable {
 	return p.ServiceUnavailable
 }
 
+func (p *MonitoringCollectResult) SetServiceUnavailable(v *ServiceNotAvailable) {
+	p.ServiceUnavailable = v
+}
+
 var MonitoringCollectResult_UnknownMetric_DEFAULT *UnknownMetric
 
 func (p *MonitoringCollectResult) GetUnknownMetric() *UnknownMetric {
@@ -399,6 +411,10 @@ func (p *MonitoringCollectResult) GetUnknownMetric() *UnknownMetric {
 		return MonitoringCollectResult_UnknownMetric_DEFAULT
 	}
 	return p.UnknownMetric
+}
+
+func (p *MonitoringCollectResult) SetUnknownMetric(v *UnknownMetric) {
+	p.UnknownMetric = v
 }
 func (p *MonitoringCollectResult) IsSetSuccess() bool {
 	return p.Success != nil

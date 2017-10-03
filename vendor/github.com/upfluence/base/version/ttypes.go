@@ -33,12 +33,24 @@ func (p *SemanticVersion) GetMajor() int16 {
 	return p.Major
 }
 
+func (p *SemanticVersion) SetMajor(v int16) {
+	p.Major = v
+}
+
 func (p *SemanticVersion) GetMinor() int16 {
 	return p.Minor
 }
 
+func (p *SemanticVersion) SetMinor(v int16) {
+	p.Minor = v
+}
+
 func (p *SemanticVersion) GetPatch() int16 {
 	return p.Patch
+}
+
+func (p *SemanticVersion) SetPatch(v int16) {
+	p.Patch = v
 }
 func (p *SemanticVersion) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
@@ -210,12 +222,24 @@ func (p *GitVersion) GetCommit() string {
 	return p.Commit
 }
 
+func (p *GitVersion) SetCommit(v string) {
+	p.Commit = v
+}
+
 func (p *GitVersion) GetRemote() string {
 	return p.Remote
 }
 
+func (p *GitVersion) SetRemote(v string) {
+	p.Remote = v
+}
+
 func (p *GitVersion) GetBranch() string {
 	return p.Branch
+}
+
+func (p *GitVersion) SetBranch(v string) {
+	p.Branch = v
 }
 func (p *GitVersion) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
@@ -390,6 +414,10 @@ func (p *Version) GetSemanticVersion() *SemanticVersion {
 	return p.SemanticVersion
 }
 
+func (p *Version) SetSemanticVersion(v *SemanticVersion) {
+	p.SemanticVersion = v
+}
+
 var Version_GitVersion_DEFAULT *GitVersion
 
 func (p *Version) GetGitVersion() *GitVersion {
@@ -397,6 +425,10 @@ func (p *Version) GetGitVersion() *GitVersion {
 		return Version_GitVersion_DEFAULT
 	}
 	return p.GitVersion
+}
+
+func (p *Version) SetGitVersion(v *GitVersion) {
+	p.GitVersion = v
 }
 func (p *Version) IsSetSemanticVersion() bool {
 	return p.SemanticVersion != nil

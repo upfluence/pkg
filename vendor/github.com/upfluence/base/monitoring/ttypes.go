@@ -36,6 +36,10 @@ func NewUnknownMetric() *UnknownMetric {
 func (p *UnknownMetric) GetKey() MetricID {
 	return p.Key
 }
+
+func (p *UnknownMetric) SetKey(v MetricID) {
+	p.Key = v
+}
 func (p *UnknownMetric) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
@@ -137,6 +141,10 @@ func NewServiceNotAvailable() *ServiceNotAvailable {
 
 func (p *ServiceNotAvailable) GetReason() string {
 	return p.Reason
+}
+
+func (p *ServiceNotAvailable) SetReason(v string) {
+	p.Reason = v
 }
 func (p *ServiceNotAvailable) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
