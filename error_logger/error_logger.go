@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/upfluence/pkg/error_logger/noop"
-	"github.com/upfluence/pkg/error_logger/opbeat"
 	"github.com/upfluence/pkg/error_logger/sentry"
 )
 
@@ -24,8 +23,6 @@ func init() {
 		} else {
 			DefaultErrorLogger = l
 		}
-	} else if v := os.Getenv("OPBEAT_APP_ID"); v != "" {
-		DefaultErrorLogger = opbeat.NewErrorLogger()
 	} else {
 		DefaultErrorLogger = noop.NewErrorLogger()
 	}
