@@ -19,9 +19,7 @@ func NewMonitoringHandler(
 	return &MonitoringHandler{prefix, metrics}
 }
 
-// Can't understand why thrift inteface declares a []string instead of
-// []monitoring.MetricsID
-func (m *MonitoringHandler) Collect(metrics []string) (
+func (m *MonitoringHandler) Collect(metrics []monitoring.MetricID) (
 	monitoring.Metrics,
 	error,
 ) {
@@ -29,17 +27,15 @@ func (m *MonitoringHandler) Collect(metrics []string) (
 	results := monitoring.Metrics{}
 
 	for _, id := range metrics {
-		metricId := monitoring.MetricID(id)
-
-		if met, ok := m.metrics[metricId]; ok {
+		if met, ok := m.metrics[id]; ok {
 			result := make(chan []metric.Point)
-			promises[metricId] = result
+			promises[id] = result
 
 			go func() {
 				result <- met.Collect()
 			}()
 		} else {
-			return nil, &monitoring.UnknownMetric{metricId}
+			return nil, &monitoring.UnknownMetric{Key: id}
 		}
 	}
 
