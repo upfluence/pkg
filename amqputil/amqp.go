@@ -30,6 +30,7 @@ func BuildConnection(
 				log.Errorf("amqputil: Channel closed")
 
 				connection, channel = buildConnection(uri)
+				return
 			}
 		}
 	}()
