@@ -10,6 +10,22 @@ import (
 
 const listSeparator = ","
 
+func FetchBool(variable string, defaultValue bool) bool {
+	for _, v := range []string{"true", "t", "1"} {
+		if v == variable {
+			return true
+		}
+	}
+
+	for _, v := range []string{"false", "f", "0"} {
+		if v == variable {
+			return false
+		}
+	}
+
+	return defaultValue
+}
+
 func FetchString(variable, defaultValue string) string {
 	if v := os.Getenv(variable); v != "" {
 		return v
