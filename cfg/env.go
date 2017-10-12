@@ -11,14 +11,16 @@ import (
 const listSeparator = ","
 
 func FetchBool(variable string, defaultValue bool) bool {
+	envV := os.Getenv(variable)
+
 	for _, v := range []string{"true", "t", "1"} {
-		if v == variable {
+		if v == envV {
 			return true
 		}
 	}
 
 	for _, v := range []string{"false", "f", "0"} {
-		if v == variable {
+		if v == envV {
 			return false
 		}
 	}
