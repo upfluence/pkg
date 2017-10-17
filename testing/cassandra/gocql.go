@@ -2,40 +2,28 @@ package cassandra
 
 import (
 	"fmt"
-	"os"
-	"strings"
-	"sync"
+	"testing"
 	"time"
 
 	"github.com/gocql/gocql"
-	_ "github.com/mattes/migrate/driver/cassandra"
-	"github.com/mattes/migrate/migrate"
+	"github.com/mattes/migrate"
+	"github.com/mattes/migrate/source"
+
+	"github.com/upfluence/pkg/cfg"
 )
 
 const (
-	defaultCassandraIP = "127.0.0.1"
-	defaultKeyspace    = "test"
-	defaultTimeout     = time.Minute
-	cassandraPort      = 9042
-	protocolVersion    = 3
+	defaultTimeout  = time.Minute
+	cassandraPort   = 9042
+	protocolVersion = 3
 )
 
-var keyspaceMutex = &sync.Mutex{}
+var (
+	cassandraIP = cfg.FetchString("CASSANDRA_IP", "127.0.0.1")
+	keySpace    = cfg.FetchString("CASSANDRA_KEY_SPACE", "test")
+)
 
-func BuildKeySpace(migrationsPath *string, tables []string) (*gocql.Session, *sync.Mutex) {
-	var (
-		cassandraIP = os.Getenv("CASSANDRA_IP")
-		keySpace    = os.Getenv("CASSANDRA_KEY_SPACE")
-	)
-
-	if cassandraIP == "" {
-		cassandraIP = defaultCassandraIP
-	}
-
-	if keySpace == "" {
-		keySpace = defaultKeyspace
-	}
-
+func BuildKeySpace(t testing.TB, driver source.Driver, tables []string) *gocql.Session {
 	cluster := gocql.NewCluster(cassandraIP)
 	cluster.Consistency = gocql.All
 	cluster.ProtoVersion = protocolVersion
@@ -44,7 +32,7 @@ func BuildKeySpace(migrationsPath *string, tables []string) (*gocql.Session, *sy
 	session, err := cluster.CreateSession()
 
 	if err != nil {
-		panic(err)
+		t.Errorf("cant create cql session: %v", err)
 	}
 
 	defer session.Close()
@@ -53,8 +41,10 @@ func BuildKeySpace(migrationsPath *string, tables []string) (*gocql.Session, *sy
 		`CREATE KEYSPACE ` + keySpace + ` WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }`,
 	).Exec()
 
-	if migrationsPath != nil {
-		errs, ok := migrate.UpSync(
+	if driver != nil {
+		m, err := migrate.NewWithSourceInstance(
+			"testing_source",
+			driver,
 			fmt.Sprintf(
 				"cassandra://%s:%d/%s?protocol=%d",
 				cassandraIP,
@@ -62,20 +52,16 @@ func BuildKeySpace(migrationsPath *string, tables []string) (*gocql.Session, *sy
 				keySpace,
 				protocolVersion,
 			),
-			*migrationsPath,
 		)
 
-		if !ok {
-			strErrs := []string{}
-			for _, migrationError := range errs {
-				strErrs = append(strErrs, migrationError.Error())
-			}
+		if err != nil {
+			t.Errorf("cant open migrate: %v", err)
+		}
 
-			panic(strings.Join(strErrs, ","))
+		if err := m.Up(); err != nil {
+			t.Errorf("cant run migration: %v", err)
 		}
 	}
-
-	keyspaceMutex.Lock()
 
 	cluster.Keyspace = keySpace
 	if session, err := cluster.CreateSession(); err != nil {
@@ -89,6 +75,6 @@ func BuildKeySpace(migrationsPath *string, tables []string) (*gocql.Session, *sy
 			}
 		}
 
-		return session, keyspaceMutex
+		return session
 	}
 }

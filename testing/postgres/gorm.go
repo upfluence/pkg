@@ -2,45 +2,48 @@ package postgres
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"strings"
+	"net/url"
+	"testing"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
-	_ "github.com/mattes/migrate/driver/postgres"
-	"github.com/mattes/migrate/migrate"
+	"github.com/mattes/migrate"
+	"github.com/mattes/migrate/source"
+
+	"github.com/upfluence/pkg/cfg"
 )
 
-const defaultPostgresURL = "postgres://localhost:5432/test_database?sslmode=disable"
+var postgresURL = cfg.FetchString(
+	"POSTGRES_URL",
+	"postgres://localhost:5432/test_database?sslmode=disable",
+)
 
-func BuildDatabase(
-	schemaPath *string,
-	migrationsPath *string,
-) (*gorm.DB, error) {
-	postgresURL := os.Getenv("POSTGRES_URL")
-
-	if postgresURL == "" {
-		postgresURL = defaultPostgresURL
-	}
-
-	postgresURLSlipped := strings.Split(postgresURL, "/")
-
-	database := strings.Split(
-		postgresURLSlipped[len(postgresURLSlipped)-1],
-		"?",
-	)[0]
-
-	plainURL := postgresURLSlipped[0 : len(postgresURLSlipped)-1]
-	plainDB, err := sql.Open(
-		"postgres",
-		fmt.Sprintf("%s?sslmode=disable", strings.Join(plainURL, "/")),
+func parseURL(t testing.TB) (string, string) {
+	var (
+		u, err = url.Parse(postgresURL)
+		db     = "test_database"
 	)
 
 	if err != nil {
-		return nil, err
+		t.Errorf("Postgres URL not valid: %v", err)
+	}
+
+	if len(u.Path) > 1 {
+		db = u.Path[1:]
+	}
+
+	return postgresURL, db
+}
+
+func BuildDatabase(t testing.TB, driver source.Driver) *gorm.DB {
+	var (
+		url, database = parseURL(t)
+		plainDB, err  = sql.Open("postgres", postgresURL)
+	)
+
+	if err != nil {
+		t.Errorf("cant open the DB: %v", err)
 	}
 
 	plainDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", database))
@@ -51,37 +54,24 @@ func BuildDatabase(
 	db, err := gorm.Open("postgres", postgresURL)
 
 	if err != nil {
-		db.Close()
-		return nil, err
+		t.Errorf("cant open the DB: %v", err)
 	}
 
-	if schemaPath != nil {
-		blob, err := ioutil.ReadFile(*schemaPath)
+	if driver != nil {
+		m, err := migrate.NewWithSourceInstance(
+			"testing_source",
+			driver,
+			url,
+		)
 
 		if err != nil {
-			db.Close()
-			return nil, err
+			t.Errorf("cant open migrate: %v", err)
 		}
 
-		if _, err := db.DB().Exec(string(blob)); err != nil {
-			db.Close()
-			return nil, err
+		if err := m.Up(); err != nil {
+			t.Errorf("cant run migration: %v", err)
 		}
 	}
 
-	if migrationsPath != nil {
-		errs, ok := migrate.UpSync(postgresURL, *migrationsPath)
-
-		if !ok {
-			strErrs := []string{}
-			for _, migrationError := range errs {
-				strErrs = append(strErrs, migrationError.Error())
-			}
-
-			db.Close()
-			return nil, errors.New(strings.Join(strErrs, ","))
-		}
-	}
-
-	return db, nil
+	return db
 }
