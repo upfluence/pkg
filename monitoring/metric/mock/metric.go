@@ -17,7 +17,7 @@ func (m *mockMetric) Collect() []metric.Point {
 	r := []metric.Point{}
 
 	for _, suffix := range m.suffixes {
-		r = append(r, metric.Point{suffix, m.result})
+		r = append(r, metric.Point{Suffix: suffix, Value: m.result})
 	}
 
 	return r

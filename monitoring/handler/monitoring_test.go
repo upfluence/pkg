@@ -15,7 +15,7 @@ func TestHandlerWithMetric(t *testing.T) {
 		"m3": mock.NewMockMetric(3.0, []string{""}),
 	}
 
-	query := []string{"m1", "m2"}
+	query := []monitoring.MetricID{"m1", "m2"}
 
 	handler := NewMonitoringHandler("hey", metrics)
 
@@ -55,7 +55,7 @@ func TestHandlerWithUnknownMetric(t *testing.T) {
 		"m3": mock.NewMockMetric(3.0, []string{""}),
 	}
 
-	query := []string{"m1", "m4"}
+	query := []monitoring.MetricID{"m1", "m4"}
 
 	handler := NewMonitoringHandler("hey", metrics)
 
