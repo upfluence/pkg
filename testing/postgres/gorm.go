@@ -9,6 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 	"github.com/mattes/migrate"
+	_ "github.com/mattes/migrate/database/postgres"
 	"github.com/mattes/migrate/source"
 
 	"github.com/upfluence/pkg/cfg"
@@ -68,7 +69,7 @@ func BuildDatabase(t testing.TB, driver source.Driver) *gorm.DB {
 			t.Errorf("cant open migrate: %v", err)
 		}
 
-		if err := m.Up(); err != nil {
+		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 			t.Errorf("cant run migration: %v", err)
 		}
 	}

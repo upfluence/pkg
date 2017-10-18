@@ -7,6 +7,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/mattes/migrate"
+	_ "github.com/mattes/migrate/database/sqlite3"
 	"github.com/mattes/migrate/source"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -30,7 +31,7 @@ func BuildDatabase(t testing.TB, driver source.Driver) *gorm.DB {
 			t.Errorf("cant open migrate: %v", err)
 		}
 
-		if err := m.Up(); err != nil {
+		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 			t.Errorf("cant run migration: %v", err)
 		}
 	}

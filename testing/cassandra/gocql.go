@@ -7,6 +7,7 @@ import (
 
 	"github.com/gocql/gocql"
 	"github.com/mattes/migrate"
+	_ "github.com/mattes/migrate/database/cassandra"
 	"github.com/mattes/migrate/source"
 
 	"github.com/upfluence/pkg/cfg"
@@ -58,7 +59,7 @@ func BuildKeySpace(t testing.TB, driver source.Driver, tables []string) *gocql.S
 			t.Errorf("cant open migrate: %v", err)
 		}
 
-		if err := m.Up(); err != nil {
+		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 			t.Errorf("cant run migration: %v", err)
 		}
 	}
