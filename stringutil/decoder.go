@@ -11,6 +11,10 @@ import (
 var defaultDecoder = charmap.ISO8859_1.NewDecoder()
 
 func DecodeToUTF8(s string) string {
+	if s == "" {
+		return s
+	}
+
 	if IsUTF8(s) {
 		return s
 	}
