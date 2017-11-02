@@ -1,6 +1,7 @@
 package stringutil
 
 import (
+	"strings"
 	"unicode/utf8"
 
 	"golang.org/x/text/encoding/charmap"
@@ -11,9 +12,7 @@ import (
 var defaultDecoder = charmap.ISO8859_1.NewDecoder()
 
 func DecodeToUTF8(s string) string {
-	if s == "" {
-		return s
-	}
+	s = strings.Replace(s, "\x00", "", -1)
 
 	if IsUTF8(s) {
 		return s
