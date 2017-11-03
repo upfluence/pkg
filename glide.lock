@@ -1,5 +1,5 @@
 hash: 09f4271171af21a6db59572a98ef66592f7002ba66af83198c7f49362a4602b2
-updated: 2017-10-17T17:56:25.415430661-04:00
+updated: 2017-11-03T10:17:54.951504421+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -10,20 +10,20 @@ imports:
 - name: github.com/cyberdelia/statsd
   version: b1a41df90100a1421f276a4bacd664803a7b7f0b
 - name: github.com/garyburd/redigo
-  version: 433969511232c397de61b1442f9fd49ec06ae9ba
+  version: 34a326de1fea52965fa5ad664d3fc7163dd4b0a1
   subpackages:
   - internal
   - redis
 - name: github.com/getsentry/raven-go
   version: 1452f6376ddb15c546b6d7567e1d9518765391b5
 - name: github.com/gocql/gocql
-  version: 04cbe7af6ed6de7b3d98480fca10df7ea9814bb6
+  version: 93711fb9002b469d61ae13ed615441c5e57c1da1
   subpackages:
   - internal/lru
   - internal/murmur
   - internal/streams
 - name: github.com/golang/protobuf
-  version: 130e6b02ab059e7b717a096f397c5b60111cae74
+  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -35,17 +35,20 @@ imports:
 - name: github.com/jinzhu/inflection
   version: 1c35d901db3da928c72a72d8458480cc9ade058f
 - name: github.com/lib/pq
-  version: 017e4c14d80628353eaee677a1aeffe47a10c0dc
+  version: b609790bd85edf8e9ab7e0f8912750a786177bcf
   subpackages:
   - oid
 - name: github.com/mattes/migrate
-  version: 5b98c13eff7657ab49a1a5f705b72f961d7fc558
+  version: 69472d5f5cdca0fb2766d8d86f63cb2e78e1d869
   subpackages:
   - database
+  - database/cassandra
+  - database/postgres
+  - database/sqlite3
   - migrate
   - source
 - name: github.com/mattn/go-sqlite3
-  version: ca5e3819723d8eeaf170ad510e7da1d6d2e94a08
+  version: 5160b48509cf5c877bc22c11c373f8c7738cdb38
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
@@ -72,7 +75,7 @@ imports:
   subpackages:
   - xfs
 - name: github.com/streadway/amqp
-  version: 7db842394ca79f338f781d47bc59115f44adb20b
+  version: ff791c2d22d3f1588b4e2cc71a9fba5e1da90654
 - name: github.com/upfluence/base
   version: v0.1.2
   subpackages:
@@ -96,9 +99,17 @@ imports:
   subpackages:
   - http_thrift
 - name: golang.org/x/net
-  version: 1087133bc4af3073e18add999345c6ae75918503
+  version: 01c190206fbdffa42f334f4b2bf2220f50e64920
   subpackages:
   - context
+- name: golang.org/x/text
+  version: 88f656faf3f37f690df1a32515b479415e1a6769
+  subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/internal
+  - encoding/internal/identifier
+  - transform
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 testImports: []
