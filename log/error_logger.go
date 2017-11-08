@@ -14,25 +14,25 @@ type errorLoggerBackend struct {
 
 func (b *errorLoggerBackend) Log(_ logging.Level, d int, r *logging.Record) error {
 	var (
-		err    error
-		opts   = make(map[string]interface{})
-		argIdx int
+		err  error
+		opts = make(map[string]interface{})
 	)
 
-	if len(r.Args) == 0 {
-		return nil
+	for i, arg := range r.Args {
+		switch err2 := arg.(type) {
+		case error:
+			if err == nil {
+				err = err2
+			}
+
+			opts[fmt.Sprintf("arg-%d", i)] = arg
+		default:
+			opts[fmt.Sprintf("arg-%d", i)] = arg
+		}
 	}
 
-	if err2, ok := r.Args[0].(error); ok {
-		argIdx++
-		err = err2
-	} else {
+	if err == nil {
 		err = errors.New(r.Formatted(d + 1))
-	}
-
-	for argIdx < len(r.Args)-1 {
-		opts[fmt.Sprintf("arg %d", argIdx)] = r.Args[argIdx]
-		argIdx++
 	}
 
 	return b.client.Capture(err, opts)

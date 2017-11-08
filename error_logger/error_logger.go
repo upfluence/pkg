@@ -10,7 +10,9 @@ import (
 var DefaultErrorLogger ErrorLogger
 
 type ErrorLogger interface {
+	IgnoreErrors(...error)
 	Capture(error, map[string]interface{}) error
+
 	Close()
 }
 

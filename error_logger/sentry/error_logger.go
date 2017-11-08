@@ -5,11 +5,14 @@ import (
 	"os"
 
 	"github.com/getsentry/raven-go"
+	"github.com/upfluence/pkg/log"
 	"github.com/upfluence/pkg/thrift/handler"
 )
 
 type ErrorLogger struct {
 	client *raven.Client
+
+	errors []string
 }
 
 func NewErrorLogger(dsn string) (*ErrorLogger, error) {
@@ -38,11 +41,28 @@ func NewErrorLogger(dsn string) (*ErrorLogger, error) {
 		cl.SetEnvironment(v)
 	}
 
-	return &ErrorLogger{cl}, nil
+	return &ErrorLogger{client: cl}, nil
+}
+
+func (l *ErrorLogger) IgnoreErrors(errs ...error) {
+	for _, err := range errs {
+		l.errors = append(l.errors, fmt.Sprintf("%T", err))
+	}
 }
 
 func (l *ErrorLogger) Capture(err error, opts map[string]interface{}) error {
-	var tags = make(map[string]string)
+	var (
+		errType = fmt.Sprintf("%T", err)
+		tags    = make(map[string]string)
+	)
+
+	for _, ignoredError := range l.errors {
+		if ignoredError == errType {
+			log.Noticef("error ignored: %v", err)
+
+			return nil
+		}
+	}
 
 	for k, v := range opts {
 		tags[k] = fmt.Sprintf("%+v", v)
