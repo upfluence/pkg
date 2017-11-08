@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/getsentry/raven-go"
-	"github.com/upfluence/pkg/log"
 	"github.com/upfluence/pkg/thrift/handler"
 )
 
@@ -58,8 +57,6 @@ func (l *ErrorLogger) Capture(err error, opts map[string]interface{}) error {
 
 	for _, ignoredError := range l.errors {
 		if ignoredError == errType {
-			log.Noticef("error ignored: %v", err)
-
 			return nil
 		}
 	}
