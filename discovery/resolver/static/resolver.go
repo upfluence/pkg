@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/upfluence/pkg/discovery/peer"
 	"github.com/upfluence/pkg/discovery/resolver"
@@ -49,7 +50,7 @@ func (r *Resolver) Close() error {
 func (r *Resolver) Resolve(_ context.Context) (<-chan resolver.Update, error) {
 	var ch = make(chan resolver.Update, 0)
 
-	go func() { ch <- resolver.Update{Additions: r.peers} }()
+	go func() { time.Sleep(5 * time.Second); ch <- resolver.Update{Additions: r.peers} }()
 
 	r.muChans.Lock()
 	r.resolverChans = append(r.resolverChans, ch)

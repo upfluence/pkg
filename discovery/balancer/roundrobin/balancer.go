@@ -5,82 +5,47 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
-	"github.com/upfluence/pkg/backoff/static"
 	"github.com/upfluence/pkg/discovery/balancer"
 	"github.com/upfluence/pkg/discovery/peer"
 	"github.com/upfluence/pkg/discovery/resolver"
-	"github.com/upfluence/pkg/log"
 )
 
-var getBackoffStrategy = static.NewInfiniteBackoff(100 * time.Millisecond)
-
 type Balancer struct {
-	resolver resolver.Resolver
+	puller *resolver.Puller
 
 	ring   *ring.Ring
 	ringMu *sync.Mutex
 
-	closeChan chan bool
+	closeChan chan<- interface{}
+	notifier  chan interface{}
 }
 
 func NewBalancer(r resolver.Resolver) *Balancer {
-	return &Balancer{
-		resolver:  r,
-		ring:      &ring.Ring{},
-		ringMu:    &sync.Mutex{},
-		closeChan: make(chan bool),
+	var b = &Balancer{
+		ring:     &ring.Ring{},
+		ringMu:   &sync.Mutex{},
+		notifier: make(chan interface{}),
 	}
+
+	b.puller, b.closeChan = resolver.NewPuller(r, b.updateRing)
+
+	return b
 }
 
 func (b *Balancer) String() string {
-	return fmt.Sprintf("loadbalancer/roundrobin [resolver: %v]", b.resolver)
+	return fmt.Sprintf("loadbalancer/roundrobin [resolver: %v]", b.puller)
 }
 
 func (b *Balancer) Open(ctx context.Context) error {
-	if err := b.resolver.Open(ctx); err != nil {
-		return err
-	}
-
-	go b.subscribe()
-
-	return nil
-}
-
-func (b *Balancer) subscribe() {
-	for {
-		var (
-			channelOpen = true
-			ch, err     = b.resolver.Resolve(context.Background())
-		)
-
-		if err != nil {
-			log.Errorf("resolver: %+v", err)
-		}
-
-		for channelOpen {
-			select {
-			case <-b.closeChan:
-				return
-			case update, ok := <-ch:
-				if !ok {
-					channelOpen = false
-				} else {
-					b.updateRing(update)
-				}
-			}
-		}
-	}
+	return b.puller.Open(ctx)
 }
 
 func (b *Balancer) updateRing(update resolver.Update) {
-	if len(update.Additions)+len(update.Deletions) == 0 {
-		return
-	}
-
 	b.ringMu.Lock()
 	defer b.ringMu.Unlock()
+
+	var emptyRing = b.ring.Value == nil
 
 	for _, p := range update.Additions {
 		if b.ring.Value == nil {
@@ -110,15 +75,36 @@ func (b *Balancer) updateRing(update resolver.Update) {
 			b.ring = b.ring.Prev().Unlink(1)
 		}
 	}
+
+	if emptyRing && b.ring.Value != nil {
+		for {
+			select {
+			case <-b.notifier:
+			default:
+				return
+			}
+		}
+	}
 }
 
 func (b *Balancer) Close() error {
 	b.closeChan <- true
-
-	return b.resolver.Close()
+	return nil
 }
 
-func (b *Balancer) getNoWait() *peer.Peer {
+func (b *Balancer) Get(ctx context.Context, opts balancer.BalancerGetOptions) (*peer.Peer, error) {
+	if v := b.ring.Value; v == nil {
+		if opts.NoWait {
+			return nil, balancer.ErrNoPeerAvailable
+		}
+
+		select {
+		case b.notifier <- true:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+
 	b.ringMu.Lock()
 	defer b.ringMu.Unlock()
 
@@ -126,50 +112,8 @@ func (b *Balancer) getNoWait() *peer.Peer {
 		b.ring = b.ring.Next()
 
 		p := v.(peer.Peer)
-		return &p
+		return &p, nil
 	}
 
-	return nil
-}
-
-func (b *Balancer) Get(ctx context.Context, opts balancer.BalancerGetOptions) (*peer.Peer, error) {
-	if peer := b.getNoWait(); peer != nil {
-		return peer, nil
-	}
-
-	if opts.NoWait {
-		return nil, balancer.ErrNoPeerAvailable
-	}
-
-	nextPeer := make(chan *peer.Peer)
-
-	go func() {
-		var (
-			i = 0
-			p *peer.Peer
-		)
-
-		for p == nil {
-			d, _ := getBackoffStrategy.Backoff(i)
-			log.Infof(
-				"[%v] No peer found, backing off for: %v",
-				b,
-				d,
-			)
-
-			time.Sleep(d)
-
-			p = b.getNoWait()
-			i++
-		}
-
-		nextPeer <- p
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case p := <-nextPeer:
-		return p, nil
-	}
+	return nil, balancer.ErrNoPeerAvailable
 }
