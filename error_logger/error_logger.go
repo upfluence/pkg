@@ -10,10 +10,14 @@ import (
 var DefaultErrorLogger ErrorLogger
 
 type ErrorLogger interface {
-	IgnoreErrors(...error)
+	IgnoreErrors(...func(error) bool)
 	Capture(error, map[string]interface{}) error
 
 	Close()
+}
+
+func IgnoreError(err error) func(error) bool {
+	return func(e error) bool { return e == err }
 }
 
 func init() {

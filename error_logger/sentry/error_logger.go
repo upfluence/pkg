@@ -11,7 +11,7 @@ import (
 type ErrorLogger struct {
 	client *raven.Client
 
-	errors []string
+	filters []func(error) bool
 }
 
 func NewErrorLogger(dsn string) (*ErrorLogger, error) {
@@ -43,22 +43,25 @@ func NewErrorLogger(dsn string) (*ErrorLogger, error) {
 	return &ErrorLogger{client: cl}, nil
 }
 
-func (l *ErrorLogger) IgnoreErrors(errs ...error) {
-	for _, err := range errs {
-		l.errors = append(l.errors, fmt.Sprintf("%T", err))
+func (l *ErrorLogger) IgnoreErrors(filters ...func(error) bool) {
+	l.filters = append(l.filters, filters...)
+}
+
+func (l *ErrorLogger) errorIgnored(err error) bool {
+	for _, filter := range l.filters {
+		if filter(err) {
+			return true
+		}
 	}
+
+	return false
 }
 
 func (l *ErrorLogger) Capture(err error, opts map[string]interface{}) error {
-	var (
-		errType = fmt.Sprintf("%T", err)
-		tags    = make(map[string]string)
-	)
+	var tags = make(map[string]string)
 
-	for _, ignoredError := range l.errors {
-		if ignoredError == errType {
-			return nil
-		}
+	if l.errorIgnored(err) {
+		return nil
 	}
 
 	for k, v := range opts {
