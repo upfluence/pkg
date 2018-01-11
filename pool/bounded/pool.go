@@ -19,10 +19,12 @@ type PoolFactory struct {
 
 type Pool struct {
 	pool  chan interface{}
-	cond  *sync.Cond
 	limit int
 
-	checkout map[interface{}]bool
+	checkoutL *sync.Mutex
+	checkout  map[interface{}]bool
+
+	createChannel chan interface{}
 
 	factory pool.Factory
 }
@@ -36,97 +38,80 @@ func (f *PoolFactory) GetPool(factory pool.Factory) pool.Pool {
 }
 
 func NewPool(limit int, factory pool.Factory) *Pool {
-	return &Pool{
-		pool:     make(chan interface{}, limit),
-		cond:     sync.NewCond(&sync.Mutex{}),
-		limit:    limit,
-		checkout: make(map[interface{}]bool),
-		factory:  factory,
+	var p = &Pool{
+		pool:          make(chan interface{}, limit),
+		createChannel: make(chan interface{}, limit),
+		limit:         limit,
+		checkout:      make(map[interface{}]bool),
+		checkoutL:     &sync.Mutex{},
+		factory:       factory,
 	}
+
+	for i := 0; i < limit; i++ {
+		p.createChannel <- true
+	}
+
+	return p
+}
+
+func (p *Pool) checkin(e interface{}) {
+	p.checkoutL.Lock()
+	defer p.checkoutL.Unlock()
+
+	p.checkout[e] = true
 }
 
 func (p *Pool) Get(ctx context.Context) (interface{}, error) {
 	select {
-	case e := <-p.pool:
-		p.cond.L.Lock()
-		defer p.cond.L.Unlock()
-		p.checkout[e] = true
-		return e, nil
-	default:
-	}
-
-	var (
-		cancelled bool
-
-		ch = make(chan bool)
-	)
-
-	go func() {
-		p.cond.L.Lock()
-		defer p.cond.L.Unlock()
-
-		for len(p.checkout) >= p.limit {
-			p.cond.Wait()
-
-			if cancelled {
-				p.cond.Signal()
-				return
-			}
-		}
-
-		ch <- true
-	}()
-
-	select {
 	case <-ctx.Done():
-		cancelled = true
 		return nil, ctx.Err()
 	case e := <-p.pool:
-		cancelled = true
-		p.checkout[e] = true
+		p.checkin(e)
 		return e, nil
-	case <-ch:
+	case <-p.createChannel:
 		e, err := p.factory(ctx)
 
-		if err == nil {
-			p.cond.L.Lock()
-			p.checkout[e] = true
-			p.cond.L.Unlock()
+		if err != nil {
+			return nil, err
 		}
 
-		return e, err
+		p.checkin(e)
+		return e, nil
 	}
 }
 
 func (p *Pool) Put(e interface{}) error {
+	p.checkoutL.Lock()
+	defer p.checkoutL.Unlock()
+
 	if _, ok := p.checkout[e]; !ok {
 		return errNotCheckout
 	}
-
-	p.cond.L.Lock()
-	defer p.cond.L.Unlock()
 
 	delete(p.checkout, e)
 
 	select {
 	case p.pool <- e:
-		return nil
 	default:
-		return errPoolFull
 	}
+
+	return nil
 }
 
 func (p *Pool) Discard(e interface{}) error {
+	p.checkoutL.Lock()
+	defer p.checkoutL.Unlock()
+
 	if _, ok := p.checkout[e]; !ok {
 		return errNotCheckout
 	}
 
-	p.cond.L.Lock()
-	defer p.cond.L.Unlock()
-
 	delete(p.checkout, e)
 
-	p.cond.Signal()
+	select {
+	case p.createChannel <- true:
+	default:
+	}
 
 	return nil
 }
