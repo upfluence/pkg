@@ -15,6 +15,7 @@ type BalancerGetOptions struct {
 
 type Balancer interface {
 	Open(context.Context) error
+	IsOpen() bool
 	Close() error
 
 	// Up(peer.Peer) func(error)

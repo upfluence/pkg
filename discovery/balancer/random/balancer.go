@@ -17,10 +17,10 @@ type Rand interface {
 }
 
 type Balancer struct {
-	puller *resolver.Puller
+	*resolver.Puller
 
 	peers   []*peer.Peer
-	peersMu *sync.Mutex
+	peersMu *sync.RWMutex
 	rand    Rand
 
 	notifier  chan interface{}
@@ -30,21 +30,17 @@ type Balancer struct {
 func NewBalancer(r resolver.Resolver) *Balancer {
 	var b = &Balancer{
 		rand:     rand.New(rand.NewSource(time.Now().UnixNano())),
-		peersMu:  &sync.Mutex{},
+		peersMu:  &sync.RWMutex{},
 		notifier: make(chan interface{}),
 	}
 
-	b.puller, b.closeChan = resolver.NewPuller(r, b.updatePeers)
+	b.Puller, b.closeChan = resolver.NewPuller(r, b.updatePeers)
 
 	return b
 }
 
 func (b *Balancer) String() string {
-	return fmt.Sprintf("loadbalancer/random [resolver: %v]", b.puller)
-}
-
-func (b *Balancer) Open(ctx context.Context) error {
-	return b.puller.Open(ctx)
+	return fmt.Sprintf("loadbalancer/random [resolver: %v]", b.Puller)
 }
 
 func (b *Balancer) updatePeers(u resolver.Update) {
@@ -104,8 +100,15 @@ func (b *Balancer) updatePeers(u resolver.Update) {
 	}
 }
 
+func (b *Balancer) hasPeers() bool {
+	b.peersMu.RLock()
+	defer b.peersMu.RUnlock()
+
+	return len(b.peers) > 0
+}
+
 func (b *Balancer) Get(ctx context.Context, opts balancer.BalancerGetOptions) (*peer.Peer, error) {
-	if len(b.peers) == 0 {
+	if !b.hasPeers() {
 		if opts.NoWait {
 			return nil, balancer.ErrNoPeerAvailable
 		}
@@ -117,6 +120,8 @@ func (b *Balancer) Get(ctx context.Context, opts balancer.BalancerGetOptions) (*
 		}
 	}
 
+	b.peersMu.RLock()
+	defer b.peersMu.RUnlock()
 	return b.peers[b.rand.Intn(len(b.peers))], nil
 }
 
