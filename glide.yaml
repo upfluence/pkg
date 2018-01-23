@@ -27,16 +27,8 @@ import:
   - service/thrift/transport/rabbitmq
   - service/thrift_service
   - version
-- package: github.com/upfluence/thrift-amqp-go
-  version: ^0.1.0
-  subpackages:
-  - amqp_thrift
-- package: github.com/upfluence/thrift-http-go
-  version: ^0.1.0
-  subpackages:
-  - http_thrift
 - package: github.com/upfluence/thrift
-  version: ^1.0.0
+  version: ^2.0.0
   subpackages:
   - lib/go/thrift
 - package: github.com/prometheus/client_golang

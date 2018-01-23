@@ -59,6 +59,8 @@ func NewTSocketFromConnTimeout(conn net.Conn, timeout time.Duration) *TSocket {
 	return &TSocket{conn: conn, addr: conn.RemoteAddr(), timeout: timeout}
 }
 
+func (p *TSocket) WriteContext(_ Context) error { return nil }
+
 // Sets the socket timeout
 func (p *TSocket) SetTimeout(timeout time.Duration) error {
 	p.timeout = timeout

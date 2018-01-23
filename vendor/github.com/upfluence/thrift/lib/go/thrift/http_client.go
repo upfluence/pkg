@@ -96,6 +96,8 @@ func NewTHttpPostClient(urlstr string) (TTransport, error) {
 	}, nil
 }
 
+func (p *THttpClient) WriteContext(_ Context) error { return nil }
+
 // Set the HTTP Header for this specific Thrift Transport
 // It is important that you first assert the TTransport as a THttpClient type
 // like so:

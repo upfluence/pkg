@@ -140,7 +140,7 @@ func (t *TMultiplexedProcessor) Process(in, out TProtocol) (bool, TException) {
 	if len(v) != 2 {
 		if t.DefaultProcessor != nil {
 			smb := NewStoredMessageProtocol(in, name, typeId, seqid)
-			return t.DefaultProcessor.Process(smb, out)
+			return t.DefaultProcessor.Process(nil, smb, out)
 		}
 		return false, fmt.Errorf("Service name not found in message name: %s.  Did you forget to use a TMultiplexProtocol in your client?", name)
 	}
@@ -149,7 +149,7 @@ func (t *TMultiplexedProcessor) Process(in, out TProtocol) (bool, TException) {
 		return false, fmt.Errorf("Service name not found: %s.  Did you forget to call registerProcessor()?", v[0])
 	}
 	smb := NewStoredMessageProtocol(in, v[1], typeId, seqid)
-	return actualProcessor.Process(smb, out)
+	return actualProcessor.Process(nil, smb, out)
 }
 
 //Protocol that use stored message for ReadMessageBegin

@@ -7,6 +7,7 @@ import (
 	"github.com/upfluence/base"
 	"github.com/upfluence/base/base_service"
 	"github.com/upfluence/base/version"
+	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
 const BASE_EXCHANGE_NAME = "monitoring-exchange"
@@ -44,11 +45,11 @@ func buildSemanticVersion() *version.SemanticVersion {
 	return &version.SemanticVersion{int16(major), int16(minor), int16(patch)}
 }
 
-func (h *Base) GetName() (string, error) {
+func (h *Base) GetName(_ thrift.Context) (string, error) {
 	return h.UnitName, nil
 }
 
-func (h *Base) GetVersion() (*version.Version, error) {
+func (h *Base) GetVersion(_ thrift.Context) (*version.Version, error) {
 	var gitVersion *version.GitVersion
 
 	if GitCommit != "" {
@@ -58,7 +59,7 @@ func (h *Base) GetVersion() (*version.Version, error) {
 	return &version.Version{buildSemanticVersion(), gitVersion}, nil
 }
 
-func (h *Base) GetInterfaceVersions() (map[string]*version.Version, error) {
+func (h *Base) GetInterfaceVersions(_ thrift.Context) (map[string]*version.Version, error) {
 	versions := make(map[string]*version.Version)
 
 	for _, i := range h.Interfaces {
@@ -72,10 +73,10 @@ func (h *Base) GetInterfaceVersions() (map[string]*version.Version, error) {
 	return versions, nil
 }
 
-func (h *Base) GetStatus() (base_service.Status, error) {
+func (h *Base) GetStatus(_ thrift.Context) (base_service.Status, error) {
 	return base_service.Status_ALIVE, nil
 }
 
-func (h *Base) AliveSince() (int64, error) {
+func (h *Base) AliveSince(_ thrift.Context) (int64, error) {
 	return h.SpawnDate, nil
 }

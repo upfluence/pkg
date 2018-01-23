@@ -56,6 +56,8 @@ func NewTMemoryBufferLen(size int) *TMemoryBuffer {
 	return &TMemoryBuffer{Buffer: bytes.NewBuffer(buf), size: size}
 }
 
+func (p *TMemoryBuffer) WriteContext(_ Context) error { return nil }
+
 func (p *TMemoryBuffer) IsOpen() bool {
 	return true
 }

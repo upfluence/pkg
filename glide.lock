@@ -1,29 +1,29 @@
-hash: 09f4271171af21a6db59572a98ef66592f7002ba66af83198c7f49362a4602b2
-updated: 2017-11-03T10:17:54.951504421+01:00
+hash: 394dfd3d7050b95c6ea04bbbf93e47e9cdec9d2573a1e52f90b8b8fef7330075
+updated: 2018-01-23T11:48:45.310036-05:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
 - name: github.com/certifi/gocertifi
-  version: 3fd9e1adb12b72d2f3f82191d49be9b93c69f67c
+  version: deb3ae2ef2610fde3330947281941c562861188b
 - name: github.com/cyberdelia/statsd
   version: b1a41df90100a1421f276a4bacd664803a7b7f0b
 - name: github.com/garyburd/redigo
-  version: 34a326de1fea52965fa5ad664d3fc7163dd4b0a1
+  version: d1ed5c67e5794de818ea85e6b522fda02623a484
   subpackages:
   - internal
   - redis
 - name: github.com/getsentry/raven-go
-  version: 1452f6376ddb15c546b6d7567e1d9518765391b5
+  version: 563b81fc02b75d664e54da31f787c2cc2186780b
 - name: github.com/gocql/gocql
-  version: 93711fb9002b469d61ae13ed615441c5e57c1da1
+  version: dd47639f787e8583e1a13e17e20a9f6c4332bc29
   subpackages:
   - internal/lru
   - internal/murmur
   - internal/streams
 - name: github.com/golang/protobuf
-  version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
+  version: c65a0412e71e8b9b3bfd22925720d23c0f054237
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -35,11 +35,11 @@ imports:
 - name: github.com/jinzhu/inflection
   version: 1c35d901db3da928c72a72d8458480cc9ade058f
 - name: github.com/lib/pq
-  version: b609790bd85edf8e9ab7e0f8912750a786177bcf
+  version: 61fe37aa2ee24fabcdbe5c4ac1d4ac566f88f345
   subpackages:
   - oid
 - name: github.com/mattes/migrate
-  version: 69472d5f5cdca0fb2766d8d86f63cb2e78e1d869
+  version: d23f71b03c4a439b81ccccb2ac5090032ec5c735
   subpackages:
   - database
   - database/cassandra
@@ -48,62 +48,53 @@ imports:
   - migrate
   - source
 - name: github.com/mattn/go-sqlite3
-  version: 5160b48509cf5c877bc22c11c373f8c7738cdb38
+  version: 6c771bb9887719704b210e87e934f08be014bdb1
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
   - pbutil
 - name: github.com/op/go-logging
   version: 970db520ece77730c7e4724c61121037378659d9
+- name: github.com/pkg/errors
+  version: e881fd58d78e04cf6d0de1217f8707c8cc2249bc
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
   - prometheus
   - prometheus/push
 - name: github.com/prometheus/client_model
-  version: 6f3806018612930941127f2a7c6c453ba2c527d2
+  version: 99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 1bab55dd05dbff384524a6a1c99006d9eb5f139b
+  version: 89604d197083d4781071d3c65855d24ecfb0a563
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: a6e9df898b1336106c743392c48ee0b71f5c4efa
+  version: 85fadb6e89903ef7cca6f6a804474cd5ea85b6e1
   subpackages:
+  - internal/util
+  - nfsd
   - xfs
 - name: github.com/streadway/amqp
-  version: ff791c2d22d3f1588b4e2cc71a9fba5e1da90654
+  version: 54ded0531dfd699a7893861d39a7a949c5749bc9
 - name: github.com/upfluence/base
-  version: v0.1.2
+  version: v0.1.7
   subpackages:
   - base_service
   - monitoring
-  - service/thrift/transport
   - service/thrift/transport/http
   - service/thrift/transport/rabbitmq
   - service/thrift_service
   - version
 - name: github.com/upfluence/thrift
-  version: 0d894e73024d9db0a753070b5885fde991fcfad3
+  version: b150edca1df7b64c720ce0c52689b6995b0e2581
   subpackages:
   - lib/go/thrift
-- name: github.com/upfluence/thrift-amqp-go
-  version: 26ddd97cc84a0536e76270f9bb15ca4978f7abbd
-  subpackages:
-  - amqp_thrift
-- name: github.com/upfluence/thrift-http-go
-  version: e5eed72f43040496fc56fe35b2e4754071db2570
-  subpackages:
-  - http_thrift
-- name: golang.org/x/net
-  version: 01c190206fbdffa42f334f4b2bf2220f50e64920
-  subpackages:
-  - context
 - name: golang.org/x/text
-  version: 88f656faf3f37f690df1a32515b479415e1a6769
+  version: e19ae1496984b1c655b8044a65c0300a3c878dd3
   subpackages:
   - encoding
   - encoding/charmap
