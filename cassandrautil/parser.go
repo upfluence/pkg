@@ -1,6 +1,7 @@
 package cassandrautil
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -78,4 +79,20 @@ func MustBuildSession(opts ...Option) *gocql.Session {
 	}
 
 	return sess
+}
+
+func CassandraURI(opts ...Option) string {
+	opt := *defaultOptions
+
+	for _, optFn := range opts {
+		optFn(&opt)
+	}
+
+	return fmt.Sprintf(
+		"cassandra://%s:%d/%s?protocol=%d",
+		strings.Split(opt.cassandraURL, ",")[0],
+		opt.port,
+		opt.keyspace,
+		opt.protocolVersion,
+	)
 }
