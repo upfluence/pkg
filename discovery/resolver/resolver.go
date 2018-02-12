@@ -12,7 +12,7 @@ type Update struct {
 }
 
 type Target struct {
-	Identifier string
+	Identifier, Environment string
 }
 
 type Builder interface {

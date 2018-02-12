@@ -76,16 +76,17 @@ type Interface interface {
 }
 
 type Peer struct {
-	InstanceName, AppName, ProjectName string
-	Version                            *version.Version
-	Interfaces                         []Interface
+	InstanceName, AppName, ProjectName, Environment string
+	Version                                         *version.Version
+	Interfaces                                      []Interface
 }
 
 func FromEnv() *Peer {
 	return &Peer{
 		InstanceName: cfg.FetchString("UNIT_NAME", "unknow-service"),
-		AppName:      cfg.FetchString("APP_NAME", ""),
-		ProjectName:  cfg.FetchString("PROJECT_NAME", ""),
+		AppName:      cfg.FetchString("APP_NAME", "unknown-app"),
+		ProjectName:  cfg.FetchString("PROJECT_NAME", "unknown-project"),
+		Environment:  cfg.FetchString("ENV", "development"),
 		Version: &version.Version{
 			GitVersion: buildGitVersion(),
 			SemanticVersion: parseSemanticVersion(
