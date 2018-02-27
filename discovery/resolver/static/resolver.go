@@ -43,6 +43,8 @@ func (r *Resolver) Close() error {
 		close(ch)
 	}
 
+	r.resolverChans = []chan resolver.Update{}
+
 	return nil
 }
 
