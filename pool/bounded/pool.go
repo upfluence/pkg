@@ -72,6 +72,11 @@ func (p *Pool) Get(ctx context.Context) (interface{}, error) {
 		e, err := p.factory(ctx)
 
 		if err != nil {
+			select {
+			case p.createChannel <- true:
+			default:
+			}
+
 			return nil, err
 		}
 
