@@ -126,6 +126,6 @@ func (b *Balancer) Get(ctx context.Context, opts balancer.BalancerGetOptions) (*
 }
 
 func (b *Balancer) Close() error {
-	b.closeChan <- true
+	close(b.closeChan)
 	return nil
 }

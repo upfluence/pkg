@@ -88,7 +88,7 @@ func (b *Balancer) updateRing(update resolver.Update) {
 }
 
 func (b *Balancer) Close() error {
-	b.closeChan <- true
+	close(b.closeChan)
 	return nil
 }
 

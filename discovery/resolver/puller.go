@@ -11,6 +11,8 @@ import (
 type Puller struct {
 	resolver Resolver
 
+	openOnce sync.Once
+
 	closed    bool
 	closeL    *sync.RWMutex
 	closeChan <-chan interface{}
@@ -40,13 +42,17 @@ func (p *Puller) String() string {
 }
 
 func (p *Puller) Open(ctx context.Context) error {
-	if err := p.resolver.Open(ctx); err != nil {
-		return err
-	}
+	var err error
 
-	go p.pull()
+	p.openOnce.Do(func() {
+		if errO := p.resolver.Open(ctx); errO != nil {
+			err = errO
+		}
 
-	return nil
+		go p.pull()
+	})
+
+	return err
 }
 
 func (p *Puller) close() {
