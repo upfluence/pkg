@@ -27,7 +27,7 @@ func peerTable(p *lpeer.Peer) amqp.Table {
 }
 
 func peerURI(p *dpeer.Peer) string {
-	if strings.HasPrefix("amqp://", p.Addr) {
+	if strings.HasPrefix(p.Addr, "amqp://") {
 		return p.Addr
 	}
 
