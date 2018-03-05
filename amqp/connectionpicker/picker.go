@@ -70,8 +70,6 @@ func (p *picker) Pick(ctx context.Context) (*amqp.Connection, error) {
 			p.connectionNamer(len(p.watchedConnections)),
 		)
 
-		log.Noticef("conn: %v, err: %v", conn, err)
-
 		if conn != nil {
 			go p.supervise(conn)
 			p.watchedConnections = append(p.watchedConnections, conn)

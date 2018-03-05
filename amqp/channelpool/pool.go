@@ -79,8 +79,6 @@ func (p *pool) factory(ctx context.Context) (interface{}, error) {
 func (p *pool) Get(ctx context.Context) (*amqp.Channel, error) {
 	var e, err = p.pool.Get(ctx)
 
-	log.Noticef("factory: %v", err)
-
 	if err != nil {
 		return nil, err
 	}
