@@ -2,6 +2,7 @@ package channelpool
 
 import (
 	"context"
+	"sync"
 
 	"github.com/streadway/amqp"
 
@@ -24,18 +25,23 @@ type Pool interface {
 	Discard(*amqp.Channel) error
 }
 
-func NewPool(f stdpool.PoolFactory, picker connectionpicker.Picker) Pool {
-	p := &pool{Picker: picker, st: map[*amqp.Channel]*poolEntity{}}
-	p.pool = f.GetPool(p.factory)
-
-	return p
-}
-
 type pool struct {
 	connectionpicker.Picker
 
 	pool stdpool.Pool
-	st   map[*amqp.Channel]*poolEntity
+
+	st *sync.Map
+}
+
+func NewPool(f stdpool.PoolFactory, picker connectionpicker.Picker) Pool {
+	var p = &pool{
+		Picker: picker,
+		st:     &sync.Map{},
+	}
+
+	p.pool = f.GetPool(p.factory)
+
+	return p
 }
 
 type poolEntity struct {
@@ -95,15 +101,15 @@ func (p *pool) Get(ctx context.Context) (*amqp.Channel, error) {
 		}
 	}
 
-	p.st[e.(*poolEntity).channel] = e.(*poolEntity)
+	p.st.Store(e.(*poolEntity).channel, e)
 	return e.(*poolEntity).channel, nil
 }
 
 func (p *pool) Put(ch *amqp.Channel) error {
-	if e, ok := p.st[ch]; ok {
-		delete(p.st, ch)
+	if e, ok := p.st.Load(ch); ok {
+		p.st.Delete(ch)
 
-		if e.opened {
+		if e.(*poolEntity).opened {
 			return p.pool.Put(e)
 		}
 
@@ -114,10 +120,10 @@ func (p *pool) Put(ch *amqp.Channel) error {
 }
 
 func (p *pool) Discard(ch *amqp.Channel) error {
-	if e, ok := p.st[ch]; ok {
-		delete(p.st, ch)
+	if e, ok := p.st.Load(ch); ok {
+		p.st.Delete(ch)
 
-		if e.opened {
+		if e.(*poolEntity).opened {
 			if err := ch.Close(); err != nil {
 				log.Errorf("amqputil: %v", err)
 			}
