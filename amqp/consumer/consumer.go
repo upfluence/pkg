@@ -34,7 +34,7 @@ type consumer struct {
 	errForwardersM *sync.RWMutex
 	errForwarders  []chan *amqp.Error
 
-	closeAck chan interface{}
+	closeAck, connectAck chan interface{}
 }
 
 func NewConsumer(opts ...Option) Consumer {
@@ -49,10 +49,12 @@ func NewConsumer(opts ...Option) Consumer {
 		consumersM:     &sync.RWMutex{},
 		errForwardersM: &sync.RWMutex{},
 		closeAck:       make(chan interface{}),
+		connectAck:     make(chan interface{}),
 	}
 }
 
 func (c *consumer) QueueName() string {
+	<-c.connectAck
 	return c.queueName
 }
 
@@ -117,6 +119,9 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 		return false, errors.Wrap(err, "channel.Consume")
 	}
 
+	close(c.connectAck)
+	defer func() { c.connectAck = make(chan interface{}) }()
+
 	closeCh := make(chan *amqp.Error)
 	ch.NotifyClose(closeCh)
 
@@ -142,10 +147,10 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 }
 
 func (c *consumer) open(ctx context.Context) error {
-	var cctx, fn = context.WithCancel(ctx)
+	var cctx, fn = context.WithCancel(context.Background())
 	c.cancelFn = fn
 
-	if err := c.opts.pool.Open(cctx); err != nil {
+	if err := c.opts.pool.Open(ctx); err != nil {
 		return err
 	}
 
