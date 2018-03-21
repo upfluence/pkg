@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"sync/atomic"
 
 	"github.com/upfluence/pkg/pool"
 )
@@ -18,8 +19,9 @@ type PoolFactory struct {
 }
 
 type Pool struct {
-	pool  chan interface{}
-	limit int
+	pool     chan interface{}
+	poolSize int32
+	limit    int
 
 	checkoutL *sync.Mutex
 	checkout  map[interface{}]bool
@@ -33,8 +35,12 @@ func NewPoolFactory(size int) *PoolFactory {
 	return &PoolFactory{size: size}
 }
 
-func (f *PoolFactory) GetPool(factory pool.Factory) pool.Pool {
+func (f *PoolFactory) GetIntrospectablePool(factory pool.Factory) pool.IntrospectablePool {
 	return NewPool(f.size, factory)
+}
+
+func (f *PoolFactory) GetPool(factory pool.Factory) pool.Pool {
+	return f.GetIntrospectablePool(factory)
 }
 
 func NewPool(limit int, factory pool.Factory) *Pool {
@@ -44,6 +50,7 @@ func NewPool(limit int, factory pool.Factory) *Pool {
 		limit:         limit,
 		checkout:      make(map[interface{}]bool),
 		checkoutL:     &sync.Mutex{},
+		poolSize:      0,
 		factory:       factory,
 	}
 
@@ -67,6 +74,9 @@ func (p *Pool) Get(ctx context.Context) (interface{}, error) {
 		return nil, ctx.Err()
 	case e := <-p.pool:
 		p.checkin(e)
+
+		atomic.AddInt32(&p.poolSize, -1)
+
 		return e, nil
 	case <-p.createChannel:
 		e, err := p.factory(ctx)
@@ -97,10 +107,18 @@ func (p *Pool) Put(e interface{}) error {
 
 	select {
 	case p.pool <- e:
+		atomic.AddInt32(&p.poolSize, 1)
 	default:
 	}
 
 	return nil
+}
+
+func (p *Pool) GetStats() (int, int) {
+	p.checkoutL.Lock()
+	defer p.checkoutL.Unlock()
+
+	return int(p.poolSize), len(p.checkout)
 }
 
 func (p *Pool) Discard(e interface{}) error {

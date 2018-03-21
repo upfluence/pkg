@@ -13,3 +13,13 @@ type Pool interface {
 type PoolFactory interface {
 	GetPool(Factory) Pool
 }
+
+type IntrospectablePool interface {
+	Pool
+
+	GetStats() (int, int)
+}
+
+type IntrospectablePoolFactory interface {
+	GetIntrospectablePool(Factory) IntrospectablePool
+}
