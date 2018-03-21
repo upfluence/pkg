@@ -16,7 +16,7 @@ var ErrCancelled = errors.New("amqp/consumer: Consumer is cancelled")
 type Consumer interface {
 	Open(context.Context) error
 	Consume() (<-chan amqp.Delivery, <-chan *amqp.Error, error)
-	QueueName() string
+	QueueName(context.Context) (string, error)
 	Close() error
 }
 
@@ -53,9 +53,13 @@ func NewConsumer(opts ...Option) Consumer {
 	}
 }
 
-func (c *consumer) QueueName() string {
-	<-c.connectAck
-	return c.queueName
+func (c *consumer) QueueName(ctx context.Context) (string, error) {
+	select {
+	case <-ctx.Done():
+		return "", ctx.Err()
+	case <-c.connectAck:
+		return c.queueName, nil
+	}
 }
 
 func (c *consumer) loop(ctx context.Context) {
