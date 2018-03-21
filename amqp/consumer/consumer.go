@@ -138,14 +138,20 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 			return true, ctx.Err()
 		case err := <-closeCh:
 			for _, f := range c.errForwarders {
-				f <- err
+				select {
+				case <-ctx.Done():
+				case f <- err:
+				}
 			}
 
 			c.opts.pool.Discard(ch)
 			return false, nil
 		case d := <-ds:
 			for _, c := range c.consumers {
-				c <- d
+				select {
+				case <-ctx.Done():
+				case c <- d:
+				}
 			}
 		}
 	}
