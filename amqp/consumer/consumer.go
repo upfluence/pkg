@@ -133,6 +133,7 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 		select {
 		case <-ctx.Done():
 			ch.Cancel(c.opts.consumerTag, false)
+			c.opts.pool.Put(ch)
 
 			return true, ctx.Err()
 		case err := <-closeCh:
