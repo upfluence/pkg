@@ -214,5 +214,9 @@ func (c *consumer) Close() error {
 		close(f)
 	}
 
+	if c.opts.handlePoolClosing {
+		return c.opts.pool.Close()
+	}
+
 	return nil
 }
