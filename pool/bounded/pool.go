@@ -69,6 +69,17 @@ func (p *Pool) checkin(e interface{}) {
 }
 
 func (p *Pool) Get(ctx context.Context) (interface{}, error) {
+	// Prefer entity from pool rather than a new one
+	select {
+	case e := <-p.pool:
+		p.checkin(e)
+
+		atomic.AddInt32(&p.poolSize, -1)
+
+		return e, nil
+	default:
+	}
+
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
