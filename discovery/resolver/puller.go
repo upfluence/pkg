@@ -27,6 +27,7 @@ func NewPuller(r Resolver, fn func(Update)) (*Puller, chan<- interface{}) {
 		resolver:  r,
 		updateFn:  fn,
 		closeChan: ch,
+		closeL:    &sync.RWMutex{},
 	}, ch
 }
 
