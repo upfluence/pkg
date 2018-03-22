@@ -153,6 +153,8 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 				case c <- d:
 				}
 			}
+
+			d.Ack(false)
 		}
 	}
 }
