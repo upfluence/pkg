@@ -17,8 +17,8 @@ type Balancer struct {
 	ring   *ring.Ring
 	ringMu *sync.Mutex
 
-	closeChan chan<- interface{}
-	notifier  chan interface{}
+	closeFn  func()
+	notifier chan interface{}
 }
 
 func NewBalancer(r resolver.Resolver) *Balancer {
@@ -28,7 +28,7 @@ func NewBalancer(r resolver.Resolver) *Balancer {
 		notifier: make(chan interface{}),
 	}
 
-	b.puller, b.closeChan = resolver.NewPuller(r, b.updateRing)
+	b.puller, b.closeFn = resolver.NewPuller(r, b.updateRing)
 
 	return b
 }
@@ -88,7 +88,7 @@ func (b *Balancer) updateRing(update resolver.Update) {
 }
 
 func (b *Balancer) Close() error {
-	close(b.closeChan)
+	b.closeFn()
 	return nil
 }
 

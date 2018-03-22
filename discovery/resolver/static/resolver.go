@@ -2,6 +2,7 @@ package static
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -9,11 +10,14 @@ import (
 	"github.com/upfluence/pkg/discovery/resolver"
 )
 
+var ErrClosed = errors.New("resolver/static: Resolver closed")
+
 type Resolver struct {
 	peers []*peer.Peer
 
 	resolverChans []chan resolver.Update
 	muChans       sync.Mutex
+	closed        bool
 }
 
 func NewResolverFromStrings(addrs []string) *Resolver {
@@ -39,23 +43,36 @@ func (r *Resolver) String() string {
 func (r *Resolver) Open(_ context.Context) error { return nil }
 
 func (r *Resolver) Close() error {
+	r.muChans.Unlock()
+	defer r.muChans.Lock()
+
+	if r.closed {
+		return nil
+	}
+
 	for _, ch := range r.resolverChans {
 		close(ch)
 	}
 
 	r.resolverChans = []chan resolver.Update{}
+	r.closed = true
 
 	return nil
 }
 
 func (r *Resolver) Resolve(_ context.Context) (<-chan resolver.Update, error) {
+	r.muChans.Lock()
+	defer r.muChans.Unlock()
+
+	if r.closed {
+		return nil, ErrClosed
+	}
+
 	var ch = make(chan resolver.Update)
 
 	go func() { ch <- resolver.Update{Additions: r.peers} }()
 
-	r.muChans.Lock()
 	r.resolverChans = append(r.resolverChans, ch)
-	r.muChans.Unlock()
 
 	return ch, nil
 }

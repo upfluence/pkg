@@ -13,22 +13,25 @@ type Puller struct {
 
 	openOnce sync.Once
 
-	closed    bool
-	closeL    *sync.RWMutex
-	closeChan <-chan interface{}
+	closed bool
+	closeL *sync.RWMutex
+
+	closeOnce *sync.Once
+	closeChan chan interface{}
 
 	updateFn func(Update)
 }
 
-func NewPuller(r Resolver, fn func(Update)) (*Puller, chan<- interface{}) {
-	var ch = make(chan interface{})
-
-	return &Puller{
+func NewPuller(r Resolver, fn func(Update)) (*Puller, func()) {
+	var p = &Puller{
 		resolver:  r,
 		updateFn:  fn,
-		closeChan: ch,
+		closeChan: make(chan interface{}),
+		closeOnce: &sync.Once{},
 		closeL:    &sync.RWMutex{},
-	}, ch
+	}
+
+	return p, func() { p.closeOnce.Do(func() { close(p.closeChan) }) }
 }
 
 func (p *Puller) IsOpen() bool {

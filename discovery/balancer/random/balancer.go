@@ -23,8 +23,8 @@ type Balancer struct {
 	peersMu *sync.RWMutex
 	rand    Rand
 
-	notifier  chan interface{}
-	closeChan chan<- interface{}
+	notifier chan interface{}
+	closeFn  func()
 }
 
 func NewBalancer(r resolver.Resolver) *Balancer {
@@ -34,7 +34,7 @@ func NewBalancer(r resolver.Resolver) *Balancer {
 		notifier: make(chan interface{}),
 	}
 
-	b.Puller, b.closeChan = resolver.NewPuller(r, b.updatePeers)
+	b.Puller, b.closeFn = resolver.NewPuller(r, b.updatePeers)
 
 	return b
 }
@@ -126,6 +126,6 @@ func (b *Balancer) Get(ctx context.Context, opts balancer.BalancerGetOptions) (*
 }
 
 func (b *Balancer) Close() error {
-	close(b.closeChan)
+	b.closeFn()
 	return nil
 }
