@@ -5,6 +5,7 @@ import (
 
 	"github.com/upfluence/base/monitoring"
 	"github.com/upfluence/pkg/monitoring/metric"
+	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
 type MonitoringHandler struct {
@@ -19,20 +20,24 @@ func NewMonitoringHandler(
 	return &MonitoringHandler{prefix, metrics}
 }
 
-func (m *MonitoringHandler) Collect(metrics []monitoring.MetricID) (
+func (m *MonitoringHandler) Collect(ctx thrift.Context, metrics []monitoring.MetricID) (
 	monitoring.Metrics,
 	error,
 ) {
-	promises := make(map[monitoring.MetricID]chan []metric.Point)
+	promises := make(map[monitoring.MetricID]chan metric.Point)
 	results := monitoring.Metrics{}
 
 	for _, id := range metrics {
 		if met, ok := m.metrics[id]; ok {
-			result := make(chan []metric.Point)
+			result := make(chan metric.Point)
 			promises[id] = result
 
 			go func() {
-				result <- met.Collect()
+				for _, p := range met.Collect(ctx) {
+					result <- p
+				}
+
+				close(result)
 			}()
 		} else {
 			return nil, &monitoring.UnknownMetric{Key: id}
@@ -40,7 +45,7 @@ func (m *MonitoringHandler) Collect(metrics []monitoring.MetricID) (
 	}
 
 	for id, promise := range promises {
-		for _, point := range <-promise {
+		for point := range promise {
 			splittedName := []string{m.prefix, string(id)}
 			if v := point.Suffix; v != "" {
 				splittedName = append(splittedName, v)

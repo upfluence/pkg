@@ -1,5 +1,7 @@
 package metric
 
+import "context"
+
 type Point struct {
 	// can be empty
 	Suffix string
@@ -7,5 +9,5 @@ type Point struct {
 }
 
 type Metric interface {
-	Collect() []Point
+	Collect(context.Context) []Point
 }

@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"context"
+
 	"github.com/upfluence/pkg/monitoring/metric"
 )
 
@@ -13,7 +15,7 @@ func NewMockMetric(result float64, suffixes []string) metric.Metric {
 	return &mockMetric{result, suffixes}
 }
 
-func (m *mockMetric) Collect() []metric.Point {
+func (m *mockMetric) Collect(_ context.Context) []metric.Point {
 	r := []metric.Point{}
 
 	for _, suffix := range m.suffixes {
