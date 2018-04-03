@@ -1,4 +1,6 @@
 machine:
+  services:
+    - redis
   environment:
     GO15VENDOREXPERIMENT: 1
 

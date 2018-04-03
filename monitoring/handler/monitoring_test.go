@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"testing"
 
 	"github.com/upfluence/base/monitoring"
@@ -19,7 +20,7 @@ func TestHandlerWithMetric(t *testing.T) {
 
 	handler := NewMonitoringHandler("hey", metrics)
 
-	res, err := handler.Collect(query)
+	res, err := handler.Collect(context.Background(), query)
 
 	if err != nil {
 		t.Errorf("Expected a success, got [%s]", err)
@@ -59,7 +60,7 @@ func TestHandlerWithUnknownMetric(t *testing.T) {
 
 	handler := NewMonitoringHandler("hey", metrics)
 
-	res, err := handler.Collect(query)
+	res, err := handler.Collect(context.Background(), query)
 
 	if err == nil {
 		t.Error("Expected an error here")
