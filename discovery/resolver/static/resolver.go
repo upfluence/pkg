@@ -43,8 +43,8 @@ func (r *Resolver) String() string {
 func (r *Resolver) Open(_ context.Context) error { return nil }
 
 func (r *Resolver) Close() error {
-	r.muChans.Unlock()
-	defer r.muChans.Lock()
+	r.muChans.Lock()
+	defer r.muChans.Unlock()
 
 	if r.closed {
 		return nil
