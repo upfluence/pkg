@@ -67,6 +67,10 @@ func NewDefaultFactory(name string, next pool.IntrospectablePoolFactory) *PoolFa
 }
 
 func (f *PoolFactory) GetPool(factory pool.Factory) pool.Pool {
+	return f.GetIntrospectablePool(factory)
+}
+
+func (f *PoolFactory) GetIntrospectablePool(factory pool.Factory) pool.IntrospectablePool {
 	var p = &Pool{
 		name:    f.name(factory),
 		backend: f.backend,
@@ -81,6 +85,8 @@ type Pool struct {
 	name, backend string
 	next          pool.IntrospectablePool
 }
+
+func (p *Pool) GetStats() (int, int) { return p.next.GetStats() }
 
 func (p *Pool) factory(f pool.Factory) func(ctx context.Context) (interface{}, error) {
 	return func(ctx context.Context) (interface{}, error) {
