@@ -18,6 +18,7 @@ var defaultOptions = &options{
 	protocolVersion: 3,
 	consistency:     gocql.Quorum,
 	timeout:         15 * time.Second,
+	retryPolicy:     &gocql.SimpleRetryPolicy{NumRetries: 3},
 }
 
 func Keyspace(k string) Option {
@@ -40,11 +41,16 @@ func Port(p int) Option {
 	return func(o *options) { o.port = p }
 }
 
+func RetryPolicy(p gocql.RetryPolicy) Option {
+	return func(o *options) { o.retryPolicy = p }
+}
+
 type options struct {
 	keyspace, cassandraURL string
 	port, protocolVersion  int
 
 	consistency gocql.Consistency
+	retryPolicy gocql.RetryPolicy
 	timeout     time.Duration
 }
 
@@ -67,6 +73,7 @@ func BuildSession(opts ...Option) (*gocql.Session, error) {
 	cluster.ProtoVersion = opt.protocolVersion
 	cluster.Keyspace = opt.keyspace
 	cluster.Timeout = opt.timeout
+	cluster.RetryPolicy = opt.retryPolicy
 
 	return cluster.CreateSession()
 }
