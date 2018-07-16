@@ -1,65 +1,40 @@
 package handler
 
 import (
-	"strconv"
-	"strings"
+	"time"
 
 	"github.com/upfluence/base"
 	"github.com/upfluence/base/base_service"
 	"github.com/upfluence/base/version"
 	"github.com/upfluence/thrift/lib/go/thrift"
+
+	"github.com/upfluence/pkg/peer"
 )
 
-const BASE_EXCHANGE_NAME = "monitoring-exchange"
-
-var (
-	GitCommit = ""
-	GitBranch = ""
-	GitRemote = ""
-
-	Version = "v0.0.0"
-)
-
-type Interface interface {
-	Version() *version.Version
-	Name() string
+func NewBaseHandler(p *peer.Peer) *Base {
+	return &Base{
+		Peer:      p,
+		SpawnDate: time.Now().Unix(),
+		StatusFn:  func() base_service.Status { return base_service.Status_ALIVE },
+	}
 }
 
 type Base struct {
-	UnitName   string
-	SpawnDate  int64
-	Interfaces []Interface
+	*peer.Peer
+
+	SpawnDate int64
+	StatusFn  func() base_service.Status
 }
 
-func buildSemanticVersion() *version.SemanticVersion {
-	splittedVersion := strings.Split(Version, ".")
-
-	if len(splittedVersion) != 3 {
-		return nil
-	}
-
-	major, _ := strconv.Atoi(splittedVersion[0][1:])
-	minor, _ := strconv.Atoi(splittedVersion[1])
-	patch, _ := strconv.Atoi(splittedVersion[2])
-
-	return &version.SemanticVersion{int16(major), int16(minor), int16(patch)}
+func (h *Base) GetName(thrift.Context) (string, error) {
+	return h.InstanceName, nil
 }
 
-func (h *Base) GetName(_ thrift.Context) (string, error) {
-	return h.UnitName, nil
+func (h *Base) GetVersion(thrift.Context) (*version.Version, error) {
+	return h.Version, nil
 }
 
-func (h *Base) GetVersion(_ thrift.Context) (*version.Version, error) {
-	var gitVersion *version.GitVersion
-
-	if GitCommit != "" {
-		gitVersion = &version.GitVersion{GitCommit, GitRemote, GitBranch}
-	}
-
-	return &version.Version{buildSemanticVersion(), gitVersion}, nil
-}
-
-func (h *Base) GetInterfaceVersions(_ thrift.Context) (map[string]*version.Version, error) {
+func (h *Base) GetInterfaceVersions(thrift.Context) (map[string]*version.Version, error) {
 	versions := make(map[string]*version.Version)
 
 	for _, i := range h.Interfaces {
@@ -73,10 +48,10 @@ func (h *Base) GetInterfaceVersions(_ thrift.Context) (map[string]*version.Versi
 	return versions, nil
 }
 
-func (h *Base) GetStatus(_ thrift.Context) (base_service.Status, error) {
-	return base_service.Status_ALIVE, nil
+func (h *Base) GetStatus(thrift.Context) (base_service.Status, error) {
+	return h.StatusFn(), nil
 }
 
-func (h *Base) AliveSince(_ thrift.Context) (int64, error) {
+func (h *Base) AliveSince(thrift.Context) (int64, error) {
 	return h.SpawnDate, nil
 }
