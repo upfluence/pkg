@@ -20,6 +20,7 @@
 package thrift
 
 import (
+	"context"
 	"errors"
 	"io"
 )
@@ -67,6 +68,10 @@ func NewTTransportException(t int, e string) TTransportException {
 func NewTTransportExceptionFromError(e error) TTransportException {
 	if e == nil {
 		return nil
+	}
+
+	if e == context.DeadlineExceeded {
+		return &tTransportException{typeId: TIMED_OUT, err: e}
 	}
 
 	if t, ok := e.(TTransportException); ok {

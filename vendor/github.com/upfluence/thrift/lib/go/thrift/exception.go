@@ -42,3 +42,20 @@ func PrependError(prepend string, err error) error {
 
 	return errors.New(prepend + err.Error())
 }
+
+// Code taken from github.com/pkg/errors in order to allow the processing of
+// wrapped errors in the stub
+func Cause(err error) error {
+	type causer interface {
+		Cause() error
+	}
+
+	for err != nil {
+		cause, ok := err.(causer)
+		if !ok {
+			break
+		}
+		err = cause.Cause()
+	}
+	return err
+}
