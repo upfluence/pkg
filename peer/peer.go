@@ -9,7 +9,6 @@ import (
 	"github.com/upfluence/base/version"
 
 	"github.com/upfluence/pkg/cfg"
-	"github.com/upfluence/pkg/log"
 )
 
 const defaultVersion = "v0.0.0-dirty"
@@ -94,17 +93,5 @@ func FromEnv() *Peer {
 			),
 		},
 		Interfaces: []Interface{&base.Base{}},
-	}
-}
-
-func (p *Peer) Introspect() {
-	log.Noticef("Service %s %s", p.InstanceName, SerializeVersion(p.Version))
-
-	if len(p.Interfaces) > 0 {
-		log.Noticef("Interface versions:")
-
-		for _, iface := range p.Interfaces {
-			log.Noticef("* %s %s", iface.Name(), SerializeVersion(iface.Version()))
-		}
 	}
 }

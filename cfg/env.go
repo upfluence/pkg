@@ -1,11 +1,10 @@
 package cfg
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/upfluence/pkg/log"
 )
 
 const listSeparator = ","
@@ -44,7 +43,7 @@ func FetchInt(variable string, defaultValue int) int {
 			return v1
 		}
 
-		log.Errorf("fetchInt: %s", err.Error())
+		fmt.Println("cfg: fetchInt: %s", err.Error())
 	}
 
 	return defaultValue
