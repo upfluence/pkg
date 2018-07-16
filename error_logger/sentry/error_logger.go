@@ -5,7 +5,8 @@ import (
 	"os"
 
 	"github.com/getsentry/raven-go"
-	"github.com/upfluence/pkg/thrift/handler"
+
+	"github.com/upfluence/pkg/peer"
 )
 
 type ErrorLogger struct {
@@ -14,27 +15,28 @@ type ErrorLogger struct {
 	filters []func(error) bool
 }
 
-func NewErrorLogger(dsn string) (*ErrorLogger, error) {
-	cl, err := raven.NewClient(
-		dsn,
-		map[string]string{
-			"semver_version": handler.Version,
-			"git_commit":     handler.GitCommit,
-			"git_branch":     handler.GitBranch,
-			"git_remote":     handler.GitRemote,
-			"unit_name":      os.Getenv("UNIT_NAME"),
-		},
-	)
+func NewErrorLogger(dsn string, p *peer.Peer) (*ErrorLogger, error) {
+	var tags = map[string]string{
+		"semver_version": peer.SerializeVersion(p.Version),
+		"unit_name":      p.InstanceName,
+		"environment":    p.Environment,
+	}
+
+	if v := p.Version.GitVersion; v != nil {
+		tags["git_commit"] = v.Commit
+		tags["git_branch"] = v.Branch
+		tags["git_remote"] = v.Remote
+	}
+
+	cl, err := raven.NewClient(dsn, tags)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if handler.Version != "v0.0.0" {
-		cl.SetRelease(
-			fmt.Sprintf("%s-%s", os.Getenv("PROJECT_NAME"), handler.Version),
-		)
-	}
+	cl.SetRelease(
+		fmt.Sprintf("%s-%s", p.ProjectName, peer.SerializeVersion(p.Version)),
+	)
 
 	if v := os.Getenv("ENV"); v != "" {
 		cl.SetEnvironment(v)
