@@ -1,45 +1,49 @@
-hash: 394dfd3d7050b95c6ea04bbbf93e47e9cdec9d2573a1e52f90b8b8fef7330075
-updated: 2018-01-23T11:48:45.310036-05:00
+hash: a1421922e4e7f47343354e616fd7eaa9106f3e3ecde1ea295c11326040dc743c
+updated: 2018-07-16T15:28:42.995404-04:00
 imports:
 - name: github.com/beorn7/perks
-  version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
+  version: 3a771d992973f24aa725d07868b467d1ddfceafb
   subpackages:
   - quantile
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
 - name: github.com/cyberdelia/statsd
   version: b1a41df90100a1421f276a4bacd664803a7b7f0b
+- name: github.com/davecgh/go-spew
+  version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
+  subpackages:
+  - spew
 - name: github.com/garyburd/redigo
-  version: d1ed5c67e5794de818ea85e6b522fda02623a484
+  version: a69d19351219b6dd56f274f96d85a7014a2ec34e
   subpackages:
   - internal
   - redis
 - name: github.com/getsentry/raven-go
-  version: 563b81fc02b75d664e54da31f787c2cc2186780b
+  version: ed7bcb39ff10f39ab08e317ce16df282845852fa
 - name: github.com/gocql/gocql
-  version: dd47639f787e8583e1a13e17e20a9f6c4332bc29
+  version: e06f8c1bcd787e6bf0608288b314522f08cc7848
   subpackages:
   - internal/lru
   - internal/murmur
   - internal/streams
 - name: github.com/golang/protobuf
-  version: c65a0412e71e8b9b3bfd22925720d23c0f054237
+  version: 4bd1920723d7b7c925de087aa32e2187708897f7
   subpackages:
   - proto
 - name: github.com/golang/snappy
-  version: 553a641470496b2327abcac10b36396bd98e45c9
+  version: 2e65f85255dbc3072edf28d6b5b8efc472979f5a
 - name: github.com/hailocab/go-hostpool
   version: e80d13ce29ede4452c43dea11e79b9bc8a15b478
 - name: github.com/jinzhu/gorm
-  version: 5174cc5c242a728b435ea2be8a2f7f998e15429b
+  version: 6ed508ec6a4ecb3531899a69cbc746ccf65a4166
 - name: github.com/jinzhu/inflection
-  version: 1c35d901db3da928c72a72d8458480cc9ade058f
+  version: 04140366298a54a039076d798123ffa108fff46c
 - name: github.com/lib/pq
-  version: 61fe37aa2ee24fabcdbe5c4ac1d4ac566f88f345
+  version: 90697d60dd844d5ef6ff15135d0203f65d2f53b8
   subpackages:
   - oid
 - name: github.com/mattes/migrate
-  version: d23f71b03c4a439b81ccccb2ac5090032ec5c735
+  version: 4768a648fbd9e04389a73a21139d14a4ccb1a61a
   subpackages:
   - database
   - database/cassandra
@@ -48,40 +52,46 @@ imports:
   - migrate
   - source
 - name: github.com/mattn/go-sqlite3
-  version: 6c771bb9887719704b210e87e934f08be014bdb1
+  version: 25ecb14adfc7543176f7d85291ec7dba82c6f7e4
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
   - pbutil
-- name: github.com/op/go-logging
-  version: 970db520ece77730c7e4724c61121037378659d9
 - name: github.com/pkg/errors
-  version: e881fd58d78e04cf6d0de1217f8707c8cc2249bc
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/pmezard/go-difflib
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  subpackages:
+  - difflib
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
   - prometheus
   - prometheus/push
 - name: github.com/prometheus/client_model
-  version: 99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c
+  version: 5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 89604d197083d4781071d3c65855d24ecfb0a563
+  version: 7600349dcfe1abd18d72d3a1770870d9800a7801
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: 85fadb6e89903ef7cca6f6a804474cd5ea85b6e1
+  version: ae68e2d4c00fed4943b5f6698d504a5fe083da8a
   subpackages:
   - internal/util
-  - nfsd
+  - nfs
   - xfs
 - name: github.com/streadway/amqp
-  version: 54ded0531dfd699a7893861d39a7a949c5749bc9
+  version: e5adc2ada8b8efff032bf61173a233d143e9318e
+- name: github.com/stretchr/testify
+  version: f35b8ab0b5a2cef36673838d662e249dd9c94686
+  subpackages:
+  - assert
 - name: github.com/upfluence/base
-  version: v0.1.7
+  version: v0.1.19
   subpackages:
   - base_service
   - monitoring
@@ -89,12 +99,20 @@ imports:
   - service/thrift/transport/rabbitmq
   - service/thrift_service
   - version
+- name: github.com/upfluence/log
+  version: a660d2fa1dcb9ba600cd2d0ffb87f08d6631c97b
+  subpackages:
+  - record
+  - sink
+  - sink/error_logger
+  - sink/multi
+  - sink/writer
 - name: github.com/upfluence/thrift
-  version: b150edca1df7b64c720ce0c52689b6995b0e2581
+  version: 5fccdf93d95b6810e6a1afd93b4f57a1d6d5fe96
   subpackages:
   - lib/go/thrift
 - name: golang.org/x/text
-  version: e19ae1496984b1c655b8044a65c0300a3c878dd3
+  version: 0605a8320aceb4207a5fb3521281e17ec2075476
   subpackages:
   - encoding
   - encoding/charmap
@@ -102,5 +120,5 @@ imports:
   - encoding/internal/identifier
   - transform
 - name: gopkg.in/inf.v0
-  version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
+  version: d2d2541c53f18d2a059457998ce2876cc8e67cbf
 testImports: []
