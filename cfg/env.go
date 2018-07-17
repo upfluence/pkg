@@ -43,7 +43,7 @@ func FetchInt(variable string, defaultValue int) int {
 			return v1
 		}
 
-		fmt.Println("cfg: fetchInt: %s", err.Error())
+		fmt.Printf("cfg: fetchInt: %s\n", err.Error())
 	}
 
 	return defaultValue

@@ -1,5 +1,5 @@
-hash: a1421922e4e7f47343354e616fd7eaa9106f3e3ecde1ea295c11326040dc743c
-updated: 2018-07-16T15:28:42.995404-04:00
+hash: 7faace6369ff020437af869efe86d6928dfe0aa4f7aa1c9e5d20e128a3edfb2d
+updated: 2018-07-17T09:49:07.642048-04:00
 imports:
 - name: github.com/beorn7/perks
   version: 3a771d992973f24aa725d07868b467d1ddfceafb
@@ -27,7 +27,7 @@ imports:
   - internal/murmur
   - internal/streams
 - name: github.com/golang/protobuf
-  version: 4bd1920723d7b7c925de087aa32e2187708897f7
+  version: b4deda0973fb4c70b50d226b1af49f3da59f5265
   subpackages:
   - proto
 - name: github.com/golang/snappy

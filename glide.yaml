@@ -35,3 +35,7 @@ import:
   subpackages:
   - prometheus
   - prometheus/push
+- package: github.com/golang/protobuf
+  version: ^1.1.0
+  subpackages:
+  - proto
