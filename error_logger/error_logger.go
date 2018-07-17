@@ -5,6 +5,7 @@ import (
 
 	"github.com/upfluence/pkg/error_logger/noop"
 	"github.com/upfluence/pkg/error_logger/sentry"
+	"github.com/upfluence/pkg/peer"
 )
 
 var DefaultErrorLogger ErrorLogger
@@ -22,7 +23,7 @@ func IgnoreError(err error) func(error) bool {
 
 func init() {
 	if v := os.Getenv("SENTRY_DSN"); v != "" {
-		l, err := sentry.NewErrorLogger(v)
+		l, err := sentry.NewErrorLogger(v, peer.FromEnv())
 
 		if err != nil {
 			DefaultErrorLogger = noop.NewErrorLogger()
