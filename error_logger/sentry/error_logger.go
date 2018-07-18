@@ -59,6 +59,16 @@ func (l *ErrorLogger) errorIgnored(err error) bool {
 	return false
 }
 
+func splitError(err error) []error {
+	var errs, ok = err.(interface{ Errors() []error })
+
+	if !ok {
+		return []error{err}
+	}
+
+	return errs.Errors()
+}
+
 func (l *ErrorLogger) Capture(err error, opts map[string]interface{}) error {
 	var tags = make(map[string]string)
 
@@ -70,7 +80,9 @@ func (l *ErrorLogger) Capture(err error, opts map[string]interface{}) error {
 		tags[k] = fmt.Sprintf("%+v", v)
 	}
 
-	l.client.CaptureError(err, tags)
+	for _, nerr := range splitError(err) {
+		l.client.CaptureError(nerr, tags)
+	}
 
 	return nil
 }
