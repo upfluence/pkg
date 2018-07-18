@@ -1,5 +1,5 @@
 hash: 7faace6369ff020437af869efe86d6928dfe0aa4f7aa1c9e5d20e128a3edfb2d
-updated: 2018-07-17T09:49:07.642048-04:00
+updated: 2018-07-17T17:04:44.758332-04:00
 imports:
 - name: github.com/beorn7/perks
   version: 3a771d992973f24aa725d07868b467d1ddfceafb
@@ -58,7 +58,7 @@ imports:
   subpackages:
   - pbutil
 - name: github.com/pkg/errors
-  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/pmezard/go-difflib
   version: 792786c7400a136282c1664665ae0a8db921c6c2
   subpackages:
@@ -100,11 +100,12 @@ imports:
   - service/thrift_service
   - version
 - name: github.com/upfluence/log
-  version: a660d2fa1dcb9ba600cd2d0ffb87f08d6631c97b
+  version: 8bb3f26038b9885175f31809742f2a52cac3eaac
   subpackages:
   - record
   - sink
   - sink/error_logger
+  - sink/leveled
   - sink/multi
   - sink/writer
 - name: github.com/upfluence/thrift

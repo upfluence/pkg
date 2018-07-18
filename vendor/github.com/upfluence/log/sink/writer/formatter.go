@@ -26,6 +26,10 @@ type formatter struct {
 	calldepth int
 }
 
+type skipper interface {
+	SkipFrame() bool
+}
+
 func (f *formatter) formatFields(fs []record.Field) string {
 	if len(fs) == 0 {
 		return ""
@@ -55,7 +59,21 @@ func (f *formatter) formatErrs(errs []error) string {
 }
 
 func (f *formatter) Format(r record.Record) string {
-	var _, file, line, ok = runtime.Caller(f.calldepth + 1)
+	var (
+		depth = f.calldepth + 1
+
+		fields []record.Field
+	)
+
+	for _, f := range r.Fields() {
+		if s, ok := f.(skipper); ok && s.SkipFrame() {
+			depth++
+		} else {
+			fields = append(fields, f)
+		}
+	}
+
+	_, file, line, ok := runtime.Caller(depth)
 
 	if !ok {
 		file = "???"
@@ -70,7 +88,7 @@ func (f *formatter) Format(r record.Record) string {
 		r.Time().Format(dateFmt),
 		file,
 		line,
-		f.formatFields(r.Fields()),
+		f.formatFields(fields),
 		r.Formatted(),
 		f.formatErrs(r.Errs()),
 	)

@@ -18,7 +18,7 @@ type Sink struct {
 }
 
 func NewStandardStdoutSink(cd int) sink.Sink {
-	return NewStdoutSink(&formatter{calldepth: cd + 2})
+	return NewStdoutSink(&formatter{calldepth: cd + 1})
 }
 
 func NewStdoutSink(f Formatter) sink.Sink {
@@ -26,7 +26,7 @@ func NewStdoutSink(f Formatter) sink.Sink {
 }
 
 func NewStandardSink(w io.Writer) sink.Sink {
-	return NewSink(&formatter{calldepth: 3}, w)
+	return NewSink(&formatter{calldepth: 2}, w)
 }
 
 func NewSink(f Formatter, w io.Writer) sink.Sink {
