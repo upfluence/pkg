@@ -2,13 +2,16 @@ package log
 
 import (
 	"context"
+	"strings"
 
 	"github.com/upfluence/log"
 	"github.com/upfluence/log/record"
 	elsink "github.com/upfluence/log/sink/error_logger"
+	"github.com/upfluence/log/sink/leveled"
 	"github.com/upfluence/log/sink/multi"
 	"github.com/upfluence/log/sink/writer"
 
+	"github.com/upfluence/pkg/cfg"
 	"github.com/upfluence/pkg/error_logger"
 )
 
@@ -16,59 +19,84 @@ var (
 	Logger = log.NewLogger(
 		log.WithSink(
 			multi.NewSink(
-				writer.NewStandardStdoutSink(2),
-				elsink.NewSink(error_logger.DefaultErrorLogger),
+				leveled.NewSink(
+					fetchLevel(),
+					writer.NewStandardStdoutSink(2),
+				),
+				leveled.NewSink(
+					record.Error,
+					elsink.NewSink(error_logger.DefaultErrorLogger),
+				),
 			),
 		),
 	)
 )
 
+func fetchLevel() record.Level {
+	switch strings.ToUpper(cfg.FetchString("LOGGER_LEVEL", "")) {
+	case "DEBUG":
+		return record.Debug
+	case "INFO":
+		return record.Info
+	case "NOTICE":
+		return record.Notice
+	case "WARNING":
+		return record.Warning
+	case "ERROR":
+		return record.Error
+	case "FATAL":
+		return record.Fatal
+	}
+
+	return record.Notice
+}
+
 func Fatal(args ...interface{}) {
-	Logger.Fatal(args...)
+	Logger.WithField(log.SkipFrame).Fatal(args...)
 }
 
 func Fatalf(format string, args ...interface{}) {
-	Logger.Fatalf(format, args...)
+	Logger.WithField(log.SkipFrame).Fatalf(format, args...)
 }
 
 func Error(args ...interface{}) {
-	Logger.Error(args...)
+	Logger.WithField(log.SkipFrame).Error(args...)
 }
 
 func Errorf(format string, args ...interface{}) {
-	Logger.Errorf(format, args...)
+	Logger.WithField(log.SkipFrame).Errorf(format, args...)
 }
 
 func Warning(args ...interface{}) {
-	Logger.Warning(args...)
+	Logger.WithField(log.SkipFrame).Warning(args...)
 }
 
 func Warningf(format string, args ...interface{}) {
-	Logger.Warningf(format, args...)
+	Logger.WithField(log.SkipFrame).Warningf(format, args...)
 }
 
 func Notice(args ...interface{}) {
-	Logger.Notice(args...)
+	Logger.WithField(log.SkipFrame).Notice(args...)
 }
 
 func Noticef(format string, args ...interface{}) {
-	Logger.Noticef(format, args...)
+	Logger.WithField(log.SkipFrame).Noticef(format, args...)
 }
 
 func Info(args ...interface{}) {
-	Logger.Info(args...)
+	Logger.WithField(log.SkipFrame).Info(args...)
 }
 
 func Infof(format string, args ...interface{}) {
-	Logger.Infof(format, args...)
+	Logger.WithField(log.SkipFrame).Infof(format, args...)
 }
 
 func Debug(args ...interface{}) {
-	Logger.Debug(args...)
+	Logger.WithField(log.SkipFrame).Debug(args...)
 }
 
 func Debugf(format string, args ...interface{}) {
-	Logger.Debugf(format, args...)
+	Logger.WithField(log.SkipFrame).Debugf(format, args...)
 }
 
 func WithField(f record.Field) log.Logger {

@@ -113,7 +113,7 @@ func (l *logger) Logf(lvl record.Level, fmt string, vs ...interface{}) {
 }
 
 func (l *logger) Log(lvl record.Level, vs ...interface{}) {
-	l.WithField(SkipFrame).Log(lvl, "", vs)
+	l.WithField(SkipFrame).Logf(lvl, "", vs...)
 }
 
 func (l *logger) Debug(vs ...interface{})   { l.WithField(SkipFrame).Debugf("", vs...) }

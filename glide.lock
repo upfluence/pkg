@@ -1,5 +1,5 @@
 hash: 7faace6369ff020437af869efe86d6928dfe0aa4f7aa1c9e5d20e128a3edfb2d
-updated: 2018-07-17T17:04:44.758332-04:00
+updated: 2018-07-23T17:21:14.852141-04:00
 imports:
 - name: github.com/beorn7/perks
   version: 3a771d992973f24aa725d07868b467d1ddfceafb
@@ -100,7 +100,7 @@ imports:
   - service/thrift_service
   - version
 - name: github.com/upfluence/log
-  version: 8bb3f26038b9885175f31809742f2a52cac3eaac
+  version: 1a4fa4e5549e9cc4af598f23cd6d0dbf6d52d1af
   subpackages:
   - record
   - sink
@@ -109,7 +109,7 @@ imports:
   - sink/multi
   - sink/writer
 - name: github.com/upfluence/thrift
-  version: 5fccdf93d95b6810e6a1afd93b4f57a1d6d5fe96
+  version: d0be0164c09d4c5d3999f8b873b3ef6376083c6d
   subpackages:
   - lib/go/thrift
 - name: golang.org/x/text
