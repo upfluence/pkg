@@ -1,6 +1,8 @@
 package lru
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,4 +26,24 @@ func TestIntegration(t *testing.T) {
 	c.Add("buz", "bar")
 	c.Add("bizz", "bar")
 	assertValue(t, c, "foo", nil, false)
+}
+
+func TestRaceCondition(t *testing.T) {
+	c := NewCache(2)
+	wg := &sync.WaitGroup{}
+
+	for i := 0; i < 200; i++ {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			for i := 0; i < 200; i++ {
+				c.Add(fmt.Sprintf("buz %d", i), "bar")
+				c.Get("foo")
+			}
+		}()
+	}
+
+	wg.Wait()
 }

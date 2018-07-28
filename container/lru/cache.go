@@ -8,7 +8,7 @@ import (
 type Cache struct {
 	mu      *sync.RWMutex
 	entries int
-	ll      *list.List
+	ll      *syncList
 	cache   map[interface{}]*list.Element
 }
 
@@ -23,7 +23,7 @@ func NewCache(maxEntries int) *Cache {
 	return &Cache{
 		mu:      &sync.RWMutex{},
 		entries: maxEntries,
-		ll:      list.New(),
+		ll:      &syncList{List: list.New()},
 		cache:   make(map[interface{}]*list.Element),
 	}
 }
@@ -39,6 +39,10 @@ func (c *Cache) cacheFetch(key Key) (*list.Element, bool) {
 func (c *Cache) Add(key Key, value interface{}) {
 	if ee, ok := c.cacheFetch(key); ok {
 		c.ll.MoveToFront(ee)
+
+		c.mu.Lock()
+		defer c.mu.Unlock()
+
 		ee.Value.(*entry).value = value
 		return
 	}
@@ -56,6 +60,10 @@ func (c *Cache) Add(key Key, value interface{}) {
 func (c *Cache) Get(key Key) (interface{}, bool) {
 	if ee, ok := c.cacheFetch(key); ok {
 		c.ll.MoveToFront(ee)
+
+		c.mu.RLock()
+		defer c.mu.RUnlock()
+
 		return ee.Value.(*entry).value, true
 	}
 
@@ -94,6 +102,47 @@ func (c *Cache) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.ll = list.New()
+	c.ll.Init()
 	c.cache = make(map[interface{}]*list.Element)
+}
+
+type syncList struct {
+	*list.List
+
+	mu sync.RWMutex
+}
+
+func (l *syncList) MoveToFront(e *list.Element) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.List.MoveToFront(e)
+}
+
+func (l *syncList) Remove(e *list.Element) interface{} {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	return l.List.Remove(e)
+}
+
+func (l *syncList) PushFront(v interface{}) *list.Element {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	return l.List.PushFront(v)
+}
+
+func (l *syncList) Back() *list.Element {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	return l.List.Back()
+}
+
+func (l *syncList) Len() int {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	return l.List.Len()
 }
