@@ -36,8 +36,6 @@ func BuildKeySpace(t testing.TB, driver source.Driver, tables []string) *gocql.S
 		t.Errorf("cant create cql session: %v", err)
 	}
 
-	defer session.Close()
-
 	session.Query(
 		`CREATE KEYSPACE ` + keySpace + ` WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }`,
 	).Exec()
@@ -64,18 +62,24 @@ func BuildKeySpace(t testing.TB, driver source.Driver, tables []string) *gocql.S
 		}
 	}
 
-	cluster.Keyspace = keySpace
-	if session, err := cluster.CreateSession(); err != nil {
-		panic(err)
-	} else {
-		for _, table := range tables {
-			if err := session.Query(
-				fmt.Sprintf("TRUNCATE %s", table),
-			).Exec(); err != nil {
-				panic(err)
-			}
-		}
+	session.Close()
 
-		return session
+	cluster.Keyspace = keySpace
+
+	session, err = cluster.CreateSession()
+
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
 	}
+
+	for _, table := range tables {
+		if err := session.Query(
+			fmt.Sprintf("TRUNCATE %s", table),
+		).Exec(); err != nil {
+			t.Log(err)
+		}
+	}
+
+	return session
 }
