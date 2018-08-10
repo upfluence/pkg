@@ -2,9 +2,12 @@ package stringutil
 
 import (
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 
 	"github.com/upfluence/pkg/log"
 )
@@ -31,4 +34,24 @@ func DecodeToUTF8(s string) string {
 
 func IsUTF8(s string) bool {
 	return utf8.ValidString(s)
+}
+
+func isMn(r rune) bool {
+	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
+}
+
+func DecodeToASCII(s string) string {
+	var (
+		b = make([]byte, len(s))
+		t = transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
+
+		nDst, _, err = t.Transform(b, []byte(s), true)
+	)
+
+	if err != nil {
+		log.Warning(err)
+		return ""
+	}
+
+	return string(b[:nDst])
 }

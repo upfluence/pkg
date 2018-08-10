@@ -1,12 +1,9 @@
 package stringutil
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 func TestDecodeToUTF8(t *testing.T) {
-	for _, testcase := range []struct {
+	for _, tt := range []struct {
 		in, out string
 	}{
 		{"test", "test"},
@@ -17,14 +14,21 @@ func TestDecodeToUTF8(t *testing.T) {
 		{"test \x00 test", "test  test"},
 		{"\xc3", "Ã"},
 	} {
-		if testcase.out != DecodeToUTF8(testcase.in) {
-			t.Errorf(
-				fmt.Sprintf(
-					"Fail to decode string '%s'",
-					testcase.in,
-				),
-			)
+		if out := DecodeToUTF8(tt.in); tt.out != out {
+			t.Errorf("DecodeToTUF8(%q) = %q wanted: %q", tt.in, out, tt.out)
+		}
+	}
+}
 
+func TestDecodeToASCII(t *testing.T) {
+	for _, tt := range []struct {
+		in, out string
+	}{
+		{"étesté", "eteste"},
+		{"RhôöÔÖne", "RhooOOne"},
+	} {
+		if out := DecodeToASCII(tt.in); tt.out != out {
+			t.Errorf("DecodeToASCII(%q) = %q wanted: %q", tt.in, out, tt.out)
 		}
 	}
 }
