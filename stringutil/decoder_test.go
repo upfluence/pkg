@@ -26,6 +26,7 @@ func TestDecodeToASCII(t *testing.T) {
 	}{
 		{"étesté", "eteste"},
 		{"RhôöÔÖne", "RhooOOne"},
+		{"東京都, JP", ", JP"},
 	} {
 		if out := DecodeToASCII(tt.in); tt.out != out {
 			t.Errorf("DecodeToASCII(%q) = %q wanted: %q", tt.in, out, tt.out)

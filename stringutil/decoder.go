@@ -12,6 +12,7 @@ import (
 	"github.com/upfluence/pkg/log"
 )
 
+var cmap = charmap.ISO8859_1
 var defaultDecoder = charmap.ISO8859_1.NewDecoder()
 
 func DecodeToUTF8(s string) string {
@@ -36,16 +37,19 @@ func IsUTF8(s string) bool {
 	return utf8.ValidString(s)
 }
 
+func isAboveAscii(r rune) bool {
+	return r > unicode.MaxASCII
+}
+
 func isMn(r rune) bool {
 	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
 }
 
 func DecodeToASCII(s string) string {
 	var (
-		b = make([]byte, len(s))
-		t = transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
+		t = transform.Chain(norm.NFD, transform.RemoveFunc(isMn), transform.RemoveFunc(isAboveAscii), norm.NFC)
 
-		nDst, _, err = t.Transform(b, []byte(s), true)
+		result, _, err = transform.String(t, s)
 	)
 
 	if err != nil {
@@ -53,5 +57,5 @@ func DecodeToASCII(s string) string {
 		return ""
 	}
 
-	return string(b[:nDst])
+	return result
 }
