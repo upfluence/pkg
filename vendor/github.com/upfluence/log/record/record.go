@@ -2,6 +2,8 @@ package record
 
 import (
 	"fmt"
+	"io"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -35,28 +37,44 @@ type Record interface {
 	Time() time.Time
 	Level() Level
 
-	Formatted() string
+	WriteFormatted(io.Writer)
+	Args() []interface{}
 }
 
 type RecordFactory interface {
 	Build(Context, Level, string, ...interface{}) Record
+	Free(Record)
 }
 
-func NewFactory() RecordFactory { return &recordFactory{} }
+func NewFactory() RecordFactory {
+	return &recordFactory{
+		Pool: &sync.Pool{New: func() interface{} { return &record{} }},
+	}
+}
 
-type recordFactory struct{}
+type recordFactory struct {
+	*sync.Pool
+}
 
 var idCtr uint64
 
-func (*recordFactory) Build(ctx Context, l Level, fmt string, vs ...interface{}) Record {
-	return &record{
-		Context: ctx,
-		id:      atomic.AddUint64(&idCtr, 1),
-		t:       time.Now(),
-		l:       l,
-		fmt:     fmt,
-		vs:      vs,
+func (f *recordFactory) Free(r Record) {
+	if v, ok := r.(*record); ok {
+		f.Pool.Put(v)
 	}
+}
+
+func (f *recordFactory) Build(ctx Context, l Level, fmt string, vs ...interface{}) Record {
+	var r = f.Pool.Get().(*record)
+
+	r.Context = ctx
+	r.id = atomic.AddUint64(&idCtr, 1)
+	r.t = time.Now()
+	r.l = l
+	r.fmt = fmt
+	r.vs = vs
+
+	return r
 }
 
 type record struct {
@@ -70,14 +88,22 @@ type record struct {
 	vs  []interface{}
 }
 
-func (r *record) ID() uint64      { return r.id }
-func (r *record) Time() time.Time { return r.t }
-func (r *record) Level() Level    { return r.l }
+func (r *record) ID() uint64          { return r.id }
+func (r *record) Time() time.Time     { return r.t }
+func (r *record) Level() Level        { return r.l }
+func (r *record) Args() []interface{} { return r.vs }
 
-func (r *record) Formatted() string {
+func (r *record) WriteFormatted(w io.Writer) {
 	if r.fmt == "" {
-		return fmt.Sprint(r.vs...)
+		if len(r.vs) == 1 {
+			s, ok := r.vs[0].(string)
+
+			if ok {
+				io.WriteString(w, s)
+			}
+		}
+		fmt.Fprint(w, r.vs...)
 	}
 
-	return fmt.Sprintf(r.fmt, r.vs...)
+	fmt.Fprintf(w, r.fmt, r.vs...)
 }

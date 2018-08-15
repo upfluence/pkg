@@ -1,95 +1,92 @@
 package writer
 
 import (
-	"fmt"
-	"path/filepath"
-	"runtime"
+	"io"
 
+	"github.com/upfluence/log/internal/stacktrace"
 	"github.com/upfluence/log/record"
 )
 
-const (
-	stdFmt  = "[%s %s %s:%d] %s%s%s"
-	dateFmt = "020106 15:04:05"
+const dateFmt = "020106 15:04:05"
+
+var (
+	levelPrettifier = map[record.Level][]byte{
+		record.Debug:   []byte("D"),
+		record.Info:    []byte("I"),
+		record.Notice:  []byte("N"),
+		record.Warning: []byte("W"),
+		record.Error:   []byte("E"),
+		record.Fatal:   []byte("F"),
+	}
+
+	defaultBlacklist = []string{"github.com/upfluence/log/sink/writer"}
+
+	openBracket  = []byte("[")
+	closeBracket = []byte("]")
+	semiColon    = []byte(": ")
+	errorKey     = []byte("[error: ")
+	space        = []byte(" ")
 )
 
-var levelPrettifier = map[record.Level]string{
-	record.Debug:   "D",
-	record.Info:    "I",
-	record.Notice:  "N",
-	record.Warning: "W",
-	record.Error:   "E",
-	record.Fatal:   "F",
+func NewFastFormatter() Formatter {
+	return &formatter{skipStacktrace: true}
+}
+
+func NewDefaultFormatter(blacklist ...string) Formatter {
+	return &formatter{blacklist: append(defaultBlacklist, blacklist...)}
 }
 
 type formatter struct {
-	calldepth int
+	blacklist      []string
+	skipStacktrace bool
 }
 
-type skipper interface {
-	SkipFrame() bool
+func newDefaultFormatter() *formatter {
+	return &formatter{blacklist: defaultBlacklist}
 }
 
-func (f *formatter) formatFields(fs []record.Field) string {
+func (f *formatter) formatFields(w io.Writer, fs []record.Field) {
 	if len(fs) == 0 {
-		return ""
+		return
 	}
-
-	var res string
 
 	for _, f := range fs {
-		res += fmt.Sprintf("[%s: %s]", f.GetKey(), f.GetValue())
+		w.Write(openBracket)
+		io.WriteString(w, f.GetKey())
+		w.Write(semiColon)
+		io.WriteString(w, f.GetValue())
+		w.Write(closeBracket)
 	}
 
-	return res + " "
+	w.Write(space)
 }
 
-func (f *formatter) formatErrs(errs []error) string {
+func (f *formatter) formatErrs(w io.Writer, errs []error) {
 	if len(errs) == 0 {
-		return ""
+		return
 	}
 
-	var res string
+	w.Write(space)
 
 	for _, err := range errs {
-		res += fmt.Sprintf("[error: %v]", err)
+		w.Write(errorKey)
+		io.WriteString(w, err.Error())
+		w.Write(closeBracket)
 	}
-
-	return " " + res
 }
 
-func (f *formatter) Format(r record.Record) string {
-	var (
-		depth = f.calldepth + 1
-
-		fields []record.Field
-	)
-
-	for _, f := range r.Fields() {
-		if s, ok := f.(skipper); ok && s.SkipFrame() {
-			depth++
-		} else {
-			fields = append(fields, f)
-		}
+func (f *formatter) Format(w io.Writer, r record.Record) error {
+	w.Write(openBracket)
+	w.Write(levelPrettifier[r.Level()])
+	w.Write(space)
+	w.Write(r.Time().AppendFormat(make([]byte, 0, len(dateFmt)), dateFmt))
+	if !f.skipStacktrace {
+		stacktrace.WriteCaller(w, f.blacklist)
 	}
+	w.Write(closeBracket)
+	f.formatFields(w, r.Fields())
+	r.WriteFormatted(w)
+	f.formatErrs(w, r.Errs())
 
-	_, file, line, ok := runtime.Caller(depth)
-
-	if !ok {
-		file = "???"
-		line = 0
-	} else {
-		file = filepath.Base(file)
-	}
-
-	return fmt.Sprintf(
-		stdFmt,
-		levelPrettifier[r.Level()],
-		r.Time().Format(dateFmt),
-		file,
-		line,
-		f.formatFields(fields),
-		r.Formatted(),
-		f.formatErrs(r.Errs()),
-	)
+	return nil
 }

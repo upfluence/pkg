@@ -1,5 +1,5 @@
 hash: 7faace6369ff020437af869efe86d6928dfe0aa4f7aa1c9e5d20e128a3edfb2d
-updated: 2018-07-23T17:21:14.852141-04:00
+updated: 2018-08-15T13:33:53.358494-04:00
 imports:
 - name: github.com/beorn7/perks
   version: 3a771d992973f24aa725d07868b467d1ddfceafb
@@ -19,9 +19,9 @@ imports:
   - internal
   - redis
 - name: github.com/getsentry/raven-go
-  version: ed7bcb39ff10f39ab08e317ce16df282845852fa
+  version: 7535a8fa2ace0ffb684b19f28d00655459ea2dae
 - name: github.com/gocql/gocql
-  version: e06f8c1bcd787e6bf0608288b314522f08cc7848
+  version: 045d8d6abc70b5bd02bb18b8fdb05ee54d8c87aa
   subpackages:
   - internal/lru
   - internal/murmur
@@ -73,25 +73,25 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 7600349dcfe1abd18d72d3a1770870d9800a7801
+  version: c7de2306084e37d54b8be01f3541a8464345e9a5
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: ae68e2d4c00fed4943b5f6698d504a5fe083da8a
+  version: 05ee40e3a273f7245e8777337fc7b46e533a9a92
   subpackages:
   - internal/util
   - nfs
   - xfs
 - name: github.com/streadway/amqp
-  version: e5adc2ada8b8efff032bf61173a233d143e9318e
+  version: 70e15c650864f4fc47f5d3c82ea117285480895d
 - name: github.com/stretchr/testify
   version: f35b8ab0b5a2cef36673838d662e249dd9c94686
   subpackages:
   - assert
 - name: github.com/upfluence/base
-  version: v0.1.19
+  version: v0.1.20
   subpackages:
   - base_service
   - monitoring
@@ -100,8 +100,9 @@ imports:
   - service/thrift_service
   - version
 - name: github.com/upfluence/log
-  version: 1a4fa4e5549e9cc4af598f23cd6d0dbf6d52d1af
+  version: 127253c47242ed1363962b91d83bea1ebe4a2bb4
   subpackages:
+  - internal/stacktrace
   - record
   - sink
   - sink/error_logger
@@ -109,17 +110,18 @@ imports:
   - sink/multi
   - sink/writer
 - name: github.com/upfluence/thrift
-  version: d0be0164c09d4c5d3999f8b873b3ef6376083c6d
+  version: be6cf10d841270b9d36773a153c5a821af803a09
   subpackages:
   - lib/go/thrift
 - name: golang.org/x/text
-  version: 0605a8320aceb4207a5fb3521281e17ec2075476
+  version: 6e3c4e7365ddcc329f090f96e4348398f6310088
   subpackages:
   - encoding
   - encoding/charmap
   - encoding/internal
   - encoding/internal/identifier
   - transform
+  - unicode/norm
 - name: gopkg.in/inf.v0
   version: d2d2541c53f18d2a059457998ce2876cc8e67cbf
 testImports: []

@@ -122,7 +122,10 @@ func (p *UnknownMetric) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("UnknownMetric(%+v)", *p)
+	return fmt.Sprintf(
+		"UnknownMetric({key: %v})",
+		p.GetKey(),
+	)
 }
 
 func (p *UnknownMetric) Error() string {
@@ -227,7 +230,10 @@ func (p *ServiceNotAvailable) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("ServiceNotAvailable(%+v)", *p)
+	return fmt.Sprintf(
+		"ServiceNotAvailable({reason: %v})",
+		p.GetReason(),
+	)
 }
 
 func (p *ServiceNotAvailable) Error() string {

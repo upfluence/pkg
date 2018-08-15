@@ -8,8 +8,10 @@ import (
 	"github.com/upfluence/log/sink"
 )
 
+var newLine = []byte("\n")
+
 type Formatter interface {
-	Format(record.Record) string
+	Format(io.Writer, record.Record) error
 }
 
 type Sink struct {
@@ -17,8 +19,8 @@ type Sink struct {
 	writer    io.Writer
 }
 
-func NewStandardStdoutSink(cd int) sink.Sink {
-	return NewStdoutSink(&formatter{calldepth: cd + 1})
+func NewStandardStdoutSink() sink.Sink {
+	return NewStdoutSink(newDefaultFormatter())
 }
 
 func NewStdoutSink(f Formatter) sink.Sink {
@@ -26,7 +28,7 @@ func NewStdoutSink(f Formatter) sink.Sink {
 }
 
 func NewStandardSink(w io.Writer) sink.Sink {
-	return NewSink(&formatter{calldepth: 2}, w)
+	return NewSink(newDefaultFormatter(), w)
 }
 
 func NewSink(f Formatter, w io.Writer) sink.Sink {
@@ -34,7 +36,11 @@ func NewSink(f Formatter, w io.Writer) sink.Sink {
 }
 
 func (s *Sink) Log(r record.Record) error {
-	var _, err = s.writer.Write([]byte(s.formatter.Format(r) + "\n"))
+	if err := s.formatter.Format(s.writer, r); err != nil {
+		return err
+	}
+
+	_, err := s.writer.Write(newLine)
 
 	return err
 }

@@ -109,41 +109,44 @@ func (l *logger) WithError(err error) SugaredLogger {
 }
 
 func (l *logger) Logf(lvl record.Level, fmt string, vs ...interface{}) {
-	l.sink.Log(l.factory.Build(l.ctx, lvl, fmt, vs...))
+	var r = l.factory.Build(l.ctx, lvl, fmt, vs...)
+
+	l.sink.Log(r)
+	l.factory.Free(r)
 }
 
 func (l *logger) Log(lvl record.Level, vs ...interface{}) {
-	l.WithField(SkipFrame).Logf(lvl, "", vs...)
+	l.Logf(lvl, "", vs...)
 }
 
-func (l *logger) Debug(vs ...interface{})   { l.WithField(SkipFrame).Debugf("", vs...) }
-func (l *logger) Info(vs ...interface{})    { l.WithField(SkipFrame).Infof("", vs...) }
-func (l *logger) Notice(vs ...interface{})  { l.WithField(SkipFrame).Noticef("", vs...) }
-func (l *logger) Warning(vs ...interface{}) { l.WithField(SkipFrame).Warningf("", vs...) }
-func (l *logger) Error(vs ...interface{})   { l.WithField(SkipFrame).Errorf("", vs...) }
-func (l *logger) Fatal(vs ...interface{})   { l.WithField(SkipFrame).Fatalf("", vs...) }
+func (l *logger) Debug(vs ...interface{})   { l.Debugf("", vs...) }
+func (l *logger) Info(vs ...interface{})    { l.Infof("", vs...) }
+func (l *logger) Notice(vs ...interface{})  { l.Noticef("", vs...) }
+func (l *logger) Warning(vs ...interface{}) { l.Warningf("", vs...) }
+func (l *logger) Error(vs ...interface{})   { l.Errorf("", vs...) }
+func (l *logger) Fatal(vs ...interface{})   { l.Fatalf("", vs...) }
 
 func (l *logger) Debugf(fmt string, vs ...interface{}) {
-	l.WithField(SkipFrame).Logf(record.Debug, fmt, vs...)
+	l.Logf(record.Debug, fmt, vs...)
 }
 
 func (l *logger) Infof(fmt string, vs ...interface{}) {
-	l.WithField(SkipFrame).Logf(record.Info, fmt, vs...)
+	l.Logf(record.Info, fmt, vs...)
 }
 
 func (l *logger) Noticef(fmt string, vs ...interface{}) {
-	l.WithField(SkipFrame).Logf(record.Notice, fmt, vs...)
+	l.Logf(record.Notice, fmt, vs...)
 }
 
 func (l *logger) Warningf(fmt string, vs ...interface{}) {
-	l.WithField(SkipFrame).Logf(record.Warning, fmt, vs...)
+	l.Logf(record.Warning, fmt, vs...)
 }
 
 func (l *logger) Errorf(fmt string, vs ...interface{}) {
-	l.WithField(SkipFrame).Logf(record.Error, fmt, vs...)
+	l.Logf(record.Error, fmt, vs...)
 }
 
 func (l *logger) Fatalf(fmt string, vs ...interface{}) {
-	l.WithField(SkipFrame).Logf(record.Fatal, fmt, vs...)
+	l.Logf(record.Fatal, fmt, vs...)
 	os.Exit(1)
 }

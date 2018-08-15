@@ -252,7 +252,9 @@ func (p *BaseServiceGetNameArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceGetNameArgs(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceGetNameArgs({})",
+	)
 }
 
 func (p *BaseServiceGetNameResult) GetResult() interface{} {
@@ -367,7 +369,10 @@ func (p *BaseServiceGetNameResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceGetNameResult(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceGetNameResult({success: %v})",
+		p.GetSuccess(),
+	)
 }
 
 type BaseServiceGetVersionArgs struct {
@@ -420,7 +425,9 @@ func (p *BaseServiceGetVersionArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceGetVersionArgs(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceGetVersionArgs({})",
+	)
 }
 
 func (p *BaseServiceGetVersionResult) GetResult() interface{} {
@@ -534,7 +541,10 @@ func (p *BaseServiceGetVersionResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceGetVersionResult(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceGetVersionResult({success: %v})",
+		p.GetSuccess(),
+	)
 }
 
 type BaseServiceGetInterfaceVersionsArgs struct {
@@ -587,7 +597,9 @@ func (p *BaseServiceGetInterfaceVersionsArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceGetInterfaceVersionsArgs(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceGetInterfaceVersionsArgs({})",
+	)
 }
 
 func (p *BaseServiceGetInterfaceVersionsResult) GetResult() interface{} {
@@ -727,7 +739,10 @@ func (p *BaseServiceGetInterfaceVersionsResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceGetInterfaceVersionsResult(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceGetInterfaceVersionsResult({success: %v})",
+		p.GetSuccess(),
+	)
 }
 
 type BaseServiceGetStatusArgs struct {
@@ -780,7 +795,9 @@ func (p *BaseServiceGetStatusArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceGetStatusArgs(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceGetStatusArgs({})",
+	)
 }
 
 func (p *BaseServiceGetStatusResult) GetResult() interface{} {
@@ -896,7 +913,10 @@ func (p *BaseServiceGetStatusResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceGetStatusResult(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceGetStatusResult({success: %v})",
+		p.GetSuccess(),
+	)
 }
 
 type BaseServiceAliveSinceArgs struct {
@@ -949,7 +969,9 @@ func (p *BaseServiceAliveSinceArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceAliveSinceArgs(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceAliveSinceArgs({})",
+	)
 }
 
 func (p *BaseServiceAliveSinceResult) GetResult() interface{} {
@@ -1064,5 +1086,8 @@ func (p *BaseServiceAliveSinceResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("BaseServiceAliveSinceResult(%+v)", *p)
+	return fmt.Sprintf(
+		"BaseServiceAliveSinceResult({success: %v})",
+		p.GetSuccess(),
+	)
 }

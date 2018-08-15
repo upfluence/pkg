@@ -214,7 +214,10 @@ func (p *MonitoringCollectArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("MonitoringCollectArgs(%+v)", *p)
+	return fmt.Sprintf(
+		"MonitoringCollectArgs({metrics: %v})",
+		p.GetMetrics(),
+	)
 }
 
 func (p *MonitoringCollectResult) GetResult() interface{} {
@@ -463,5 +466,10 @@ func (p *MonitoringCollectResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("MonitoringCollectResult(%+v)", *p)
+	return fmt.Sprintf(
+		"MonitoringCollectResult({success: %v, serviceUnavailable: %v, unknownMetric: %v})",
+		p.GetSuccess(),
+		p.GetServiceUnavailable(),
+		p.GetUnknownMetric(),
+	)
 }

@@ -201,7 +201,12 @@ func (p *SemanticVersion) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("SemanticVersion(%+v)", *p)
+	return fmt.Sprintf(
+		"SemanticVersion({major: %v, minor: %v, patch: %v})",
+		p.GetMajor(),
+		p.GetMinor(),
+		p.GetPatch(),
+	)
 }
 
 // Attributes:
@@ -390,7 +395,12 @@ func (p *GitVersion) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("GitVersion(%+v)", *p)
+	return fmt.Sprintf(
+		"GitVersion({commit: %v, remote: %v, branch: %v})",
+		p.GetCommit(),
+		p.GetRemote(),
+		p.GetBranch(),
+	)
 }
 
 // Attributes:
@@ -544,5 +554,9 @@ func (p *Version) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("Version(%+v)", *p)
+	return fmt.Sprintf(
+		"Version({semantic_version: %v, git_version: %v})",
+		p.GetSemanticVersion(),
+		p.GetGitVersion(),
+	)
 }

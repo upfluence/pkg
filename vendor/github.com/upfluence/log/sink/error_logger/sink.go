@@ -1,6 +1,7 @@
 package error_logger
 
 import (
+	"bytes"
 	"errors"
 
 	"github.com/upfluence/log/record"
@@ -26,7 +27,18 @@ func (s *Sink) Log(r record.Record) error {
 	)
 
 	if len(errs) == 0 {
-		errs = []error{errors.New(r.Formatted())}
+		for _, arg := range r.Args() {
+			if err, ok := arg.(error); ok {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	if len(errs) == 0 {
+		var buf bytes.Buffer
+		r.WriteFormatted(&buf)
+
+		errs = []error{errors.New(buf.String())}
 	}
 
 	for _, f := range r.Fields() {
