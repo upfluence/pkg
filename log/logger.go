@@ -15,13 +15,15 @@ import (
 	"github.com/upfluence/pkg/error_logger"
 )
 
+const localPkg = "github.com/upfluence/pkg/log"
+
 var (
 	Logger = log.NewLogger(
 		log.WithSink(
 			multi.NewSink(
 				leveled.NewSink(
 					fetchLevel(),
-					writer.NewStandardStdoutSink(2),
+					writer.NewStdoutSink(writer.NewDefaultFormatter(localPkg)),
 				),
 				leveled.NewSink(
 					record.Error,
@@ -52,51 +54,51 @@ func fetchLevel() record.Level {
 }
 
 func Fatal(args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Fatal(args...)
+	Logger.Fatal(args...)
 }
 
 func Fatalf(format string, args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Fatalf(format, args...)
+	Logger.Fatalf(format, args...)
 }
 
 func Error(args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Error(args...)
+	Logger.Error(args...)
 }
 
 func Errorf(format string, args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Errorf(format, args...)
+	Logger.Errorf(format, args...)
 }
 
 func Warning(args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Warning(args...)
+	Logger.Warning(args...)
 }
 
 func Warningf(format string, args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Warningf(format, args...)
+	Logger.Warningf(format, args...)
 }
 
 func Notice(args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Notice(args...)
+	Logger.Notice(args...)
 }
 
 func Noticef(format string, args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Noticef(format, args...)
+	Logger.Noticef(format, args...)
 }
 
 func Info(args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Info(args...)
+	Logger.Info(args...)
 }
 
 func Infof(format string, args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Infof(format, args...)
+	Logger.Infof(format, args...)
 }
 
 func Debug(args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Debug(args...)
+	Logger.Debug(args...)
 }
 
 func Debugf(format string, args ...interface{}) {
-	Logger.WithField(log.SkipFrame).Debugf(format, args...)
+	Logger.Debugf(format, args...)
 }
 
 func WithField(f record.Field) log.Logger {
