@@ -3,6 +3,7 @@ package writer
 import (
 	"io"
 	"os"
+	"sync"
 
 	"github.com/upfluence/log/record"
 	"github.com/upfluence/log/sink"
@@ -17,6 +18,7 @@ type Formatter interface {
 type Sink struct {
 	formatter Formatter
 	writer    io.Writer
+	mu        sync.Mutex
 }
 
 func NewStandardStdoutSink() sink.Sink {
@@ -36,6 +38,9 @@ func NewSink(f Formatter, w io.Writer) sink.Sink {
 }
 
 func (s *Sink) Log(r record.Record) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if err := s.formatter.Format(s.writer, r); err != nil {
 		return err
 	}

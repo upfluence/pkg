@@ -19,7 +19,7 @@ var (
 		record.Fatal:   []byte("F"),
 	}
 
-	defaultBlacklist = []string{"github.com/upfluence/log/sink/writer"}
+	defaultBlacklist = []string{"github.com/upfluence/log"}
 
 	openBracket  = []byte("[")
 	closeBracket = []byte("]")
@@ -81,9 +81,11 @@ func (f *formatter) Format(w io.Writer, r record.Record) error {
 	w.Write(space)
 	w.Write(r.Time().AppendFormat(make([]byte, 0, len(dateFmt)), dateFmt))
 	if !f.skipStacktrace {
+		w.Write(space)
 		stacktrace.WriteCaller(w, f.blacklist)
 	}
 	w.Write(closeBracket)
+	w.Write(space)
 	f.formatFields(w, r.Fields())
 	r.WriteFormatted(w)
 	f.formatErrs(w, r.Errs())
