@@ -26,12 +26,13 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"sync"
 )
 
 const (
 	readLimit     = 32768
 	maxSliceSize  = 1 << 20
-	maxStringSize = 1 << 20
+	maxStringSize = 1 << 24
 )
 
 type TBinaryProtocol struct {
@@ -476,6 +477,13 @@ func (p *TBinaryProtocol) readAll(buf []byte) error {
 	return NewTProtocolException(err)
 }
 
+var bufPool = &sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
+
+func (p *TBinaryProtocol) readString(b []byte) (string, error) {
+	_, e := io.ReadFull(p.trans, b)
+	return string(b), NewTProtocolException(e)
+}
+
 func (p *TBinaryProtocol) readStringBody(size int) (value string, err error) {
 	if size < 0 {
 		return "", nil
@@ -485,31 +493,19 @@ func (p *TBinaryProtocol) readStringBody(size int) (value string, err error) {
 		return "", invalidDataLength
 	}
 
-	var (
-		buf bytes.Buffer
-		e   error
-		b   []byte
-	)
-
 	switch {
 	case int(size) <= len(p.buffer):
-		b = p.buffer[:size] // avoids allocation for small reads
+		return p.readString(p.buffer[:size]) // avoids allocation for small reads
 	case int(size) < readLimit:
-		b = make([]byte, size)
-	default:
-		b = make([]byte, readLimit)
+		return p.readString(make([]byte, size))
 	}
 
-	for size > 0 {
-		_, e = io.ReadFull(p.trans, b)
-		buf.Write(b)
-		if e != nil {
-			break
-		}
-		size -= readLimit
-		if size < readLimit && size > 0 {
-			b = b[:size]
-		}
-	}
+	var buf = bufPool.Get().(*bytes.Buffer)
+	defer func() {
+		buf.Reset()
+		bufPool.Put(buf)
+	}()
+
+	_, e := io.CopyN(buf, p.trans, int64(size))
 	return buf.String(), NewTProtocolException(e)
 }

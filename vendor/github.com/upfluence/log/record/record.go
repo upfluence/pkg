@@ -95,14 +95,8 @@ func (r *record) Args() []interface{} { return r.vs }
 
 func (r *record) WriteFormatted(w io.Writer) {
 	if r.fmt == "" {
-		if len(r.vs) == 1 {
-			s, ok := r.vs[0].(string)
-
-			if ok {
-				io.WriteString(w, s)
-			}
-		}
 		fmt.Fprint(w, r.vs...)
+		return
 	}
 
 	fmt.Fprintf(w, r.fmt, r.vs...)

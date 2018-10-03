@@ -39,3 +39,8 @@ import:
   version: ^1.1.0
   subpackages:
   - proto
+- package: github.com/upfluence/uthrift-go
+  repo: git@github.com:upfluence/uthrift-go.git
+  vcs: git
+  subpackages:
+  - uthrift
