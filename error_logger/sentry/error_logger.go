@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/getsentry/raven-go"
+	"github.com/pkg/errors"
 
 	"github.com/upfluence/pkg/peer"
 )
@@ -60,7 +61,7 @@ func (l *ErrorLogger) errorIgnored(err error) bool {
 }
 
 func splitError(err error) []error {
-	var errs, ok = err.(interface{ Errors() []error })
+	var errs, ok = errors.Cause(err).(interface{ Errors() []error })
 
 	if !ok {
 		return []error{err}
@@ -81,6 +82,10 @@ func (l *ErrorLogger) Capture(err error, opts map[string]interface{}) error {
 	}
 
 	for _, nerr := range splitError(err) {
+		if l.errorIgnored(nerr) {
+			continue
+		}
+
 		l.client.CaptureError(nerr, tags)
 	}
 
