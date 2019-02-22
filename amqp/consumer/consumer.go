@@ -28,13 +28,13 @@ type consumer struct {
 	cancelFn func()
 	openOnce sync.Once
 
-	consumersM *sync.RWMutex
+	consumersM sync.RWMutex
 	consumers  []chan amqp.Delivery
 
-	errForwardersM *sync.RWMutex
+	errForwardersM sync.RWMutex
 	errForwarders  []chan *amqp.Error
 
-	closeAck, connectAck chan interface{}
+	closeAck, connectAck chan struct{}
 }
 
 func NewConsumer(opts ...Option) Consumer {
@@ -45,11 +45,9 @@ func NewConsumer(opts ...Option) Consumer {
 	}
 
 	return &consumer{
-		opts:           &options,
-		consumersM:     &sync.RWMutex{},
-		errForwardersM: &sync.RWMutex{},
-		closeAck:       make(chan interface{}),
-		connectAck:     make(chan interface{}),
+		opts:       &options,
+		closeAck:   make(chan struct{}),
+		connectAck: make(chan struct{}),
 	}
 }
 
@@ -97,7 +95,7 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 	}
 
 	if qName := c.opts.queueName; qName == "" {
-		q, errQ := ch.QueueDeclare("", false, true, true, false, nil)
+		q, errQ := ch.QueueDeclareContext(ctx, "", false, true, true, false, nil)
 
 		if errQ != nil {
 			return false, errors.Wrap(errQ, "channel.QueueDeclare")
@@ -109,7 +107,8 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 		c.queueName = qName
 	}
 
-	ds, err := ch.Consume(
+	ds, err := ch.ConsumeContext(
+		ctx,
 		c.queueName,
 		c.opts.consumerTag,
 		false,
@@ -124,7 +123,7 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 	}
 
 	close(c.connectAck)
-	defer func() { c.connectAck = make(chan interface{}) }()
+	defer func() { c.connectAck = make(chan struct{}) }()
 
 	closeCh := make(chan *amqp.Error)
 	ch.NotifyClose(closeCh)
@@ -132,7 +131,10 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 	for {
 		select {
 		case <-ctx.Done():
-			ch.Cancel(c.opts.consumerTag, false)
+			cctx, cancel := c.opts.cancelContextBuilder()
+			defer cancel()
+
+			ch.CancelContext(cctx, c.opts.consumerTag, false)
 			c.opts.pool.Put(ch)
 
 			return true, ctx.Err()
@@ -182,10 +184,8 @@ func (c *consumer) Open(ctx context.Context) error {
 
 func (c *consumer) Consume() (<-chan amqp.Delivery, <-chan *amqp.Error, error) {
 	select {
-	case _, ok := <-c.closeAck:
-		if !ok {
-			return nil, nil, ErrCancelled
-		}
+	case <-c.closeAck:
+		return nil, nil, ErrCancelled
 	default:
 	}
 

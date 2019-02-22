@@ -3,10 +3,12 @@ package channelpool
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/streadway/amqp"
 
 	"github.com/upfluence/pkg/amqp/connectionpicker"
+	"github.com/upfluence/pkg/contextutil"
 	"github.com/upfluence/pkg/log"
 	stdpool "github.com/upfluence/pkg/pool"
 )
@@ -30,13 +32,15 @@ type pool struct {
 
 	pool stdpool.Pool
 
-	st *sync.Map
+	closeContextBuilder contextutil.ContextBuilder
+
+	st sync.Map
 }
 
 func NewPool(f stdpool.PoolFactory, picker connectionpicker.Picker) Pool {
 	var p = &pool{
-		Picker: picker,
-		st:     &sync.Map{},
+		Picker:              picker,
+		closeContextBuilder: contextutil.Timeout(5 * time.Second),
 	}
 
 	p.pool = f.GetPool(p.factory)
@@ -124,7 +128,11 @@ func (p *pool) Discard(ch *amqp.Channel) error {
 		p.st.Delete(ch)
 
 		if e.(*poolEntity).opened {
-			if err := ch.Close(); err != nil {
+			ctx, cancel := p.closeContextBuilder()
+
+			defer cancel()
+
+			if err := ch.CloseContext(ctx); err != nil {
 				log.Errorf("amqputil: %v", err)
 			}
 		}
