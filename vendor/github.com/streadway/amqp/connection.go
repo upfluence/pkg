@@ -7,6 +7,7 @@ package amqp
 
 import (
 	"bufio"
+	"context"
 	"crypto/tls"
 	"io"
 	"net"
@@ -111,21 +112,23 @@ type readDeadliner interface {
 	SetReadDeadline(time.Time) error
 }
 
-// defaultDial establishes a connection when config.Dial is not provided
-func defaultDial(network, addr string) (net.Conn, error) {
-	conn, err := net.DialTimeout(network, addr, defaultConnectionTimeout)
-	if err != nil {
-		return nil, err
-	}
+// DefaultDial establishes a connection when config.Dial is not provided
+func DefaultDial(connectionTimeout time.Duration) func(network, addr string) (net.Conn, error) {
+	return func(network, addr string) (net.Conn, error) {
+		conn, err := net.DialTimeout(network, addr, connectionTimeout)
+		if err != nil {
+			return nil, err
+		}
 
-	// Heartbeating hasn't started yet, don't stall forever on a dead server.
-	// A deadline is set for TLS and AMQP handshaking. After AMQP is established,
-	// the deadline is cleared in openComplete.
-	if err := conn.SetDeadline(time.Now().Add(defaultConnectionTimeout)); err != nil {
-		return nil, err
-	}
+		// Heartbeating hasn't started yet, don't stall forever on a dead server.
+		// A deadline is set for TLS and AMQP handshaking. After AMQP is established,
+		// the deadline is cleared in openComplete.
+		if err := conn.SetDeadline(time.Now().Add(connectionTimeout)); err != nil {
+			return nil, err
+		}
 
-	return conn, nil
+		return conn, nil
+	}
 }
 
 // Dial accepts a string in the AMQP URI format and returns a new Connection
@@ -180,7 +183,7 @@ func DialConfig(url string, config Config) (*Connection, error) {
 
 	dialer := config.Dial
 	if dialer == nil {
-		dialer = defaultDial
+		dialer = DefaultDial(defaultConnectionTimeout)
 	}
 
 	conn, err = dialer("tcp", addr)
@@ -201,6 +204,7 @@ func DialConfig(url string, config Config) (*Connection, error) {
 
 		client := tls.Client(conn, config.TLSClientConfig)
 		if err := client.Handshake(); err != nil {
+
 			conn.Close()
 			return nil, err
 		}
@@ -218,6 +222,10 @@ to use your own custom transport.
 
 */
 func Open(conn io.ReadWriteCloser, config Config) (*Connection, error) {
+	return OpenContext(context.Background(), conn, config)
+}
+
+func OpenContext(ctx context.Context, conn io.ReadWriteCloser, config Config) (*Connection, error) {
 	c := &Connection{
 		conn:      conn,
 		writer:    &writer{bufio.NewWriter(conn)},
@@ -228,7 +236,7 @@ func Open(conn io.ReadWriteCloser, config Config) (*Connection, error) {
 		deadlines: make(chan readDeadliner, 1),
 	}
 	go c.reader(conn)
-	return c, c.open(config)
+	return c, c.open(ctx, config)
 }
 
 /*
@@ -317,12 +325,17 @@ including the underlying io, Channels, Notify listeners and Channel consumers
 will also be closed.
 */
 func (c *Connection) Close() error {
-	if c.isClosed() {
+	return c.CloseContext(context.Background())
+}
+
+func (c *Connection) CloseContext(ctx context.Context) error {
+	if c.IsClosed() {
 		return ErrClosed
 	}
 
 	defer c.shutdown(nil)
 	return c.call(
+		ctx,
 		&connectionClose{
 			ReplyCode: replySuccess,
 			ReplyText: "kthxbai",
@@ -331,13 +344,14 @@ func (c *Connection) Close() error {
 	)
 }
 
-func (c *Connection) closeWith(err *Error) error {
-	if c.isClosed() {
+func (c *Connection) closeWith(ctx context.Context, err *Error) error {
+	if c.IsClosed() {
 		return ErrClosed
 	}
 
 	defer c.shutdown(err)
 	return c.call(
+		ctx,
 		&connectionClose{
 			ReplyCode: uint16(err.Code),
 			ReplyText: err.Reason,
@@ -346,12 +360,14 @@ func (c *Connection) closeWith(err *Error) error {
 	)
 }
 
-func (c *Connection) isClosed() bool {
+// IsClosed returns true if the connection is marked as closed, otherwise false
+// is returned.
+func (c *Connection) IsClosed() bool {
 	return (atomic.LoadInt32(&c.closed) == 1)
 }
 
 func (c *Connection) send(f frame) error {
-	if c.isClosed() {
+	if c.IsClosed() {
 		return ErrClosed
 	}
 
@@ -459,7 +475,7 @@ func (c *Connection) dispatch0(f frame) {
 		// kthx - all reads reset our deadline.  so we can drop this
 	default:
 		// lolwat - channel0 only responds to methods and heartbeats
-		c.closeWith(ErrUnexpectedFrame)
+		c.closeWith(context.Background(), ErrUnexpectedFrame)
 	}
 }
 
@@ -499,7 +515,7 @@ func (c *Connection) dispatchClosed(f frame) {
 			// we are already closed, so do nothing
 		default:
 			// unexpected method on closed channel
-			c.closeWith(ErrClosed)
+			c.closeWith(context.Background(), ErrClosed)
 		}
 	}
 }
@@ -591,7 +607,7 @@ func (c *Connection) allocateChannel() (*Channel, error) {
 	c.m.Lock()
 	defer c.m.Unlock()
 
-	if c.isClosed() {
+	if c.IsClosed() {
 		return nil, ErrClosed
 	}
 
@@ -617,13 +633,13 @@ func (c *Connection) releaseChannel(id uint16) {
 }
 
 // openChannel allocates and opens a channel, must be paired with closeChannel
-func (c *Connection) openChannel() (*Channel, error) {
+func (c *Connection) openChannel(ctx context.Context) (*Channel, error) {
 	ch, err := c.allocateChannel()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := ch.open(); err != nil {
+	if err := ch.open(ctx); err != nil {
 		c.releaseChannel(ch.id)
 		return nil, err
 	}
@@ -645,10 +661,20 @@ invalid and a new Channel should be opened.
 
 */
 func (c *Connection) Channel() (*Channel, error) {
-	return c.openChannel()
+	return c.ChannelContext(context.Background())
 }
 
-func (c *Connection) call(req message, res ...message) error {
+func (c *Connection) ChannelContext(ctx context.Context) (*Channel, error) {
+	return c.openChannel(ctx)
+}
+
+func (c *Connection) call(ctx context.Context, req message, res ...message) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	// Special case for when the protocol header frame is sent insted of a
 	// request method
 	if req != nil {
@@ -658,6 +684,8 @@ func (c *Connection) call(req message, res ...message) error {
 	}
 
 	select {
+	case <-ctx.Done():
+		return ctx.Err()
 	case err, ok := <-c.errors:
 		if !ok {
 			return ErrClosed
@@ -690,18 +718,18 @@ func (c *Connection) call(req message, res ...message) error {
 //    use-Connection      = *channel
 //    close-Connection    = C:CLOSE S:CLOSE-OK
 //                        / S:CLOSE C:CLOSE-OK
-func (c *Connection) open(config Config) error {
+func (c *Connection) open(ctx context.Context, config Config) error {
 	if err := c.send(&protocolHeader{}); err != nil {
 		return err
 	}
 
-	return c.openStart(config)
+	return c.openStart(ctx, config)
 }
 
-func (c *Connection) openStart(config Config) error {
+func (c *Connection) openStart(ctx context.Context, config Config) error {
 	start := &connectionStart{}
 
-	if err := c.call(nil, start); err != nil {
+	if err := c.call(ctx, nil, start); err != nil {
 		return err
 	}
 
@@ -723,10 +751,10 @@ func (c *Connection) openStart(config Config) error {
 	// Set the connection locale to client locale
 	c.Config.Locale = config.Locale
 
-	return c.openTune(config, auth)
+	return c.openTune(ctx, config, auth)
 }
 
-func (c *Connection) openTune(config Config, auth Authentication) error {
+func (c *Connection) openTune(ctx context.Context, config Config, auth Authentication) error {
 	if len(config.Properties) == 0 {
 		config.Properties = Table{
 			"product": defaultProduct,
@@ -747,7 +775,7 @@ func (c *Connection) openTune(config Config, auth Authentication) error {
 	}
 	tune := &connectionTune{}
 
-	if err := c.call(ok, tune); err != nil {
+	if err := c.call(ctx, ok, tune); err != nil {
 		// per spec, a connection can only be closed when it has been opened
 		// so at this point, we know it's an auth error, but the socket
 		// was closed instead.  Return a meaningful error.
@@ -787,14 +815,14 @@ func (c *Connection) openTune(config Config, auth Authentication) error {
 		return err
 	}
 
-	return c.openVhost(config)
+	return c.openVhost(ctx, config)
 }
 
-func (c *Connection) openVhost(config Config) error {
+func (c *Connection) openVhost(ctx context.Context, config Config) error {
 	req := &connectionOpen{VirtualHost: config.Vhost}
 	res := &connectionOpenOk{}
 
-	if err := c.call(req, res); err != nil {
+	if err := c.call(ctx, req, res); err != nil {
 		// Cannot be closed yet, but we know it's a vhost problem
 		return ErrVhost
 	}

@@ -6,8 +6,8 @@ import "github.com/upfluence/base/version"
 
 
 var (
-	semVersion = &version.SemanticVersion{0, 1, 20}
-	gitVersion = &version.GitVersion{"862050517e13", "https://github.com/upfluence/upfluence-if", "master"}
+	semVersion = &version.SemanticVersion{0, 1, 26}
+	gitVersion = &version.GitVersion{"12e1e202b411", "https://github.com/upfluence/upfluence-if", "master"}
 	baseVersion = &version.Version{semVersion, gitVersion}
 	)
 

@@ -18,6 +18,9 @@ import:
 - package: github.com/mattn/go-sqlite3
   version: ^1.2.0
 - package: github.com/streadway/amqp
+  vcs: git
+  version: ctx-methods
+  repo: git@github.com:AlexisMontagne/amqp.git
 - package: github.com/upfluence/base
   subpackages:
   - base_service
