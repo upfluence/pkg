@@ -12,8 +12,12 @@ func (tg *throttledGroup) Do(r Runner) {
 	tg.Group.Do(wrapRunner(r, tg.ch))
 }
 
+func SharedThrottledGroup(g Group, ch chan struct{}) Group {
+	return &throttledGroup{Group: g, ch: ch}
+}
+
 func ThrottledGroup(g Group, cap int) Group {
-	return &throttledGroup{Group: g, ch: make(chan struct{}, cap)}
+	return SharedThrottledGroup(g, make(chan struct{}, cap))
 }
 
 func wrapRunner(r Runner, ch chan struct{}) Runner {
