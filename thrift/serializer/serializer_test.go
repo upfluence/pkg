@@ -17,11 +17,11 @@ func TestContentType(t *testing.T) {
 		out string
 	}{
 		{
-			pf:  thrift.NewTSimpleJSONProtocolFactory(),
+			pf:  thrift.NewTJSONProtocolFactory(),
 			out: "application/json",
 		},
 		{
-			pf:  thrift.NewTSimpleJSONProtocolFactory(),
+			pf:  thrift.NewTJSONProtocolFactory(),
 			es:  []encoding.Encoding{encoding.Base64Encoding},
 			out: "application/json+base64",
 		},
@@ -65,14 +65,14 @@ func TestSerializerWriteString(t *testing.T) {
 	}{
 		{
 			name:  "regular encoding",
-			pf:    thrift.NewTSimpleJSONProtocolFactory(),
+			pf:    thrift.NewTJSONProtocolFactory(),
 			in:    &stringTStruct{"foobar"},
 			out:   "\"foobar\"",
 			errfn: testutil.NoError(),
 		},
 		{
 			name:  "base64",
-			pf:    thrift.NewTSimpleJSONProtocolFactory(),
+			pf:    thrift.NewTJSONProtocolFactory(),
 			es:    []encoding.Encoding{encoding.Base64Encoding},
 			in:    &stringTStruct{"foobar"},
 			out:   "ImZvb2JhciI=",
@@ -80,7 +80,7 @@ func TestSerializerWriteString(t *testing.T) {
 		},
 		{
 			name: "snappy",
-			pf:   thrift.NewTSimpleJSONProtocolFactory(),
+			pf:   thrift.NewTJSONProtocolFactory(),
 			es: []encoding.Encoding{
 				encoding.SnappyEncoding,
 			},

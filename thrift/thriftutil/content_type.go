@@ -10,7 +10,7 @@ import (
 
 var (
 	BinaryProtocolFactory = WithContentType(thrift.NewTBinaryProtocolFactoryDefault(), "application/binary")
-	JSONProtocolFactory   = WithContentType(thrift.NewTSimpleJSONProtocolFactory(), "application/json")
+	JSONProtocolFactory   = WithContentType(thrift.NewTJSONProtocolFactory(), "application/json")
 )
 
 type ContentTyper interface {
@@ -41,7 +41,7 @@ func ProtocolFactoryContentType(pf thrift.TProtocolFactory) string {
 	switch pf.(type) {
 	case *thrift.TBinaryProtocolFactory:
 		return "application/binary"
-	case *thrift.TSimpleJSONProtocolFactory, *thrift.TJSONProtocolFactory:
+	case *thrift.TJSONProtocolFactory:
 		return "application/json"
 	}
 

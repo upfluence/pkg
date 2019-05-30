@@ -22,7 +22,7 @@ func TestDeserializerReadString(t *testing.T) {
 	}{
 		{
 			name:  "regular encoding",
-			pf:    thrift.NewTSimpleJSONProtocolFactory(),
+			pf:    thrift.NewTJSONProtocolFactory(),
 			in:    "\"foobar\"",
 			msgfn: func() TStruct { return &stringTStruct{} },
 			out:   &stringTStruct{"foobar"},
@@ -30,7 +30,7 @@ func TestDeserializerReadString(t *testing.T) {
 		},
 		{
 			name:  "base64",
-			pf:    thrift.NewTSimpleJSONProtocolFactory(),
+			pf:    thrift.NewTJSONProtocolFactory(),
 			es:    []encoding.Encoding{encoding.Base64Encoding},
 			in:    "ImZvb2JhciI=",
 			msgfn: func() TStruct { return &stringTStruct{} },
@@ -51,7 +51,7 @@ func TestDeserializerReadString(t *testing.T) {
 		},
 		{
 			name: "snappy",
-			pf:   thrift.NewTSimpleJSONProtocolFactory(),
+			pf:   thrift.NewTJSONProtocolFactory(),
 			es: []encoding.Encoding{
 				encoding.SnappyEncoding,
 			},

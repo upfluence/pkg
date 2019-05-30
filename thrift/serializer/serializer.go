@@ -103,11 +103,12 @@ func (s *TSerializer) Write(msg TStruct) ([]byte, error) {
 	buf := s.bp.Get()
 
 	err := s.WriteTo(msg, buf)
-	p := buf.Bytes()
+	res := make([]byte, buf.Len())
+	copy(res, buf.Bytes())
 
 	s.bp.Put(buf)
 
-	return p, err
+	return res, err
 }
 
 func (s *TSerializer) WriteString(msg TStruct) (string, error) {
