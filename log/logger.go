@@ -116,3 +116,5 @@ func WithContext(ctx context.Context) log.Logger {
 func WithError(err error) log.Logger {
 	return Logger.WithError(err)
 }
+
+var Field = log.Field
