@@ -1,13 +1,20 @@
 package redis
 
 import (
+	"os"
 	"testing"
 
 	"github.com/upfluence/pkg/stringcache/testutil"
 )
 
 func TestIntegration(t *testing.T) {
-	c, err := NewCache("redis://localhost/0", "test-key")
+	redisURL := os.Getenv("REDIS_URL")
+
+	if redisURL == "" {
+		t.Skip("no REDIS_URL provided")
+	}
+
+	c, err := NewCache(redisURL, "test-key")
 
 	if err != nil {
 		t.Errorf("Error returned by the constructor %+v", err)
