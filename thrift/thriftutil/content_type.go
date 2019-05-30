@@ -2,16 +2,15 @@ package thriftutil
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/upfluence/thrift/lib/go/thrift"
 
-	"github.com/upfluence/pkg/compress"
+	"github.com/upfluence/pkg/encoding"
 )
 
 var (
 	BinaryProtocolFactory = WithContentType(thrift.NewTBinaryProtocolFactoryDefault(), "application/binary")
-	JSONProtocolFactory   = WithContentType(thrift.NewTSimpleJSONProtocolFactory(), "application/binary")
+	JSONProtocolFactory   = WithContentType(thrift.NewTSimpleJSONProtocolFactory(), "application/json")
 )
 
 type ContentTyper interface {
@@ -34,7 +33,7 @@ func WithContentType(pf thrift.TProtocolFactory, ct string) TTypedProtocolFactor
 
 func (ttpf *tTypedProtocolFactory) ContentType() string { return ttpf.t }
 
-func pfContentType(pf thrift.TProtocolFactory) string {
+func ProtocolFactoryContentType(pf thrift.TProtocolFactory) string {
 	if ct, ok := pf.(ContentTyper); ok {
 		return ct.ContentType()
 	}
@@ -49,12 +48,10 @@ func pfContentType(pf thrift.TProtocolFactory) string {
 	return fmt.Sprintf("application/%T", pf)
 }
 
-func ExtractContentType(pf thrift.TProtocolFactory, c compress.Compressor) string {
-	var fs = []string{pfContentType(pf)}
+func WrapContentType(ct string, c encoding.Encoding) string {
+	return fmt.Sprintf("%s+%s", ct, c.ContentType())
+}
 
-	if ct := c.ContentType(); ct != "" {
-		fs = append(fs, ct)
-	}
-
-	return strings.Join(fs, "+")
+func ExtractContentType(pf thrift.TProtocolFactory, c encoding.Encoding) string {
+	return WrapContentType(ProtocolFactoryContentType(pf), c)
 }

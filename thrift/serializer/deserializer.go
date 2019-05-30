@@ -7,11 +7,17 @@ import (
 
 	"github.com/upfluence/thrift/lib/go/thrift"
 
-	"github.com/upfluence/pkg/compress"
+	"github.com/upfluence/pkg/encoding"
 	"github.com/upfluence/pkg/thrift/thriftutil"
 )
 
-type TDeserializer struct {
+type Deserializer interface {
+	ContentType() string
+	ReadFrom(msg TStruct, r io.Reader) error
+	WrapEncoding(encoding.Encoding) Deserializer
+}
+
+type tDeserializer struct {
 	pf thrift.TProtocolFactory
 
 	rfn func(io.Reader) (thrift.TTransport, error)
@@ -19,42 +25,64 @@ type TDeserializer struct {
 	cType string
 }
 
-func defaultRTBuidler(c compress.Compressor) func(io.Reader) (thrift.TTransport, error) {
-	return func(r io.Reader) (thrift.TTransport, error) {
-		r, err := c.WrapReader(r)
+type decoderWrapper struct {
+	efn encoding.DecoderFunc
+	rfn func(io.Reader) (thrift.TTransport, error)
+}
 
-		if err != nil {
-			return nil, err
-		}
+func (dw decoderWrapper) transport(r io.Reader) (thrift.TTransport, error) {
+	var err error
 
-		return thriftutil.WrapReader(r), nil
+	r, err = dw.efn(r)
+
+	if err != nil {
+		return nil, err
 	}
+
+	return dw.rfn(r)
 }
 
-func NewTDeserializer(pf thrift.TProtocolFactory, cs ...compress.Compressor) *TDeserializer {
-	c := compress.CombineCompressors(cs...)
-
-	return &TDeserializer{
-		pf:    pf,
-		rfn:   defaultRTBuidler(c),
-		cType: thriftutil.ExtractContentType(pf, c),
-	}
-}
-
-func NewDefaultTDeserializer() *TDeserializer {
-	return NewTDeserializer(thriftutil.JSONProtocolFactory)
-}
-
-func (d *TDeserializer) ContentType() string { return d.cType }
-
-func (d *TDeserializer) ReadFrom(msg TStruct, r io.Reader) error {
-	var t, err = d.rfn(r)
+func (td *tDeserializer) ContentType() string { return td.cType }
+func (td *tDeserializer) ReadFrom(msg TStruct, r io.Reader) error {
+	var t, err = td.rfn(r)
 
 	if err != nil {
 		return err
 	}
 
-	return msg.Read(d.pf.GetProtocol(t))
+	return msg.Read(td.pf.GetProtocol(t))
+}
+
+func (td *tDeserializer) WrapEncoding(e encoding.Encoding) Deserializer {
+	return &tDeserializer{
+		pf:    td.pf,
+		rfn:   decoderWrapper{efn: e.WrapReader, rfn: td.rfn}.transport,
+		cType: thriftutil.WrapContentType(td.cType, e),
+	}
+}
+
+type TDeserializer struct {
+	Deserializer
+}
+
+func NewTDeserializer(pf thrift.TProtocolFactory, es ...encoding.Encoding) *TDeserializer {
+	var td Deserializer = &tDeserializer{
+		pf: pf,
+		rfn: func(r io.Reader) (thrift.TTransport, error) {
+			return thriftutil.WrapReader(r), nil
+		},
+		cType: thriftutil.ProtocolFactoryContentType(pf),
+	}
+
+	for _, e := range es {
+		td = td.WrapEncoding(e)
+	}
+
+	return &TDeserializer{td}
+}
+
+func NewDefaultTDeserializer() *TDeserializer {
+	return NewTDeserializer(thriftutil.JSONProtocolFactory)
 }
 
 func (d *TDeserializer) Read(msg TStruct, p []byte) error {

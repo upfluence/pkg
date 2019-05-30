@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/upfluence/pkg/compress"
+	"github.com/upfluence/pkg/encoding"
 	"github.com/upfluence/pkg/thrift/thriftutil"
 )
 
@@ -20,19 +20,19 @@ func NewDefaultTMultiTypeDeserializer() *TMultiTypeDeserializer {
 	return NewTMultiTypeDeserializer(
 		thriftutil.JSONProtocolFactory,
 		[]thriftutil.TTypedProtocolFactory{thriftutil.BinaryProtocolFactory},
-		[]compress.Compressor{compress.SnappyCompressor, compress.GZipCompressor},
+		[]encoding.Encoding{encoding.SnappyEncoding, encoding.GZipEncoding},
 	)
 }
 
-func NewTMultiTypeDeserializer(dpf thriftutil.TTypedProtocolFactory, pfs []thriftutil.TTypedProtocolFactory, cs []compress.Compressor) *TMultiTypeDeserializer {
+func NewTMultiTypeDeserializer(dpf thriftutil.TTypedProtocolFactory, pfs []thriftutil.TTypedProtocolFactory, es []encoding.Encoding) *TMultiTypeDeserializer {
 	ds := make(map[string]*TDeserializer)
 
 	for _, pf := range append(pfs, dpf) {
 		d := NewTDeserializer(pf)
 		ds[d.ContentType()] = d
 
-		for _, c := range cs {
-			d := NewTDeserializer(pf, c)
+		for _, e := range es {
+			d := NewTDeserializer(pf, e)
 			ds[d.ContentType()] = d
 		}
 	}

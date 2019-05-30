@@ -6,62 +6,97 @@ import (
 	"github.com/upfluence/thrift/lib/go/thrift"
 
 	"github.com/upfluence/pkg/bytesutil"
-	"github.com/upfluence/pkg/compress"
+	"github.com/upfluence/pkg/encoding"
 	"github.com/upfluence/pkg/thrift/thriftutil"
 )
 
-type TSerializer struct {
+type Serializer interface {
+	ContentType() string
+	WriteTo(TStruct, io.Writer) error
+	WrapEncoding(encoding.Encoding) Serializer
+}
+
+type tSerializer struct {
 	pf thrift.TProtocolFactory
-	bp *bytesutil.BufferPool
 
 	wfn func(io.Writer) (thrift.TTransport, error)
 
 	cType string
 }
 
-func defaultWTBuidler(c compress.Compressor) func(io.Writer) (thrift.TTransport, error) {
-	return func(w io.Writer) (thrift.TTransport, error) {
-		w, err := c.WrapWriter(w)
+type encoderWrapper struct {
+	efn encoding.EncoderFunc
+	wfn func(io.Writer) (thrift.TTransport, error)
+}
 
-		if err != nil {
-			return nil, err
-		}
+func (ew encoderWrapper) transport(w io.Writer) (thrift.TTransport, error) {
+	var err error
+	w, err = ew.efn(w)
 
-		return thriftutil.WrapWriter(w), nil
+	if err != nil {
+		return nil, err
+	}
+
+	return ew.wfn(w)
+}
+
+func (ts *tSerializer) ContentType() string { return ts.cType }
+
+func (ts *tSerializer) WrapEncoding(e encoding.Encoding) Serializer {
+	return &tSerializer{
+		pf:    ts.pf,
+		wfn:   encoderWrapper{efn: e.WrapWriter, wfn: ts.wfn}.transport,
+		cType: thriftutil.WrapContentType(ts.cType, e),
 	}
 }
 
-func NewTSerializer(pf thrift.TProtocolFactory, cs ...compress.Compressor) *TSerializer {
-	c := compress.CombineCompressors(cs...)
-
-	return &TSerializer{
-		pf:    pf,
-		bp:    bytesutil.NewBufferPool(),
-		wfn:   defaultWTBuidler(c),
-		cType: thriftutil.ExtractContentType(pf, c),
-	}
-}
-
-func NewDefaultTSerializer() *TSerializer {
-	return NewTSerializer(thriftutil.JSONProtocolFactory)
-}
-
-func (s *TSerializer) ContentType() string { return s.cType }
-
-func (s *TSerializer) WriteTo(msg TStruct, w io.Writer) error {
-	var t, err = s.wfn(w)
+func (ts *tSerializer) WriteTo(msg TStruct, w io.Writer) error {
+	var t, err = ts.wfn(w)
 
 	if err != nil {
 		return err
 	}
 
-	p := s.pf.GetProtocol(t)
+	p := ts.pf.GetProtocol(t)
 
 	if err := msg.Write(p); err != nil {
 		return err
 	}
 
-	return t.Flush()
+	if err := p.Flush(); err != nil {
+		return err
+	}
+
+	if err := t.Flush(); err != nil {
+		return err
+	}
+
+	return t.Close()
+}
+
+type TSerializer struct {
+	Serializer
+	bp *bytesutil.BufferPool
+}
+
+func NewTSerializer(pf thrift.TProtocolFactory, cs ...encoding.Encoding) *TSerializer {
+	var ts Serializer = &tSerializer{
+		pf: pf,
+		wfn: func(w io.Writer) (thrift.TTransport, error) {
+			return thriftutil.WrapWriter(w), nil
+		},
+		cType: thriftutil.ProtocolFactoryContentType(pf),
+	}
+
+	for _, c := range cs {
+		ts = ts.WrapEncoding(c)
+	}
+
+	return &TSerializer{Serializer: ts, bp: bytesutil.NewBufferPool()}
+}
+
+func NewDefaultTSerializer() *TSerializer {
+	return NewTSerializer(thriftutil.JSONProtocolFactory)
 }
 
 func (s *TSerializer) Write(msg TStruct) ([]byte, error) {
