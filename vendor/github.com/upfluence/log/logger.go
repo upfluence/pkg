@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/upfluence/log/record"
@@ -93,6 +94,10 @@ func (l *logger) dup(ctx record.Context) *logger {
 }
 
 func (l *logger) WithField(f record.Field) SugaredLogger {
+	if f == nil {
+		return l
+	}
+
 	return l.WithFields(f)
 }
 
@@ -101,10 +106,18 @@ func (l *logger) WithContext(ctx context.Context) SugaredLogger {
 }
 
 func (l *logger) WithFields(fs ...record.Field) SugaredLogger {
+	if len(fs) == 0 {
+		return l
+	}
+
 	return l.dup(&withFields{Context: l.ctx, fields: fs})
 }
 
 func (l *logger) WithError(err error) SugaredLogger {
+	if err == nil {
+		return l
+	}
+
 	return l.dup(&withErrors{Context: l.ctx, errs: []error{err}})
 }
 
@@ -149,4 +162,23 @@ func (l *logger) Errorf(fmt string, vs ...interface{}) {
 func (l *logger) Fatalf(fmt string, vs ...interface{}) {
 	l.Logf(record.Fatal, fmt, vs...)
 	os.Exit(1)
+}
+
+func Field(k string, v interface{}) record.Field {
+	switch vv := v.(type) {
+	case string:
+		return record.StringField{Key: k, Value: vv}
+	case bool:
+		return record.BoolField{Key: k, Value: vv}
+	case int64:
+		return record.Int64Field{Key: k, Value: vv}
+	case int:
+		return record.Int64Field{Key: k, Value: int64(vv)}
+	case float64:
+		return record.Float64Field{Key: k, Value: vv}
+	case fmt.Stringer:
+		return record.StringerField{Key: k, Value: vv}
+	}
+
+	return record.UnknownField{Key: k, Value: v}
 }

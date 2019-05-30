@@ -26,6 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"strconv"
 )
@@ -488,11 +489,19 @@ func (p *TSimpleJSONProtocol) ReadDouble() (float64, error) {
 	return v, err
 }
 
+var ddebug = false
+
 func (p *TSimpleJSONProtocol) ReadString() (string, error) {
 	var v string
 	if err := p.ParsePreValue(); err != nil {
 		return v, err
 	}
+
+	if ddebug {
+		buf, err := ioutil.ReadAll(p.reader)
+		return string(buf), err
+	}
+
 	f, _ := p.reader.Peek(1)
 	if len(f) > 0 && f[0] == JSON_QUOTE {
 		p.reader.ReadByte()
@@ -501,7 +510,7 @@ func (p *TSimpleJSONProtocol) ReadString() (string, error) {
 		if err != nil {
 			return v, err
 		}
-	} else if len(f) >= 0 && f[0] == JSON_NULL[0] {
+	} else if len(f) > 0 && f[0] == JSON_NULL[0] {
 		b := make([]byte, len(JSON_NULL))
 		_, err := p.reader.Read(b)
 		if err != nil {
@@ -1061,7 +1070,7 @@ func (p *TSimpleJSONProtocol) ParseListEnd() error {
 	for _, char := range line {
 		switch char {
 		default:
-			e := fmt.Errorf("Expecting end of list \"]\", but found: \"", line, "\"")
+			e := fmt.Errorf("Expecting end of list \"]\", but found: \"%s\"", line)
 			return NewTProtocolExceptionWithType(INVALID_DATA, e)
 		case ' ', '\n', '\r', '\t', rune(JSON_RBRACKET[0]):
 			break
