@@ -1,69 +1,87 @@
 package serializer
 
-import "github.com/upfluence/thrift/lib/go/thrift"
+import (
+	"io"
+
+	"github.com/upfluence/thrift/lib/go/thrift"
+
+	"github.com/upfluence/pkg/bytesutil"
+	"github.com/upfluence/pkg/compress"
+	"github.com/upfluence/pkg/thrift/thriftutil"
+)
 
 type TSerializer struct {
-	transport *thrift.TMemoryBuffer
-	protocol  thrift.TProtocol
+	pf thrift.TProtocolFactory
+	bp *bytesutil.BufferPool
+
+	wfn func(io.Writer) (thrift.TTransport, error)
+
+	cType string
 }
 
-func NewTSerializer(protocolFactory thrift.TProtocolFactory) *TSerializer {
-	var transport = thrift.NewTMemoryBufferLen(1024)
+func defaultWTBuidler(c compress.Compressor) func(io.Writer) (thrift.TTransport, error) {
+	return func(w io.Writer) (thrift.TTransport, error) {
+		w, err := c.WrapWriter(w)
 
-	protocol := protocolFactory.GetProtocol(transport)
+		if err != nil {
+			return nil, err
+		}
+
+		return thriftutil.WrapWriter(w), nil
+	}
+}
+
+func NewTSerializer(pf thrift.TProtocolFactory, cs ...compress.Compressor) *TSerializer {
+	c := compress.CombineCompressors(cs...)
 
 	return &TSerializer{
-		transport,
-		protocol,
+		pf:    pf,
+		bp:    bytesutil.NewBufferPool(),
+		wfn:   defaultWTBuidler(c),
+		cType: thriftutil.ExtractContentType(pf, c),
 	}
 }
 
-func (t *TSerializer) ReadString(msg TStruct, s string) error {
-	return t.Read(msg, []byte(s))
+func NewDefaultTSerializer() *TSerializer {
+	return NewTSerializer(thriftutil.JSONProtocolFactory)
 }
 
-func (t *TSerializer) Read(msg TStruct, b []byte) error {
-	if _, err := t.transport.Write(b); err != nil {
+func (s *TSerializer) ContentType() string { return s.cType }
+
+func (s *TSerializer) WriteTo(msg TStruct, w io.Writer) error {
+	var t, err = s.wfn(w)
+
+	if err != nil {
 		return err
 	}
 
-	if err := msg.Read(t.protocol); err != nil {
+	p := s.pf.GetProtocol(t)
+
+	if err := msg.Write(p); err != nil {
 		return err
 	}
 
-	return nil
+	return t.Flush()
 }
 
-func (t *TSerializer) writeAndFlush(msg TStruct) error {
-	t.transport.Reset()
+func (s *TSerializer) Write(msg TStruct) ([]byte, error) {
+	buf := s.bp.Get()
 
-	if err := msg.Write(t.protocol); err != nil {
-		return err
-	}
+	err := s.WriteTo(msg, buf)
+	p := buf.Bytes()
 
-	if err := t.protocol.Flush(); err != nil {
-		return err
-	}
+	s.bp.Put(buf)
 
-	if err := t.transport.Flush(); err != nil {
-		return err
-	}
-
-	return nil
+	return p, err
 }
 
-func (t *TSerializer) Write(msg TStruct) ([]byte, error) {
-	if err := t.writeAndFlush(msg); err != nil {
-		return []byte{}, err
-	}
+func (s *TSerializer) WriteString(msg TStruct) (string, error) {
+	buf := s.bp.Get()
 
-	return t.transport.Bytes(), nil
-}
+	err := s.WriteTo(msg, buf)
+	p := buf.String()
 
-func (t *TSerializer) WriteString(msg TStruct) (string, error) {
-	if err := t.writeAndFlush(msg); err != nil {
-		return "", err
-	}
+	s.bp.Put(buf)
 
-	return t.transport.String(), nil
+	return p, err
 }
