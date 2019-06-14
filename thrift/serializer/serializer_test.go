@@ -25,6 +25,14 @@ func TestContentType(t *testing.T) {
 			es:  []encoding.Encoding{encoding.Base64Encoding},
 			out: "application/json+base64",
 		},
+		{
+			pf: thrift.NewTBinaryProtocolFactoryDefault(),
+			es: []encoding.Encoding{
+				encoding.SnappyEncoding,
+				encoding.Base64Encoding,
+			},
+			out: "application/binary+snappy+base64",
+		},
 	} {
 		s := NewTSerializer(tt.pf, tt.es...)
 		d := NewTDeserializer(tt.pf, tt.es...)
@@ -63,6 +71,13 @@ func TestSerializerWriteString(t *testing.T) {
 		out   string
 		errfn testutil.ErrorAssertion
 	}{
+		{
+			name:  "regular binary",
+			pf:    thrift.NewTBinaryProtocolFactoryDefault(),
+			in:    &stringTStruct{"foobar"},
+			out:   "\x00\x00\x00\x06foobar",
+			errfn: testutil.NoError(),
+		},
 		{
 			name:  "regular encoding",
 			pf:    thrift.NewTJSONProtocolFactory(),
