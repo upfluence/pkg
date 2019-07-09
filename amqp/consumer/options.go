@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/upfluence/pkg/amqp/channelpool"
-	"github.com/upfluence/pkg/amqp/connectionpicker"
 	"github.com/upfluence/pkg/backoff"
 	"github.com/upfluence/pkg/backoff/static"
 	"github.com/upfluence/pkg/iopool"
@@ -13,8 +12,7 @@ import (
 
 var defaultOptions = &options{
 	pool: channelpool.NewPool(
-		connectionpicker.NewPicker(),
-		iopool.WithSize(1),
+		channelpool.WithPoolOptions(iopool.WithSize(1)),
 	),
 	handlePoolClosing: true,
 	shouldContinueFn:  func(error) bool { return true },

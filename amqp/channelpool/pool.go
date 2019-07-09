@@ -29,8 +29,7 @@ type pool struct {
 	connectionpicker.Picker
 
 	pool *iopool.Pool
-
-	st *sync.Map
+	st   sync.Map
 }
 
 type Option func(*options)
@@ -43,9 +42,15 @@ func WithPickerOptions(opts ...connectionpicker.Option) Option {
 	return func(o *options) { o.piopts = append(o.piopts, opts...) }
 }
 
+func WithPicker(p connectionpicker.Picker) Option {
+	return func(o *options) { o.p = p }
+}
+
 type options struct {
 	poopts []iopool.Option
 	piopts []connectionpicker.Option
+
+	p connectionpicker.Picker
 }
 
 func NewPool(opts ...Option) Pool {
@@ -55,11 +60,13 @@ func NewPool(opts ...Option) Pool {
 		opt(&o)
 	}
 
-	p := pool{
-		Monitor: closer.NewMonitor(),
-		Picker:  connectionpicker.NewPicker(o.piopts...),
-		st:      &sync.Map{},
+	picker := o.p
+
+	if picker == nil {
+		picker = connectionpicker.NewPicker(o.piopts...)
 	}
+
+	p := pool{Monitor: closer.NewMonitor(), Picker: picker}
 
 	p.pool = iopool.NewPool(p.factory, o.poopts...)
 
