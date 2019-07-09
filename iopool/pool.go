@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 	"io"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/upfluence/pkg/cache/policy"
+	ptime "github.com/upfluence/pkg/cache/policy/time"
+	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/multierror"
 	"github.com/upfluence/stats"
 )
@@ -52,40 +56,27 @@ func newPoolMetrics(s stats.Scope) poolMetrics {
 
 type entityWrapper struct {
 	e Entity
-	p *Pool
+	n string
 
-	lastIdle time.Time
-}
-
-func (ew *entityWrapper) valid() bool {
-	t := time.Now()
-
-	if ew.p.idleTimeout > 0 && ew.lastIdle.Before(t.Add(-1*ew.p.idleTimeout)) {
-		return false
-	}
-
-	return ew.e.IsOpen()
+	closed bool
 }
 
 type Pool struct {
 	*options
+	*closer.Monitor
 
-	wg sync.WaitGroup
+	factory Factory
+	createc chan struct{}
+	poolc   chan *entityWrapper
 
-	ctx    context.Context
-	cancel context.CancelFunc
+	mu         sync.Mutex
+	checkedout map[Entity]*entityWrapper
 
-	closed int32
+	checkout map[string]*entityWrapper
+	checkin  map[string]*entityWrapper
 
-	ticker *time.Ticker
-
-	factory  Factory
-	createCh chan struct{}
-	poolCh   chan *entityWrapper
-
-	checkoutMu sync.Mutex
-	checkout   map[Entity]*entityWrapper
-
+	ep      policy.EvictionPolicy
+	cnt     uint64
 	metrics poolMetrics
 }
 
@@ -93,8 +84,7 @@ type options struct {
 	size     int
 	idleSize int
 
-	idleTimeout    time.Duration
-	closerInterval time.Duration
+	eps []policy.EvictionPolicy
 
 	scope stats.Scope
 }
@@ -103,11 +93,7 @@ type Option func(*options)
 
 func WithIdleTimeout(d time.Duration) Option {
 	return func(o *options) {
-		o.idleTimeout = d
-
-		if d < o.closerInterval {
-			o.closerInterval = d
-		}
+		o.eps = append(o.eps, ptime.NewIdlePolicy(d))
 	}
 }
 
@@ -135,168 +121,191 @@ func WithSize(s int) Option {
 	}
 }
 
-var defaultOptions = options{
-	size:           10,
-	idleSize:       5,
-	closerInterval: time.Second,
-	scope:          stats.RootScope(stats.NewStaticCollector()),
+var defaultOptions = &options{
+	size:     10,
+	idleSize: 5,
+	scope:    stats.RootScope(stats.NewStaticCollector()),
 }
 
 func NewPool(f Factory, opts ...Option) *Pool {
-	var (
-		options     = defaultOptions
-		ctx, cancel = context.WithCancel(context.Background())
-	)
+	options := *defaultOptions
 
 	for _, opt := range opts {
 		opt(&options)
 	}
 
-	p := &Pool{
-		ctx:      ctx,
-		cancel:   cancel,
-		factory:  f,
-		options:  &options,
-		createCh: make(chan struct{}, options.size),
-		poolCh:   make(chan *entityWrapper, options.idleSize),
-		checkout: make(map[Entity]*entityWrapper),
+	p := Pool{
+		Monitor:    closer.NewMonitor(),
+		factory:    f,
+		options:    &options,
+		createc:    make(chan struct{}, options.size),
+		poolc:      make(chan *entityWrapper, options.idleSize),
+		checkedout: make(map[Entity]*entityWrapper),
+		checkout:   make(map[string]*entityWrapper),
+		checkin:    make(map[string]*entityWrapper),
+		ep:         policy.CombinePolicies(options.eps...),
 	}
 
 	p.metrics = newPoolMetrics(options.scope)
 
 	p.metrics.size.Update(int64(options.size))
 
-	if options.idleTimeout > 0 {
-		p.ticker = time.NewTicker(options.closerInterval)
-		p.wg.Add(1)
-		go p.closer()
-	}
-
 	for i := 0; i < options.size; i++ {
-		p.createCh <- struct{}{}
+		p.createc <- struct{}{}
 	}
 
-	return p
+	p.Run(p.closer)
+
+	return &p
 }
 
-func (p *Pool) closer() {
-	defer p.wg.Done()
-	defer p.ticker.Stop()
-
+func (p *Pool) closer(ctx context.Context) {
 	for {
+		ch := p.ep.C()
+
 		select {
-		case <-p.ctx.Done():
+		case <-p.Ctx.Done():
 			return
-		case <-p.ticker.C:
-			var ews []*entityWrapper
-
-			for {
-				select {
-				case ew := <-p.poolCh:
-					if ew.valid() {
-						ews = append(ews, ew)
-						continue
-					}
-
-					p.metrics.idleClosed.Inc()
-					ew.e.Close()
-				default:
-					goto reenqueue
-				}
+		case ewn, ok := <-ch:
+			if !ok {
+				continue
 			}
 
-		reenqueue:
-			for _, ew := range ews {
-				p.poolCh <- ew
+			p.mu.Lock()
+			ew, ok := p.checkout[ewn]
+
+			if ok {
+				ew.closed = true
+				p.mu.Unlock()
+				continue
 			}
 
-			p.metrics.idle.Update(int64(len(p.poolCh)))
+			ew, ok = p.checkin[ewn]
+
+			if ok {
+				ew.closed = true
+				delete(p.checkin, ew.n)
+				p.mu.Unlock()
+				ew.e.Close()
+			}
 		}
 	}
 }
 
 func (p *Pool) markOut(ew *entityWrapper) {
-	p.checkoutMu.Lock()
-	p.checkout[ew.e] = ew
+	p.mu.Lock()
+	p.checkedout[ew.e] = ew
+	p.checkout[ew.n] = ew
 	p.metrics.checkout.Update(int64(len(p.checkout)))
-	p.checkoutMu.Unlock()
+	p.mu.Unlock()
 }
 
-func (p *Pool) IsOpen() bool {
-	return p.closed == 0
+func (p *Pool) getNoWait() (Entity, error) {
+	for {
+		select {
+		case ew, ok := <-p.poolc:
+			if !ok {
+				return nil, ErrClosed
+			}
+
+			if p.checkoutWrapper(ew) {
+				return ew.e, nil
+			}
+		default:
+			return nil, nil
+		}
+	}
 }
 
 func (p *Pool) Get(ctx context.Context) (Entity, error) {
 	p.metrics.get.Inc()
 
-	if atomic.LoadInt32(&p.closed) == 1 {
+	if !p.IsOpen() {
 		return nil, ErrClosed
 	}
 
-	select {
-	case e, ok := <-p.poolCh:
-		if !ok {
-			return nil, ErrClosed
-		}
+	e, err := p.getNoWait()
 
-		return e.e, nil
-	default:
+	if err != nil || e != nil {
+		return e, err
 	}
 
-	select {
-	case <-p.ctx.Done():
-		return nil, ErrClosed
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case ew, ok := <-p.poolCh:
-		if !ok {
+	for {
+		select {
+		case <-p.Ctx.Done():
 			return nil, ErrClosed
-		}
-
-		p.markOut(ew)
-		p.metrics.idle.Update(int64(len(p.poolCh)))
-
-		return ew.e, nil
-	case _, ok := <-p.createCh:
-		if !ok {
-			return nil, ErrClosed
-		}
-
-		e, err := p.factory(ctx)
-
-		if err != nil {
-			select {
-			case p.createCh <- struct{}{}:
-			default:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case ew, ok := <-p.poolc:
+			if !ok {
+				return nil, ErrClosed
 			}
 
-			return nil, err
-		}
-
-		if err := e.Open(ctx); err != nil {
-			select {
-			case p.createCh <- struct{}{}:
-			default:
+			if p.checkoutWrapper(ew) {
+				return ew.e, nil
+			}
+		case _, ok := <-p.createc:
+			if !ok {
+				return nil, ErrClosed
 			}
 
-			return nil, err
+			ew, err := p.dial(ctx)
+
+			if err != nil {
+				select {
+				case p.createc <- struct{}{}:
+				default:
+				}
+
+				return nil, err
+			}
+
+			p.markOut(ew)
+
+			return ew.e, nil
 		}
-
-		t := time.Now()
-		p.markOut(&entityWrapper{e: e, lastIdle: t, p: p})
-
-		return e, nil
 	}
 }
 
-func (p *Pool) requeue(ew *entityWrapper) error {
-	if atomic.LoadInt32(&p.closed) == 1 {
-		return ew.e.Close()
+func (p *Pool) checkoutWrapper(ew *entityWrapper) bool {
+	if ew.closed {
+		p.mu.Lock()
+		delete(p.checkedout, ew.e)
+		delete(p.checkout, ew.n)
+		p.mu.Unlock()
+		return false
 	}
 
+	p.mu.Lock()
+	delete(p.checkin, ew.n)
+	p.mu.Unlock()
+	p.markOut(ew)
+	p.ep.Op(ew.n, policy.Evict)
+	p.metrics.idle.Update(int64(len(p.poolc)))
+	return true
+}
+
+func (p *Pool) dial(ctx context.Context) (*entityWrapper, error) {
+	e, err := p.factory(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := e.Open(ctx); err != nil {
+		return nil, err
+	}
+
+	return &entityWrapper{
+		e: e,
+		n: strconv.Itoa(int(atomic.AddUint64(&p.cnt, 1))),
+	}, nil
+}
+
+func (p *Pool) requeue(ew *entityWrapper) error {
 	select {
-	case p.poolCh <- ew:
-		p.metrics.idle.Update(int64(len(p.poolCh)))
+	case p.poolc <- ew:
+		p.metrics.idle.Update(int64(len(p.poolc)))
 	default:
 		return ew.e.Close()
 	}
@@ -311,44 +320,50 @@ func (p *Pool) Put(e Entity) error {
 
 	p.metrics.put.Inc()
 
-	p.checkoutMu.Lock()
-	ew, ok := p.checkout[e]
+	p.mu.Lock()
+	ew, ok := p.checkedout[e]
 
 	if !ok {
-		p.checkoutMu.Unlock()
+		p.mu.Unlock()
 		return ErrNotCheckout
 	}
 
-	ew.lastIdle = time.Now()
+	if ew.closed {
+		p.mu.Unlock()
+		return p.Discard(e)
+	}
 
-	delete(p.checkout, ew.e)
+	p.checkin[ew.n] = ew
+	p.ep.Op(ew.n, policy.Set)
+	delete(p.checkedout, ew.e)
+	delete(p.checkout, ew.n)
 	p.metrics.checkout.Update(int64(len(p.checkout)))
-	p.checkoutMu.Unlock()
+	p.mu.Unlock()
 
 	return p.requeue(ew)
 }
 
 func (p *Pool) Discard(e Entity) error {
 	p.metrics.discard.Inc()
-	p.checkoutMu.Lock()
-	ew, ok := p.checkout[e]
+	p.mu.Lock()
+	ew, ok := p.checkedout[e]
 
 	if !ok {
-		p.checkoutMu.Unlock()
+		p.mu.Unlock()
 		return ErrNotCheckout
 	}
 
-	delete(p.checkout, ew.e)
+	delete(p.checkedout, ew.e)
+	delete(p.checkout, ew.n)
+	p.ep.Op(ew.n, policy.Evict)
 	p.metrics.checkout.Update(int64(len(p.checkout)))
-	p.checkoutMu.Unlock()
+	p.mu.Unlock()
 
 	err := e.Close()
 
-	if atomic.LoadInt32(&p.closed) == 0 {
-		select {
-		case p.createCh <- struct{}{}:
-		default:
-		}
+	select {
+	case p.createc <- struct{}{}:
+	default:
 	}
 
 	return err
@@ -359,8 +374,9 @@ func (p *Pool) drainPoolChannel() []error {
 
 	for {
 		select {
-		case ew := <-p.poolCh:
-			p.metrics.idle.Update(int64(len(p.poolCh)))
+		case ew := <-p.poolc:
+			p.metrics.idle.Update(int64(len(p.poolc)))
+			p.ep.Op(ew.n, policy.Evict)
 
 			if err := ew.e.Close(); err != nil {
 				errs = append(errs, err)
@@ -371,17 +387,20 @@ func (p *Pool) drainPoolChannel() []error {
 	}
 }
 
-func (p *Pool) Close() error {
-	p.cancel()
-	p.wg.Wait()
+func (p *Pool) Shutdown(ctx context.Context) error {
+	if err := p.Monitor.Shutdown(ctx); err != nil {
+		return err
+	}
 
 	errs := p.drainPoolChannel()
 
-	for len(p.checkout) > 0 {
+	for len(p.checkedout) > 0 {
 		select {
-		case <-p.createCh:
-		case ew := <-p.poolCh:
-			p.metrics.idle.Update(int64(len(p.poolCh)))
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-p.createc:
+		case ew := <-p.poolc:
+			p.metrics.idle.Update(int64(len(p.poolc)))
 
 			if err := ew.e.Close(); err != nil {
 				errs = append(errs, err)
@@ -389,10 +408,29 @@ func (p *Pool) Close() error {
 		}
 	}
 
-	close(p.createCh)
-	close(p.poolCh)
+	return multierror.Wrap(errs)
+}
 
-	atomic.StoreInt32(&p.closed, 1)
+func (p *Pool) Close() error {
+	p.Monitor.Close()
+	p.ep.Close()
+
+	errs := p.drainPoolChannel()
+
+	for len(p.checkedout) > 0 {
+		select {
+		case <-p.createc:
+		case ew := <-p.poolc:
+			p.metrics.idle.Update(int64(len(p.poolc)))
+
+			if err := ew.e.Close(); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	close(p.createc)
+	close(p.poolc)
 
 	return multierror.Wrap(errs)
 }

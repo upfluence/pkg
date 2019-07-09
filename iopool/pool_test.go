@@ -48,6 +48,31 @@ func TestGarbageIdleConnections(t *testing.T) {
 	time.Sleep(150 * time.Millisecond)
 	assert.Equal(t, 1, e.closed)
 
+	v, err = p.Get(context.Background())
+	assert.Nil(t, err)
+	assert.Nil(t, p.Discard(v))
+
+	assert.Nil(t, p.Close())
+}
+
+func TestReuseConnections(t *testing.T) {
+	e := &entity{isOpen: true}
+	p := NewPool(
+		func(context.Context) (Entity, error) { return e, nil },
+		WithIdleTimeout(100*time.Millisecond),
+	)
+
+	v1, err := p.Get(context.Background())
+	assert.Nil(t, err)
+
+	assert.Nil(t, p.Put(v1))
+
+	v2, err := p.Get(context.Background())
+	assert.Nil(t, err)
+	assert.Equal(t, v1, v2)
+
+	assert.Nil(t, p.Put(v2))
+
 	assert.Nil(t, p.Close())
 }
 
