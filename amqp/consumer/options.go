@@ -7,14 +7,14 @@ import (
 	"github.com/upfluence/pkg/amqp/connectionpicker"
 	"github.com/upfluence/pkg/backoff"
 	"github.com/upfluence/pkg/backoff/static"
+	"github.com/upfluence/pkg/iopool"
 	"github.com/upfluence/pkg/peer"
-	"github.com/upfluence/pkg/pool/bounded"
 )
 
 var defaultOptions = &options{
 	pool: channelpool.NewPool(
-		bounded.NewPoolFactory(1),
 		connectionpicker.NewPicker(),
+		iopool.WithSize(1),
 	),
 	handlePoolClosing: true,
 	shouldContinueFn:  func(error) bool { return true },

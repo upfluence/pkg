@@ -7,23 +7,28 @@ import (
 	"github.com/streadway/amqp"
 
 	"github.com/upfluence/pkg/amqp/util"
+	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/discovery/balancer"
+	"github.com/upfluence/pkg/group"
 	"github.com/upfluence/pkg/log"
+	"github.com/upfluence/pkg/multierror"
 )
 
 type Picker interface {
+	closer.Shutdowner
+
 	Open(context.Context) error
 	IsOpen() bool
-	Close() error
 
 	Pick(context.Context) (*amqp.Connection, error)
 }
 
 type picker struct {
 	*options
+	*closer.Monitor
 
-	watchedConnections   []*amqp.Connection
-	watchedConnectionsMu *sync.Mutex
+	sync.Mutex
+	cs []*amqp.Connection
 
 	lastUsedConn int
 }
@@ -35,28 +40,37 @@ func NewPicker(opts ...Option) Picker {
 		opt(&options)
 	}
 
-	return &picker{
-		options:              &options,
-		watchedConnectionsMu: &sync.Mutex{},
+	return &picker{options: &options, Monitor: closer.NewMonitor()}
+}
+
+func (p *picker) IsOpen() bool {
+	return p.Balancer.IsOpen() && p.Monitor.IsOpen()
+}
+
+func (p *picker) Shutdown(ctx context.Context) error {
+	g := group.WaitGroup(ctx)
+
+	if sb, ok := p.Balancer.(closer.Shutdowner); ok {
+		g.Do(sb.Shutdown)
 	}
+
+	g.Do(p.Monitor.Shutdown)
+
+	return g.Wait()
 }
 
 func (p *picker) Close() error {
-	p.watchedConnectionsMu.Lock()
-	defer p.watchedConnectionsMu.Unlock()
-
-	for _, conn := range p.watchedConnections {
-		conn.Close()
-	}
-
-	return p.options.Close()
+	return multierror.Combine(
+		p.Balancer.Close(),
+		p.Monitor.Close(),
+	)
 }
 
 func (p *picker) Pick(ctx context.Context) (*amqp.Connection, error) {
-	p.watchedConnectionsMu.Lock()
-	defer p.watchedConnectionsMu.Unlock()
+	p.Lock()
+	defer p.Unlock()
 
-	if len(p.watchedConnections) < p.targetOpenedConn {
+	if len(p.cs) < p.targetOpenedConn {
 		peer, err := p.Balancer.Get(ctx, balancer.BalancerGetOptions{})
 
 		if err != nil {
@@ -67,12 +81,12 @@ func (p *picker) Pick(ctx context.Context) (*amqp.Connection, error) {
 			ctx,
 			peer,
 			p.peer,
-			p.connectionNamer(len(p.watchedConnections)),
+			p.connectionNamer(len(p.cs)),
 		)
 
 		if conn != nil {
-			go p.supervise(conn)
-			p.watchedConnections = append(p.watchedConnections, conn)
+			p.Run(func(ctx context.Context) { p.supervise(ctx, conn) })
+			p.cs = append(p.cs, conn)
 		}
 
 		return conn, err
@@ -80,30 +94,32 @@ func (p *picker) Pick(ctx context.Context) (*amqp.Connection, error) {
 
 	p.lastUsedConn = (p.lastUsedConn + 1) % p.targetOpenedConn
 
-	return p.watchedConnections[p.lastUsedConn], nil
+	return p.cs[p.lastUsedConn], nil
 }
 
-func (p *picker) supervise(conn *amqp.Connection) {
+func (p *picker) supervise(ctx context.Context, conn *amqp.Connection) {
 	var ch = make(chan *amqp.Error)
 
 	conn.NotifyClose(ch)
 
-	err := <-ch
+	select {
+	case err := <-ch:
+		if err != nil {
+			log.WithError(err).Warning("Connection closed")
+		}
+	case <-ctx.Done():
+		conn.Close()
 
-	if err != nil {
-		log.Errorf("Connection closed: %v", err)
 	}
+	p.Lock()
+	var cs []*amqp.Connection
 
-	p.watchedConnectionsMu.Lock()
-	defer p.watchedConnectionsMu.Unlock()
-
-	var watchedConns = []*amqp.Connection{}
-
-	for _, wConn := range p.watchedConnections {
+	for _, wConn := range p.cs {
 		if wConn != conn {
-			watchedConns = append(watchedConns, wConn)
+			cs = append(cs, wConn)
 		}
 	}
 
-	p.watchedConnections = watchedConns
+	p.cs = cs
+	p.Unlock()
 }

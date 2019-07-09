@@ -7,18 +7,17 @@ import (
 	"github.com/streadway/amqp"
 
 	"github.com/upfluence/pkg/amqp/connectionpicker"
+	"github.com/upfluence/pkg/closer"
+	"github.com/upfluence/pkg/iopool"
 	"github.com/upfluence/pkg/log"
-	stdpool "github.com/upfluence/pkg/pool"
+	"github.com/upfluence/pkg/multierror"
 )
 
-type PoolFactory interface {
-	GetPool(stdpool.PoolFactory, connectionpicker.Picker) Pool
-}
-
 type Pool interface {
+	closer.Shutdowner
+
 	Open(context.Context) error
 	IsOpen() bool
-	Close() error
 
 	Get(context.Context) (*amqp.Channel, error)
 	Put(*amqp.Channel) error
@@ -26,44 +25,102 @@ type Pool interface {
 }
 
 type pool struct {
+	*closer.Monitor
 	connectionpicker.Picker
 
-	pool stdpool.Pool
+	pool *iopool.Pool
 
 	st *sync.Map
 }
 
-func NewPool(f stdpool.PoolFactory, picker connectionpicker.Picker) Pool {
-	var p = &pool{
-		Picker: picker,
-		st:     &sync.Map{},
+type Option func(*options)
+
+func WithPoolOptions(opts ...iopool.Option) Option {
+	return func(o *options) { o.poopts = append(o.poopts, opts...) }
+}
+
+func WithPickerOptions(opts ...connectionpicker.Option) Option {
+	return func(o *options) { o.piopts = append(o.piopts, opts...) }
+}
+
+type options struct {
+	poopts []iopool.Option
+	piopts []connectionpicker.Option
+}
+
+func NewPool(opts ...Option) Pool {
+	var o options
+
+	for _, opt := range opts {
+		opt(&o)
 	}
 
-	p.pool = f.GetPool(p.factory)
+	p := pool{
+		Monitor: closer.NewMonitor(),
+		Picker:  connectionpicker.NewPicker(o.piopts...),
+		st:      &sync.Map{},
+	}
 
-	return p
+	p.pool = iopool.NewPool(p.factory, o.poopts...)
+
+	return &p
+}
+
+func (p *pool) IsOpen() bool {
+	return p.Picker.IsOpen() && p.Monitor.IsOpen() && p.pool.IsOpen()
+}
+
+func (p *pool) Shutdown(ctx context.Context) error {
+	return multierror.Combine(
+		p.pool.Shutdown(ctx),
+		p.Monitor.Shutdown(ctx),
+		p.Picker.Shutdown(ctx),
+	)
+}
+
+func (p *pool) Close() error {
+	return multierror.Combine(
+		p.pool.Close(),
+		p.Monitor.Close(),
+		p.Picker.Close(),
+	)
 }
 
 type poolEntity struct {
-	channel *amqp.Channel
-	opened  bool
+	*amqp.Channel
+	err    error
+	closed bool
 }
 
-func (p *poolEntity) supervise() {
+func (p *poolEntity) Open(context.Context) error {
+	return nil
+}
+
+func (p *poolEntity) IsOpen() bool {
+	return p.closed
+}
+
+func (p *poolEntity) supervise(ctx context.Context) {
 	var ch = make(chan *amqp.Error)
 
-	p.channel.NotifyClose(ch)
+	p.NotifyClose(ch)
+	select {
+	case err, ok := <-ch:
+		if ok {
+			if err != nil {
+				log.WithError(err).Warning("AMQPChannelPool channel closed")
+			}
 
-	err := <-ch
-
-	if err != nil {
-		log.Errorf("AMQPChannelPool channel closed: %v", err)
+			p.err = err
+		}
+		p.closed = true
+	case <-ctx.Done():
+		p.err = p.Close()
+		p.closed = true
 	}
-
-	p.opened = false
 }
 
-func (p *pool) factory(ctx context.Context) (interface{}, error) {
+func (p *pool) factory(ctx context.Context) (iopool.Entity, error) {
 	var conn, err = p.Picker.Pick(ctx)
 
 	if err != nil {
@@ -76,8 +133,8 @@ func (p *pool) factory(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	entity := &poolEntity{channel: ch, opened: true}
-	go entity.supervise()
+	entity := &poolEntity{Channel: ch}
+	p.Run(func(ctx context.Context) { entity.supervise(ctx) })
 
 	return entity, nil
 }
@@ -89,31 +146,17 @@ func (p *pool) Get(ctx context.Context) (*amqp.Channel, error) {
 		return nil, err
 	}
 
-	for !e.(*poolEntity).opened {
-		if err2 := p.pool.Discard(e); err2 != nil {
-			log.Errorf("amqputil: %v", err2)
-		}
+	pe := e.(*poolEntity)
+	ch := pe.Channel
+	p.st.Store(ch, pe)
 
-		e, err = p.pool.Get(ctx)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	p.st.Store(e.(*poolEntity).channel, e)
-	return e.(*poolEntity).channel, nil
+	return ch, nil
 }
 
 func (p *pool) Put(ch *amqp.Channel) error {
 	if e, ok := p.st.Load(ch); ok {
 		p.st.Delete(ch)
-
-		if e.(*poolEntity).opened {
-			return p.pool.Put(e)
-		}
-
-		return p.pool.Discard(e)
+		return p.pool.Put(e.(*poolEntity))
 	}
 
 	return nil
@@ -122,14 +165,7 @@ func (p *pool) Put(ch *amqp.Channel) error {
 func (p *pool) Discard(ch *amqp.Channel) error {
 	if e, ok := p.st.Load(ch); ok {
 		p.st.Delete(ch)
-
-		if e.(*poolEntity).opened {
-			if err := ch.Close(); err != nil {
-				log.Errorf("amqputil: %v", err)
-			}
-		}
-
-		return p.pool.Discard(e)
+		return p.pool.Discard(e.(*poolEntity))
 	}
 
 	return nil
