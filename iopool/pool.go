@@ -268,7 +268,8 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 }
 
 func (p *Pool) checkoutWrapper(ew *entityWrapper) bool {
-	if ew.closed {
+	if ew.closed || !ew.e.IsOpen() {
+		ew.e.Close()
 		p.mu.Lock()
 		delete(p.checkedout, ew.e)
 		delete(p.checkout, ew.n)
