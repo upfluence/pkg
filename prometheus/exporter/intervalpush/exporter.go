@@ -8,28 +8,29 @@ import (
 	"github.com/prometheus/client_golang/prometheus/push"
 
 	"github.com/upfluence/pkg/log"
+	exp "github.com/upfluence/pkg/prometheus/exporter"
 )
 
 const defaultInterval = 15 * time.Second
 
 type exporter struct {
-	t                          *time.Ticker
-	appName, pushURL, unitName string
-
-	gatherer prometheus.Gatherer
+	t *time.Ticker
+	p *push.Pusher
 }
 
-func NewExporter(url string, interval time.Duration) *exporter {
+func NewExporter(url string, interval time.Duration) exp.Exporter {
 	if interval == 0 {
 		interval = defaultInterval
 	}
 
 	return &exporter{
-		t:        time.NewTicker(interval),
-		pushURL:  url,
-		appName:  os.Getenv("APP_NAME"),
-		unitName: os.Getenv("UNIT_NAME"),
-		gatherer: prometheus.DefaultGatherer,
+		t: time.NewTicker(interval),
+		p: push.New(
+			url,
+			os.Getenv("APP_NAME"),
+		).Gatherer(
+			prometheus.DefaultGatherer,
+		).Grouping("instance", os.Getenv("UNIT_NAME")),
 	}
 }
 
@@ -39,12 +40,7 @@ func (e *exporter) Export(exitChan <-chan bool) {
 		case <-exitChan:
 			return
 		case <-e.t.C:
-			if err := push.FromGatherer(
-				e.appName,
-				map[string]string{"instance": e.unitName},
-				e.pushURL,
-				e.gatherer,
-			); err != nil {
+			if err := e.p.Push(); err != nil {
 				log.Noticef("Push to gatherer failed: %s", err.Error())
 			}
 		}
