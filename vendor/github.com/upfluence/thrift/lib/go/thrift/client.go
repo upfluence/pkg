@@ -25,20 +25,22 @@ type TClient interface {
 }
 
 type TSyncClient struct {
-	inputProtocol  TProtocol
-	outputProtocol TProtocol
-	mu             *sync.Mutex
-	seqID          int32
+	TTransport
+	sync.Mutex
 
-	Middlewares []TMiddleware
+	in, out TProtocol
+
+	seqID int32
+
+	Middleware TMiddleware
 }
 
 func NewTSyncClient(t TTransport, f TProtocolFactory, ms ...TMiddleware) *TSyncClient {
 	return &TSyncClient{
-		inputProtocol:  f.GetProtocol(t),
-		outputProtocol: f.GetProtocol(t),
-		mu:             &sync.Mutex{},
-		Middlewares:    ms,
+		TTransport: t,
+		in:         f.GetProtocol(t),
+		out:        f.GetProtocol(t),
+		Middleware: WrapMiddlewares(ms),
 	}
 }
 
@@ -109,61 +111,41 @@ func recv(iprot TProtocol, seqID int32, method string, result TResponse) error {
 }
 
 func (c *TSyncClient) CallBinary(ctx Context, method string, req TRequest, res TResponse) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.Lock()
+	defer c.Unlock()
 
 	c.seqID++
 
-	call := func(ctx Context, req TRequest) (TResponse, error) {
-		if err := send(ctx, c.outputProtocol, c.seqID, method, req, CALL); err != nil {
-			return nil, err
-		}
+	_, err := c.Middleware.HandleBinaryRequest(
+		ctx,
+		method,
+		c.seqID,
+		req,
+		func(ctx Context, req TRequest) (TResponse, error) {
+			if err := send(ctx, c.in, c.seqID, method, req, CALL); err != nil {
+				return nil, err
+			}
 
-		return res, recv(c.inputProtocol, c.seqID, method, res)
-	}
-
-	for i := len(c.Middlewares); i > 0; i-- {
-		next := call
-		i := i
-		call = func(ctx Context, req TRequest) (TResponse, error) {
-			return c.Middlewares[i-1].HandleBinaryRequest(
-				ctx,
-				method,
-				c.seqID,
-				req,
-				next,
-			)
-		}
-	}
-
-	_, err := call(ctx, req)
+			return res, recv(c.out, c.seqID, method, res)
+		},
+	)
 
 	return err
 }
 
 func (c *TSyncClient) CallUnary(ctx Context, method string, req TRequest) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.Lock()
+	defer c.Unlock()
 
 	c.seqID++
 
-	call := func(ctx Context, req TRequest) error {
-		return send(ctx, c.outputProtocol, c.seqID, method, req, ONEWAY)
-	}
-
-	for i := len(c.Middlewares); i > 0; i-- {
-		next := call
-		i := i
-		call = func(ctx Context, req TRequest) error {
-			return c.Middlewares[i-1].HandleUnaryRequest(
-				ctx,
-				method,
-				c.seqID,
-				req,
-				next,
-			)
-		}
-	}
-
-	return call(ctx, req)
+	return c.Middleware.HandleUnaryRequest(
+		ctx,
+		method,
+		c.seqID,
+		req,
+		func(ctx Context, req TRequest) error {
+			return send(ctx, c.in, c.seqID, method, req, ONEWAY)
+		},
+	)
 }

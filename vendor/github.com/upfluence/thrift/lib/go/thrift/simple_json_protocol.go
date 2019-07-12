@@ -26,9 +26,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"strconv"
+	"strings"
 )
 
 type _ParseContext int
@@ -489,19 +489,11 @@ func (p *TSimpleJSONProtocol) ReadDouble() (float64, error) {
 	return v, err
 }
 
-var ddebug = false
-
 func (p *TSimpleJSONProtocol) ReadString() (string, error) {
 	var v string
 	if err := p.ParsePreValue(); err != nil {
 		return v, err
 	}
-
-	if ddebug {
-		buf, err := ioutil.ReadAll(p.reader)
-		return string(buf), err
-	}
-
 	f, _ := p.reader.Peek(1)
 	if len(f) > 0 && f[0] == JSON_QUOTE {
 		p.reader.ReadByte()
@@ -510,7 +502,7 @@ func (p *TSimpleJSONProtocol) ReadString() (string, error) {
 		if err != nil {
 			return v, err
 		}
-	} else if len(f) > 0 && f[0] == JSON_NULL[0] {
+	} else if len(f) >= 0 && f[0] == JSON_NULL[0] {
 		b := make([]byte, len(JSON_NULL))
 		_, err := p.reader.Read(b)
 		if err != nil {
@@ -888,27 +880,38 @@ func (p *TSimpleJSONProtocol) ParseStringBody() (string, error) {
 }
 
 func (p *TSimpleJSONProtocol) ParseQuotedStringBody() (string, error) {
-	line, err := p.reader.ReadString(JSON_QUOTE)
-	if err != nil {
-		return "", NewTProtocolException(err)
+	var b strings.Builder
+
+	if err := p.parseQuotedStringBody(&b); err != nil {
+		return "", err
 	}
-	l := len(line)
-	// count number of escapes to see if we need to keep going
-	i := 1
-	for ; i < l; i++ {
-		if line[l-i-1] != '\\' {
-			break
+
+	return b.String(), nil
+}
+
+func (p *TSimpleJSONProtocol) parseQuotedStringBody(sw stringWriter) error {
+	for {
+		line, err := p.reader.ReadString(JSON_QUOTE)
+
+		if err != nil {
+			return NewTProtocolException(err)
+		}
+
+		sw.WriteString(line)
+
+		l := len(line)
+		// count number of escapes to see if we need to keep going
+		i := 1
+		for ; i < l; i++ {
+			if line[l-i-1] != '\\' {
+				break
+			}
+		}
+
+		if i&0x01 == 1 {
+			return nil
 		}
 	}
-	if i&0x01 == 1 {
-		return line, nil
-	}
-	s, err := p.ParseQuotedStringBody()
-	if err != nil {
-		return "", NewTProtocolException(err)
-	}
-	v := line + s
-	return v, nil
 }
 
 func (p *TSimpleJSONProtocol) ParseBase64EncodedBody() ([]byte, error) {

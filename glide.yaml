@@ -31,11 +31,16 @@ import:
   subpackages:
   - lib/go/thrift
 - package: github.com/prometheus/client_golang
-  version: ^0.8.0
-  subpackages:
-  - prometheus
-  - prometheus/push
+  version: ^1.0.0
+- package: github.com/prometheus/procfs
+  version: ^0.0.3
 - package: github.com/golang/protobuf
   version: ^1.1.0
   subpackages:
   - proto
+- package: github.com/coreos/etcd
+  vcs: git
+  repo: git@github.com:etcd-io/etcd.git
+  version: 3.3.13
+  subpackages:
+  - client

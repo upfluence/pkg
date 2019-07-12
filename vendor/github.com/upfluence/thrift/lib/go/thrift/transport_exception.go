@@ -20,7 +20,6 @@
 package thrift
 
 import (
-	"context"
 	"errors"
 	"io"
 )
@@ -49,47 +48,44 @@ type tTransportException struct {
 	err    error
 }
 
-func (p *tTransportException) TypeId() int {
-	return p.typeId
+func (te *tTransportException) Timeout() bool {
+	return te.typeId == TIMED_OUT
 }
 
-func (p *tTransportException) Error() string {
-	return p.err.Error()
+func (te *tTransportException) TypeId() int {
+	return te.typeId
 }
 
-func (p *tTransportException) Err() error {
-	return p.err
+func (te *tTransportException) Error() string {
+	return te.err.Error()
+}
+
+func (te *tTransportException) Err() error {
+	return te.err
 }
 
 func NewTTransportException(t int, e string) TTransportException {
 	return &tTransportException{typeId: t, err: errors.New(e)}
 }
 
-func NewTTransportExceptionFromError(e error) TTransportException {
-	if e == nil {
+func NewTTransportExceptionFromError(err error) TTransportException {
+	var cause = Cause(err)
+
+	switch cause {
+	case nil:
 		return nil
+	case io.EOF:
+		return &tTransportException{typeId: END_OF_FILE, err: err}
 	}
 
-	if e == context.DeadlineExceeded {
-		return &tTransportException{typeId: TIMED_OUT, err: e}
-	}
-
-	if t, ok := e.(TTransportException); ok {
-		return t
-	}
-
-	switch v := e.(type) {
+	switch v := cause.(type) {
 	case TTransportException:
 		return v
 	case timeoutable:
 		if v.Timeout() {
-			return &tTransportException{typeId: TIMED_OUT, err: e}
+			return &tTransportException{typeId: TIMED_OUT, err: err}
 		}
 	}
 
-	if e == io.EOF {
-		return &tTransportException{typeId: END_OF_FILE, err: e}
-	}
-
-	return &tTransportException{typeId: UNKNOWN_TRANSPORT_EXCEPTION, err: e}
+	return &tTransportException{typeId: UNKNOWN_TRANSPORT_EXCEPTION, err: err}
 }

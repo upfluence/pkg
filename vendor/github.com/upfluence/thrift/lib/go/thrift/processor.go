@@ -19,6 +19,11 @@
 
 package thrift
 
+import (
+	"fmt"
+	"os"
+)
+
 // A processor is a generic object which operates upon an input stream and
 // writes to some output stream.
 type TProcessor interface {
@@ -115,15 +120,41 @@ func NewTBinaryProcessorFunction(p TProcessor, fname string, builder func() TReq
 	}
 }
 
+type protocolWriter interface {
+	Write(TProtocol) error
+}
+
+func (p *TBinaryProcessorFunction) write(out TProtocol, seqID int32, mType TMessageType, x protocolWriter) error {
+	err := out.WriteMessageBegin(p.fname, mType, seqID)
+
+	if err2 := x.Write(out); err == nil && err2 != nil {
+		err = err2
+	}
+
+	if err2 := out.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+
+	if err2 := out.Flush(); err == nil && err2 != nil {
+		err = err2
+	}
+
+	return err
+}
+
+func (p *TBinaryProcessorFunction) writeException(out TProtocol, seqID, tID int32, msg string) error {
+	return p.write(out, seqID, EXCEPTION, NewTApplicationException(tID, msg))
+}
+
+func (p *TBinaryProcessorFunction) writeReply(out TProtocol, seqID int32, resp TResponse) error {
+	return p.write(out, seqID, REPLY, resp)
+}
+
 func (p *TBinaryProcessorFunction) Process(ctx Context, seqID int32, in, out TProtocol) (bool, TException) {
 	var args, err = p.readRequest(in)
 
 	if err != nil {
-		x := NewTApplicationException(PROTOCOL_ERROR, err.Error())
-		out.WriteMessageBegin(p.fname, EXCEPTION, seqID)
-		x.Write(out)
-		out.WriteMessageEnd()
-		out.Flush()
+		p.writeException(out, seqID, PROTOCOL_ERROR, err.Error())
 		return false, err
 	}
 
@@ -148,31 +179,23 @@ func (p *TBinaryProcessorFunction) Process(ctx Context, seqID int32, in, out TPr
 	res, err := call(ctx, args)
 
 	if err != nil {
-		x := NewTApplicationException(INTERNAL_ERROR, "Internal error processing perform_void: "+err.Error())
-		out.WriteMessageBegin(p.fname, EXCEPTION, seqID)
-		x.Write(out)
-		out.WriteMessageEnd()
-		out.Flush()
+		tid := INTERNAL_ERROR
+
+		if os.IsTimeout(Cause(err)) {
+			tid = INTERNAL_TIME_OUT_ERROR
+		}
+
+		p.writeException(
+			out,
+			seqID,
+			int32(tid),
+			fmt.Sprintf("Internal error processing : %s: %s", p.fname, err.Error()),
+		)
+
 		return true, err
 	}
 
-	if err2 := out.WriteMessageBegin(p.fname, REPLY, seqID); err2 != nil {
-		err = err2
-	}
-
-	if err2 := res.Write(out); err == nil && err2 != nil {
-		err = err2
-	}
-
-	if err2 := out.WriteMessageEnd(); err == nil && err2 != nil {
-		err = err2
-	}
-
-	if err2 := out.Flush(); err == nil && err2 != nil {
-		err = err2
-	}
-
-	return true, err
+	return true, p.writeReply(out, seqID, res)
 }
 
 type TUnaryHandler interface {
