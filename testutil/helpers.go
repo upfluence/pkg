@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"os"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -25,4 +26,14 @@ func ErrorCause(err error, msgAndArgs ...interface{}) ErrorAssertion {
 	return func(t testing.TB, gerr error) {
 		assert.Equal(t, err, errors.Cause(gerr), msgAndArgs...)
 	}
+}
+
+func FetchEnvVariable(t testing.TB, ev string) string {
+	v := os.Getenv(ev)
+
+	if v == "" {
+		t.Skipf("%q env var is not defined, skipping test", ev)
+	}
+
+	return v
 }
