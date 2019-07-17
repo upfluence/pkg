@@ -274,6 +274,12 @@ func (p *Pool) checkoutWrapper(ew *entityWrapper) bool {
 		delete(p.checkedout, ew.e)
 		delete(p.checkout, ew.n)
 		p.mu.Unlock()
+
+		select {
+		case p.createc <- struct{}{}:
+		default:
+		}
+
 		return false
 	}
 

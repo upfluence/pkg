@@ -48,9 +48,19 @@ func TestGarbageIdleConnections(t *testing.T) {
 	time.Sleep(150 * time.Millisecond)
 	assert.Equal(t, 1, e.closed)
 
+	assert.Equal(t, 9, len(p.createc))
+	assert.Equal(t, 1, len(p.poolc))
+
 	v, err = p.Get(context.Background())
 	assert.Nil(t, err)
+
+	assert.Equal(t, 9, len(p.createc))
+	assert.Equal(t, 0, len(p.poolc))
+
 	assert.Nil(t, p.Discard(v))
+
+	assert.Equal(t, 10, len(p.createc))
+	assert.Equal(t, 0, len(p.poolc))
 
 	assert.Nil(t, p.Close())
 }
