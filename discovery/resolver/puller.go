@@ -14,10 +14,10 @@ type Puller struct {
 	openOnce sync.Once
 
 	closed bool
-	closeL *sync.RWMutex
+	closeL sync.RWMutex
 
-	closeOnce *sync.Once
-	closeChan chan interface{}
+	closeOnce sync.Once
+	closeChan chan struct{}
 
 	updateFn func(Update)
 }
@@ -26,9 +26,7 @@ func NewPuller(r Resolver, fn func(Update)) (*Puller, func()) {
 	var p = &Puller{
 		resolver:  r,
 		updateFn:  fn,
-		closeChan: make(chan interface{}),
-		closeOnce: &sync.Once{},
-		closeL:    &sync.RWMutex{},
+		closeChan: make(chan struct{}),
 	}
 
 	return p, func() { p.closeOnce.Do(func() { close(p.closeChan) }) }
@@ -38,7 +36,7 @@ func (p *Puller) IsOpen() bool {
 	p.closeL.RLock()
 	defer p.closeL.RUnlock()
 
-	return p.closed
+	return !p.closed
 }
 
 func (p *Puller) String() string {
