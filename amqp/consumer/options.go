@@ -12,7 +12,7 @@ import (
 
 var defaultOptions = &options{
 	pool: channelpool.NewPool(
-		channelpool.WithPoolOptions(iopool.WithSize(1)),
+		channelpool.WithPoolOptions(iopool.WithSize(2)),
 	),
 	handlePoolClosing: true,
 	shouldContinueFn:  func(error) bool { return true },

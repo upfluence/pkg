@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 
+	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/log"
 )
 
@@ -15,26 +16,30 @@ var ErrCancelled = errors.New("amqp/consumer: Consumer is cancelled")
 
 type Consumer interface {
 	Open(context.Context) error
+	IsOpen() bool
+
 	Consume() (<-chan amqp.Delivery, <-chan *amqp.Error, error)
 	QueueName(context.Context) (string, error)
-	Close() error
+
+	closer.Closer
 }
 
 type consumer struct {
+	*closer.Monitor
+
 	opts *options
 
-	queueName string
-
-	cancelFn func()
 	openOnce sync.Once
 
-	consumersM *sync.RWMutex
+	consumersM sync.Mutex
 	consumers  []chan amqp.Delivery
 
-	errForwardersM *sync.RWMutex
+	errForwardersM sync.Mutex
 	errForwarders  []chan *amqp.Error
 
-	closeAck, connectAck chan interface{}
+	queueCond *sync.Cond
+	queueM    sync.Mutex
+	queue     string
 }
 
 func NewConsumer(opts ...Option) Consumer {
@@ -44,28 +49,54 @@ func NewConsumer(opts ...Option) Consumer {
 		opt(&options)
 	}
 
-	return &consumer{
-		opts:           &options,
-		consumersM:     &sync.RWMutex{},
-		errForwardersM: &sync.RWMutex{},
-		closeAck:       make(chan interface{}),
-		connectAck:     make(chan interface{}),
-	}
+	c := consumer{Monitor: closer.NewMonitor(), opts: &options}
+	c.queueCond = sync.NewCond(&c.queueM)
+
+	return &c
 }
 
 func (c *consumer) QueueName(ctx context.Context) (string, error) {
+	c.queueM.Lock()
+	q := c.queue
+	c.queueM.Unlock()
+
+	if q != "" {
+		return q, nil
+	}
+
+	done := make(chan struct{})
+	cancelled := false
+
+	go func() {
+		c.queueM.Lock()
+		defer c.queueM.Unlock()
+
+		for {
+			if cancelled || c.queue != "" {
+				q = c.queue
+				close(done)
+				return
+			}
+
+			c.queueCond.Wait()
+		}
+	}()
+
 	select {
 	case <-ctx.Done():
+		c.queueM.Lock()
+		cancelled = true
+		c.queueCond.Broadcast()
+		c.queueM.Unlock()
+
 		return "", ctx.Err()
-	case <-c.connectAck:
-		return c.queueName, nil
+	case <-done:
+		return q, nil
 	}
 }
 
 func (c *consumer) loop(ctx context.Context) {
 	var i int
-
-	defer close(c.closeAck)
 
 	for {
 		var ok, err = c.consume(ctx)
@@ -74,7 +105,7 @@ func (c *consumer) loop(ctx context.Context) {
 			return
 		}
 
-		log.Error(err)
+		log.WithError(err).Warning("cant consume")
 
 		t, _ := c.opts.backoff.Backoff(i)
 		i++
@@ -84,12 +115,6 @@ func (c *consumer) loop(ctx context.Context) {
 }
 
 func (c *consumer) consume(ctx context.Context) (bool, error) {
-	select {
-	case <-ctx.Done():
-		return true, ctx.Err()
-	default:
-	}
-
 	ch, err := c.opts.pool.Get(ctx)
 
 	if err != nil {
@@ -104,13 +129,17 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 		}
 
 		log.Noticef("Queue declared: %s", q.Name)
-		c.queueName = q.Name
+		c.queueM.Lock()
+		c.queue = q.Name
+		c.queueM.Unlock()
 	} else {
-		c.queueName = qName
+		c.queueM.Lock()
+		c.queue = qName
+		c.queueM.Unlock()
 	}
 
 	ds, err := ch.Consume(
-		c.queueName,
+		c.queue,
 		c.opts.consumerTag,
 		false,
 		false,
@@ -123,8 +152,7 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 		return false, errors.Wrap(err, "channel.Consume")
 	}
 
-	close(c.connectAck)
-	defer func() { c.connectAck = make(chan interface{}) }()
+	c.queueCond.Broadcast()
 
 	closeCh := make(chan *amqp.Error)
 	ch.NotifyClose(closeCh)
@@ -132,11 +160,19 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 	for {
 		select {
 		case <-ctx.Done():
+			c.queueM.Lock()
+			c.queue = ""
+			c.queueM.Unlock()
+
 			ch.Cancel(c.opts.consumerTag, false)
 			c.opts.pool.Put(ch)
 
 			return true, ctx.Err()
 		case err := <-closeCh:
+			c.queueM.Lock()
+			c.queue = ""
+			c.queueM.Unlock()
+
 			for _, f := range c.errForwarders {
 				select {
 				case <-ctx.Done():
@@ -160,14 +196,11 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 }
 
 func (c *consumer) open(ctx context.Context) error {
-	var cctx, fn = context.WithCancel(context.Background())
-	c.cancelFn = fn
-
 	if err := c.opts.pool.Open(ctx); err != nil {
 		return err
 	}
 
-	go c.loop(cctx)
+	c.Run(c.loop)
 
 	return nil
 }
@@ -181,12 +214,8 @@ func (c *consumer) Open(ctx context.Context) error {
 }
 
 func (c *consumer) Consume() (<-chan amqp.Delivery, <-chan *amqp.Error, error) {
-	select {
-	case _, ok := <-c.closeAck:
-		if !ok {
-			return nil, nil, ErrCancelled
-		}
-	default:
+	if !c.IsOpen() {
+		return nil, nil, ErrCancelled
 	}
 
 	var (
@@ -195,32 +224,32 @@ func (c *consumer) Consume() (<-chan amqp.Delivery, <-chan *amqp.Error, error) {
 	)
 
 	c.consumersM.Lock()
-	defer c.consumersM.Unlock()
-
 	c.consumers = append(c.consumers, ch)
+	c.consumersM.Unlock()
 
 	c.errForwardersM.Lock()
-	defer c.errForwardersM.Unlock()
-
 	c.errForwarders = append(c.errForwarders, errF)
+	c.errForwardersM.Unlock()
 
 	return ch, errF, nil
 }
 
 func (c *consumer) Close() error {
-	if fn := c.cancelFn; fn != nil {
-		fn()
+	c.Monitor.Close()
 
-		<-c.closeAck
-	}
-
+	c.consumersM.Lock()
 	for _, c := range c.consumers {
 		close(c)
 	}
+	c.consumers = nil
+	c.consumersM.Unlock()
 
+	c.errForwardersM.Lock()
 	for _, f := range c.errForwarders {
 		close(f)
 	}
+	c.errForwarders = nil
+	c.errForwardersM.Unlock()
 
 	if c.opts.handlePoolClosing {
 		return c.opts.pool.Close()

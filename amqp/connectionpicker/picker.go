@@ -109,8 +109,8 @@ func (p *picker) supervise(ctx context.Context, conn *amqp.Connection) {
 		}
 	case <-ctx.Done():
 		conn.Close()
-
 	}
+
 	p.Lock()
 	var cs []*amqp.Connection
 
