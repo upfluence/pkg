@@ -57,12 +57,16 @@ func (m *Monitor) Run(fn func(context.Context)) {
 	}()
 }
 
-func (m *Monitor) IsOpen() bool {
+func (m *Monitor) State() State {
 	m.mu.Lock()
 	s := m.s
 	m.mu.Unlock()
 
-	return s == Open
+	return s
+}
+
+func (m *Monitor) IsOpen() bool {
+	return m.State() == Open
 }
 
 func (m *Monitor) Shutdown(ctx context.Context) error {

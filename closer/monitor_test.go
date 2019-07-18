@@ -9,14 +9,14 @@ import (
 )
 
 func TestEmpty(t *testing.T) {
-	m := NewMonior()
+	m := NewMonitor()
 
 	assert.Nil(t, m.Shutdown(context.Background()))
 	assert.Nil(t, m.Close())
 }
 
 func TestShutdownWait(t *testing.T) {
-	m := NewMonior()
+	m := NewMonitor()
 	closec := make(chan struct{})
 
 	m.Run(func(context.Context) { <-closec })
@@ -28,7 +28,7 @@ func TestShutdownWait(t *testing.T) {
 }
 
 func TestShutdownTimeout(t *testing.T) {
-	m := NewMonior()
+	m := NewMonitor()
 	closec := make(chan struct{})
 
 	m.Run(func(context.Context) { <-closec })
@@ -40,10 +40,10 @@ func TestShutdownTimeout(t *testing.T) {
 
 	assert.Equal(t, context.DeadlineExceeded, m.Shutdown(ctx))
 	assert.False(t, m.IsOpen())
-	assert.Equal(t, Closing, m.s)
+	assert.Equal(t, Closing, m.State())
 
 	close(closec)
 	assert.Nil(t, m.Close())
 	assert.False(t, m.IsOpen())
-	assert.Equal(t, Closed, m.s)
+	assert.Equal(t, Closed, m.State())
 }
