@@ -6,14 +6,18 @@ import (
 )
 
 type NopPolicy struct {
-	closed int32
+	sync.Once
+	sync.Mutex
 
-	chonce sync.Once
+	closed int32
 	ch     chan string
 }
 
 func (np *NopPolicy) C() <-chan string {
-	np.chonce.Do(func() {
+	np.Do(func() {
+		np.Lock()
+		defer np.Unlock()
+
 		if np.ch == nil {
 			np.ch = make(chan string)
 
@@ -36,9 +40,11 @@ func (np *NopPolicy) Op(string, OpType) error {
 
 func (np *NopPolicy) Close() error {
 	if atomic.CompareAndSwapInt32(&np.closed, 0, 1) {
+		np.Lock()
 		if np.ch != nil {
 			close(np.ch)
 		}
+		np.Unlock()
 	}
 
 	return nil
