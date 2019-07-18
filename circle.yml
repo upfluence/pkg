@@ -1,9 +1,0 @@
-machine:
-  services:
-    - redis
-  environment:
-    GO15VENDOREXPERIMENT: 1
-
-test:
-  override:
-    - go test $(go list ./... | grep -v vendor)
