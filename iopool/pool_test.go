@@ -3,6 +3,7 @@ package iopool
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -10,21 +11,21 @@ import (
 )
 
 type entity struct {
-	opened  int
+	opened  int32
 	openErr error
 	isOpen  bool
 
-	closed   int
+	closed   int32
 	closeErr error
 }
 
 func (e *entity) Close() error {
-	e.closed++
+	atomic.AddInt32(&e.closed, 1)
 	return e.closeErr
 }
 
 func (e *entity) Open(context.Context) error {
-	e.opened++
+	atomic.AddInt32(&e.opened, 1)
 	return e.openErr
 }
 
@@ -46,7 +47,7 @@ func TestGarbageIdleConnections(t *testing.T) {
 	assert.Nil(t, p.Put(v))
 
 	time.Sleep(150 * time.Millisecond)
-	assert.Equal(t, 1, e.closed)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&e.closed))
 
 	assert.Equal(t, 9, len(p.createc))
 	assert.Equal(t, 1, len(p.poolc))
@@ -105,7 +106,7 @@ func TestCloseSync(t *testing.T) {
 	assert.Nil(t, p.Close())
 
 	assert.False(t, p.IsOpen())
-	assert.Equal(t, 1, e.closed)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&e.closed))
 
 	eg, err := p.Get(context.Background())
 	assert.Nil(t, eg)
@@ -139,8 +140,8 @@ func TestLimitedIdleSize(t *testing.T) {
 	assert.Nil(t, p.Put(e1))
 	assert.Nil(t, p.Put(e2))
 
-	assert.Equal(t, 0, es[0].closed)
-	assert.Equal(t, 1, es[1].closed)
+	assert.Equal(t, int32(0), atomic.LoadInt32(&es[0].closed))
+	assert.Equal(t, int32(1), atomic.LoadInt32(&es[1].closed))
 
 	p.Close()
 }

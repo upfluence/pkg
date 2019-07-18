@@ -65,6 +65,8 @@ type Pool struct {
 	*options
 	*closer.Monitor
 
+	closeOnce sync.Once
+
 	factory Factory
 	createc chan struct{}
 	poolc   chan *entityWrapper
@@ -419,25 +421,39 @@ func (p *Pool) Shutdown(ctx context.Context) error {
 }
 
 func (p *Pool) Close() error {
-	p.Monitor.Close()
-	p.ep.Close()
+	var err error
 
-	errs := p.drainPoolChannel()
+	p.closeOnce.Do(func() {
+		p.Monitor.Close()
+		p.ep.Close()
 
-	for len(p.checkedout) > 0 {
-		select {
-		case <-p.createc:
-		case ew := <-p.poolc:
-			p.metrics.idle.Update(int64(len(p.poolc)))
+		errs := p.drainPoolChannel()
 
-			if err := ew.e.Close(); err != nil {
-				errs = append(errs, err)
+		p.mu.Lock()
+		s := len(p.checkedout)
+		p.mu.Unlock()
+
+		for s > 0 {
+			select {
+			case <-p.createc:
+			case ew := <-p.poolc:
+				p.metrics.idle.Update(int64(len(p.poolc)))
+
+				if err := ew.e.Close(); err != nil {
+					errs = append(errs, err)
+				}
 			}
+
+			p.mu.Lock()
+			s = len(p.checkedout)
+			p.mu.Unlock()
 		}
-	}
 
-	close(p.createc)
-	close(p.poolc)
+		close(p.createc)
+		close(p.poolc)
 
-	return multierror.Wrap(errs)
+		err = multierror.Wrap(errs)
+	})
+
+	return err
 }
