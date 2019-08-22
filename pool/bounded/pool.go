@@ -43,7 +43,7 @@ func NewPool(limit int, factory pool.Factory) pool.IntrospectablePool {
 					return nil, err
 				}
 
-				return entityWrapper{v}, nil
+				return &entityWrapper{v}, nil
 			},
 			iopool.WithSize(limit),
 			iopool.WithMaxIdle(limit),
