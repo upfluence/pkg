@@ -8,10 +8,6 @@ type StringSet struct {
 	sync.Once
 }
 
-func NewStringSet() *StringSet {
-	return &StringSet{}
-}
-
 func (ss *StringSet) Add(nss ...string) {
 	if len(nss) == 0 {
 		return
@@ -25,7 +21,11 @@ func (ss *StringSet) Add(nss ...string) {
 }
 
 func (ss *StringSet) Strings() []string {
-	var s []string
+	if len(ss.Set) == 0 {
+		return nil
+	}
+
+	var s = make([]string, 0, len(ss.Set))
 
 	for v := range ss.Set {
 		s = append(s, v)

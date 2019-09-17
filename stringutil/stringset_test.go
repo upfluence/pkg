@@ -29,7 +29,7 @@ func TestStringSet(t *testing.T) {
 			assert: assertNil(),
 		},
 	} {
-		ss := NewStringSet()
+		ss := StringSet{}
 
 		for _, bs := range tCase.in {
 			ss.Add(bs...)
