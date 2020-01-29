@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"strings"
+	"sync"
 
 	"github.com/upfluence/log"
 	"github.com/upfluence/log/record"
@@ -18,7 +19,8 @@ import (
 const localPkg = "github.com/upfluence/pkg/log"
 
 var (
-	Logger = log.NewLogger(
+	loggerMu   sync.Mutex
+	loggerOpts = []log.LoggerOption{
 		log.WithSink(
 			multi.NewSink(
 				leveled.NewSink(
@@ -31,8 +33,18 @@ var (
 				),
 			),
 		),
-	)
+	}
+
+	Logger = log.NewLogger(loggerOpts...)
 )
+
+func RegisterContextExtractor(ce log.ContextExtractor) {
+	loggerMu.Lock()
+	defer loggerMu.Unlock()
+
+	loggerOpts = append(loggerOpts, log.WithContextExtractor(ce))
+	Logger = log.NewLogger(loggerOpts...)
+}
 
 func fetchLevel() record.Level {
 	switch strings.ToUpper(cfg.FetchString("LOGGER_LEVEL", "")) {
