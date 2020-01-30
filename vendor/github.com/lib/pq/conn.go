@@ -92,6 +92,7 @@ type Dialer interface {
 	DialTimeout(network, address string, timeout time.Duration) (net.Conn, error)
 }
 
+// DialerContext is the context-aware dialer interface.
 type DialerContext interface {
 	DialContext(ctx context.Context, network, address string) (net.Conn, error)
 }
@@ -148,6 +149,9 @@ type conn struct {
 
 	// If true this connection is in the middle of a COPY
 	inCopy bool
+
+	// If not nil, notices will be synchronously sent here
+	noticeHandler func(*Error)
 }
 
 // Handle driver-side settings in parsed connection string.
@@ -549,7 +553,7 @@ func (cn *conn) Commit() (err error) {
 	// would get the same behaviour if you issued a COMMIT in a failed
 	// transaction, so it's also the least surprising thing to do here.
 	if cn.txnStatus == txnStatusInFailedTransaction {
-		if err := cn.Rollback(); err != nil {
+		if err := cn.rollback(); err != nil {
 			return err
 		}
 		return ErrInFailedTransaction
@@ -576,7 +580,10 @@ func (cn *conn) Rollback() (err error) {
 		return driver.ErrBadConn
 	}
 	defer cn.errRecover(&err)
+	return cn.rollback()
+}
 
+func (cn *conn) rollback() (err error) {
 	cn.checkIsInTransaction(true)
 	_, commandTag, err := cn.simpleExec("ROLLBACK")
 	if err != nil {
@@ -967,7 +974,9 @@ func (cn *conn) recv() (t byte, r *readBuf) {
 		case 'E':
 			panic(parseError(r))
 		case 'N':
-			// ignore
+			if n := cn.noticeHandler; n != nil {
+				n(parseError(r))
+			}
 		default:
 			return
 		}
@@ -984,8 +993,12 @@ func (cn *conn) recv1Buf(r *readBuf) byte {
 		}
 
 		switch t {
-		case 'A', 'N':
+		case 'A':
 			// ignore
+		case 'N':
+			if n := cn.noticeHandler; n != nil {
+				n(parseError(r))
+			}
 		case 'S':
 			cn.processParameterStatus(r)
 		default:

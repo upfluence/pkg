@@ -25,12 +25,13 @@ type Field interface {
 }
 
 type Context interface {
-	Fields() []Field
-	Errs() []error
+	Fields(Level) []Field
+	Errs(Level) []error
 }
 
 type Record interface {
-	Context
+	Fields() []Field
+	Errs() []error
 
 	ID() uint64
 
@@ -67,7 +68,7 @@ func (f *recordFactory) Free(r Record) {
 func (f *recordFactory) Build(ctx Context, l Level, fmt string, vs ...interface{}) Record {
 	var r = f.Pool.Get().(*record)
 
-	r.Context = ctx
+	r.ctx = ctx
 	r.id = atomic.AddUint64(&idCtr, 1)
 	r.t = time.Now()
 	r.l = l
@@ -78,7 +79,7 @@ func (f *recordFactory) Build(ctx Context, l Level, fmt string, vs ...interface{
 }
 
 type record struct {
-	Context
+	ctx Context
 
 	id uint64
 	t  time.Time
@@ -88,6 +89,8 @@ type record struct {
 	vs  []interface{}
 }
 
+func (r *record) Fields() []Field     { return r.ctx.Fields(r.l) }
+func (r *record) Errs() []error       { return r.ctx.Errs(r.l) }
 func (r *record) ID() uint64          { return r.id }
 func (r *record) Time() time.Time     { return r.t }
 func (r *record) Level() Level        { return r.l }

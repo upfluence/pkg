@@ -110,7 +110,7 @@ type HostInfo struct {
 	// TODO(zariel): reduce locking maybe, not all values will change, but to ensure
 	// that we are thread safe use a mutex to access all fields.
 	mu               sync.RWMutex
-	hostname 		 string
+	hostname         string
 	peer             net.IP
 	broadcastAddress net.IP
 	listenAddress    net.IP
@@ -128,7 +128,7 @@ type HostInfo struct {
 	clusterName      string
 	version          cassVersion
 	state            nodeState
-	schemaVersion	 string
+	schemaVersion    string
 	tokens           []string
 }
 
@@ -228,8 +228,9 @@ func (h *HostInfo) PreferredIP() net.IP {
 
 func (h *HostInfo) DataCenter() string {
 	h.mu.RLock()
-	defer h.mu.RUnlock()
-	return h.dataCenter
+	dc := h.dataCenter
+	h.mu.RUnlock()
+	return dc
 }
 
 func (h *HostInfo) setDataCenter(dataCenter string) *HostInfo {
@@ -241,8 +242,9 @@ func (h *HostInfo) setDataCenter(dataCenter string) *HostInfo {
 
 func (h *HostInfo) Rack() string {
 	h.mu.RLock()
-	defer h.mu.RUnlock()
-	return h.rack
+	rack := h.rack
+	h.mu.RUnlock()
+	return rack
 }
 
 func (h *HostInfo) setRack(rack string) *HostInfo {
@@ -648,7 +650,7 @@ func (r *ringDescriber) getHostInfo(ip net.IP, port int) (*HostInfo, error) {
 		}
 
 		for _, row := range rows {
-			h, err := r.session.hostInfoFromMap(row, &HostInfo{connectAddress: ip, port: port})
+			h, err := r.session.hostInfoFromMap(row, &HostInfo{port: port})
 			if err != nil {
 				return nil, err
 			}

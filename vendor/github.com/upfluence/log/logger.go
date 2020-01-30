@@ -45,33 +45,50 @@ type SugaredLogger interface {
 	WithError(error) SugaredLogger
 }
 
-type ContextExtractor interface {
-	Extract(context.Context) []record.Field
-}
-
-type noopExtractor struct{}
-
-func (noopExtractor) Extract(context.Context) []record.Field { return nil }
-
 type Logger SugaredLogger
 
 type logger struct {
-	ctx       record.Context
+	ctx record.Context
+
 	sink      sink.Sink
 	extractor ContextExtractor
 	factory   record.RecordFactory
+
+	defaultFieldThreshold record.Level
+	defaultErrorThreshold record.Level
 }
 
 type LoggerOption func(*logger)
 
-var defaultLogger = &logger{
-	ctx:       &nullContext{},
-	extractor: &noopExtractor{},
-	factory:   record.NewFactory(),
-}
+var (
+	defaultContext   nullContext
+	defaultExtractor noopExtractor
+
+	defaultLogger = &logger{
+		ctx:                   defaultContext,
+		extractor:             defaultExtractor,
+		factory:               record.NewFactory(),
+		defaultFieldThreshold: record.Debug,
+		defaultErrorThreshold: record.Debug,
+	}
+)
 
 func WithSink(s sink.Sink) LoggerOption {
 	return func(l *logger) { l.sink = s }
+}
+
+func WithDefaultFieldThreshold(lvl record.Level) LoggerOption {
+	return func(l *logger) { l.defaultFieldThreshold = lvl }
+}
+
+func WithDefaultErrorThreshold(lvl record.Level) LoggerOption {
+	return func(l *logger) { l.defaultErrorThreshold = lvl }
+}
+
+func WithContextExtractor(ce ContextExtractor) LoggerOption {
+	return func(l *logger) {
+		l.extractor = mergeContextExtractor(l.extractor, ce)
+	}
 }
 
 func NewLogger(opts ...LoggerOption) Logger {
@@ -86,10 +103,12 @@ func NewLogger(opts ...LoggerOption) Logger {
 
 func (l *logger) dup(ctx record.Context) *logger {
 	return &logger{
-		ctx:       ctx,
-		sink:      l.sink,
-		extractor: l.extractor,
-		factory:   l.factory,
+		ctx:                   ctx,
+		sink:                  l.sink,
+		extractor:             l.extractor,
+		factory:               l.factory,
+		defaultFieldThreshold: l.defaultFieldThreshold,
+		defaultErrorThreshold: l.defaultErrorThreshold,
 	}
 }
 
@@ -102,7 +121,11 @@ func (l *logger) WithField(f record.Field) SugaredLogger {
 }
 
 func (l *logger) WithContext(ctx context.Context) SugaredLogger {
-	return l.WithFields(l.extractor.Extract(ctx)...)
+	if l.extractor == defaultExtractor || ctx == nil || ctx == context.Background() {
+		return l
+	}
+
+	return l.dup(&withContext{Context: l.ctx, ctx: ctx, ce: l.extractor})
 }
 
 func (l *logger) WithFields(fs ...record.Field) SugaredLogger {
@@ -110,7 +133,9 @@ func (l *logger) WithFields(fs ...record.Field) SugaredLogger {
 		return l
 	}
 
-	return l.dup(&withFields{Context: l.ctx, fields: fs})
+	return l.dup(
+		&withFields{Context: l.ctx, fields: fs, threshold: l.defaultFieldThreshold},
+	)
 }
 
 func (l *logger) WithError(err error) SugaredLogger {
@@ -118,7 +143,13 @@ func (l *logger) WithError(err error) SugaredLogger {
 		return l
 	}
 
-	return l.dup(&withErrors{Context: l.ctx, errs: []error{err}})
+	return l.dup(
+		&withErrors{
+			Context:   l.ctx,
+			errs:      []error{err},
+			threshold: l.defaultErrorThreshold,
+		},
+	)
 }
 
 func (l *logger) Logf(lvl record.Level, fmt string, vs ...interface{}) {

@@ -26,6 +26,7 @@ type Scope interface {
 	HistogramVector(string, []string, ...HistogramOption) HistogramVector
 
 	Scope(string, map[string]string) Scope
+	RootScope() Scope
 }
 
 type scopeWrapper struct {
@@ -126,6 +127,10 @@ func (sw scopeWrapper) Scope(ns string, tags map[string]string) Scope {
 	return scopeWrapper{
 		limitedScope: &subScope{parent: sw.limitedScope, ns: ns, ts: tags},
 	}
+}
+
+func (sw scopeWrapper) RootScope() Scope {
+	return scopeWrapper{limitedScope: sw.rootScope()}
 }
 
 type subScope struct {
