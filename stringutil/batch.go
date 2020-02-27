@@ -5,6 +5,10 @@ func Batch(slice []string, size int) [][]string {
 		return nil
 	}
 
+	if size < 1 {
+		panic("stringutil: illegal batch size")
+	}
+
 	batches := make([][]string, 0, (len(slice)+size-1)/size)
 
 	for size < len(slice) {
