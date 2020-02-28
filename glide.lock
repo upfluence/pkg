@@ -1,12 +1,12 @@
 hash: d0beb1039b0347739521a85513e9dde96295e34a8b096f15cb5d175a42abd477
-updated: 2020-01-30T10:33:43.936244623+01:00
+updated: 2020-02-28T10:15:23.249149-05:00
 imports:
 - name: github.com/beorn7/perks
   version: 37c8de3658fcb183f997c4e13e8337516ab753e6
   subpackages:
   - quantile
 - name: github.com/certifi/gocertifi
-  version: a6d78f326758ac5f79e9c3eddc38723d07216c3a
+  version: c7c1fbc02894e7114f06f6a4d9ab31eee2225bdb
 - name: github.com/coreos/etcd
   version: 98d308426819d892e149fe45f6fd542464cb1f9d
   repo: git@github.com:etcd-io/etcd.git
@@ -35,13 +35,13 @@ imports:
 - name: github.com/getsentry/raven-go
   version: 5c24d5110e0e198d9ae16f1f3465366085001d92
 - name: github.com/gocql/gocql
-  version: 95d072f1b5bbc604ce10f41ce1c914578592ed00
+  version: 1335d3dd7fe221291d1832ea6596c4d0f2fec40f
   subpackages:
   - internal/lru
   - internal/murmur
   - internal/streams
 - name: github.com/golang/protobuf
-  version: d23c5127dc24889085f8ccea5c9d560a57a879d8
+  version: 5d5b4c10bd43f85e63bd9e4a3fa9b1ea2ef88af2
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -51,9 +51,9 @@ imports:
 - name: github.com/jinzhu/gorm
   version: 79a77d771dee4e4b60e9c543e8663bbc80466670
 - name: github.com/jinzhu/inflection
-  version: f5c5f50e6090ae76a29240b61ae2a90dd810112e
+  version: 196e6ce06ca4513fbcfcbc35dc15f66074df47c9
 - name: github.com/json-iterator/go
-  version: 49c900ee46e6efa73ea31a4eef029bc0a19a1ed9
+  version: 7acbb404a45be33f136d6f16fe8f86ca30f1008d
 - name: github.com/lib/pq
   version: 9eb3fc897d6fd97dd4aad3d0404b54e2f7cc56be
   subpackages:
@@ -101,14 +101,14 @@ imports:
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: 6d489fc7f1d9cd890a250f3ea3431b1744b9623f
+  version: 4850c197847aa06aecc37570077fc16e9215d565
   subpackages:
   - internal/fs
   - internal/util
 - name: github.com/streadway/amqp
   version: 1c71cc93ed716f9a6f4c2ae8955c25f9176d9f19
 - name: github.com/stretchr/testify
-  version: ea72eb91592e90d15a9e03ffe61f02493135d843
+  version: b7d60e3a8c98f214225821e939174e8cf76d51ef
   subpackages:
   - assert
 - name: github.com/upfluence/base
@@ -151,6 +151,10 @@ imports:
   - transform
   - unicode/bidi
   - unicode/norm
+- name: golang.org/x/time
+  version: 555d28b269f0569763d25dbe1a237ae74c6bcc82
+  subpackages:
+  - rate
 - name: gopkg.in/inf.v0
   version: d2d2541c53f18d2a059457998ce2876cc8e67cbf
 - name: gopkg.in/yaml.v2

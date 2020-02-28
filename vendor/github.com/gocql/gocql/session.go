@@ -68,8 +68,7 @@ type Session struct {
 
 	cfg ClusterConfig
 
-	ctx    context.Context
-	cancel context.CancelFunc
+	quit chan struct{}
 
 	closeMu  sync.RWMutex
 	isClosed bool
@@ -114,18 +113,14 @@ func NewSession(cfg ClusterConfig) (*Session, error) {
 		return nil, errors.New("Can't use both Authenticator and AuthProvider in cluster config.")
 	}
 
-	// TODO: we should take a context in here at some point
-	ctx, cancel := context.WithCancel(context.TODO())
-
 	s := &Session{
 		cons:            cfg.Consistency,
 		prefetch:        0.25,
 		cfg:             cfg,
 		pageSize:        cfg.PageSize,
 		stmtsLRU:        &preparedLRU{lru: lru.New(cfg.MaxPreparedStmts)},
+		quit:            make(chan struct{}),
 		connectObserver: cfg.ConnectObserver,
-		ctx:             ctx,
-		cancel:          cancel,
 	}
 
 	s.schemaDescriber = newSchemaDescriber(s)
@@ -226,28 +221,9 @@ func (s *Session) init() error {
 		hostMap[host.ConnectAddress().String()] = host
 	}
 
-	hosts = hosts[:0]
 	for _, host := range hostMap {
 		host = s.ring.addOrUpdate(host)
-		if s.cfg.filterHost(host) {
-			continue
-		}
-
-		host.setState(NodeUp)
-		s.pool.addHost(host)
-
-		hosts = append(hosts, host)
-	}
-
-	type bulkAddHosts interface {
-		AddHosts([]*HostInfo)
-	}
-	if v, ok := s.policy.(bulkAddHosts); ok {
-		v.AddHosts(hosts)
-	} else {
-		for _, host := range hosts {
-			s.policy.AddHost(host)
-		}
+		s.addNewNode(host)
 	}
 
 	// TODO(zariel): we probably dont need this any more as we verify that we
@@ -307,7 +283,7 @@ func (s *Session) reconnectDownedHosts(intv time.Duration) {
 				}
 				s.handleNodeUp(h.ConnectAddress(), h.Port(), true)
 			}
-		case <-s.ctx.Done():
+		case <-s.quit:
 			return
 		}
 	}
@@ -410,8 +386,8 @@ func (s *Session) Close() {
 		s.schemaEvents.stop()
 	}
 
-	if s.cancel != nil {
-		s.cancel()
+	if s.quit != nil {
+		close(s.quit)
 	}
 }
 
@@ -688,18 +664,6 @@ type hostMetrics struct {
 type queryMetrics struct {
 	l sync.RWMutex
 	m map[string]*hostMetrics
-	// totalAttempts is total number of attempts.
-	// Equal to sum of all hostMetrics' Attempts.
-	totalAttempts int
-}
-
-// preFilledQueryMetrics initializes new queryMetrics based on per-host supplied data.
-func preFilledQueryMetrics(m map[string]*hostMetrics) *queryMetrics {
-	qm := &queryMetrics{m: m}
-	for _, hm := range qm.m {
-		qm.totalAttempts += hm.Attempts
-	}
-	return qm
 }
 
 // hostMetricsLocked gets or creates host metrics for given host.
@@ -726,27 +690,26 @@ func (qm *queryMetrics) hostMetricsLocked(host *HostInfo) *hostMetrics {
 // attempts returns the number of times the query was executed.
 func (qm *queryMetrics) attempts() int {
 	qm.l.Lock()
-	attempts := qm.totalAttempts
+	var attempts int
+	for _, metric := range qm.m {
+		attempts += metric.Attempts
+	}
 	qm.l.Unlock()
 	return attempts
 }
 
-// addAttempts adds given number of attempts and returns previous total attempts.
-func (qm *queryMetrics) addAttempts(i int, host *HostInfo) int {
+func (qm *queryMetrics) addAttempts(i int, host *HostInfo) {
 	qm.l.Lock()
 	hostMetric := qm.hostMetricsLocked(host)
 	hostMetric.Attempts += i
-	attempts := qm.totalAttempts
-	qm.totalAttempts += i
 	qm.l.Unlock()
-	return attempts
 }
 
 func (qm *queryMetrics) latency() int64 {
 	qm.l.Lock()
 	var (
 		attempts int
-		latency  int64
+		latency int64
 	)
 	for _, metric := range qm.m {
 		attempts += metric.Attempts
@@ -791,9 +754,6 @@ type Query struct {
 	metrics               *queryMetrics
 
 	disableAutoPage bool
-
-	// getKeyspace is field so that it can be overriden in tests
-	getKeyspace func() string
 }
 
 func (q *Query) defaultsFromSession() {
@@ -955,7 +915,7 @@ func (q *Query) execute(ctx context.Context, conn *Conn) *Iter {
 }
 
 func (q *Query) attempt(keyspace string, end, start time.Time, iter *Iter, host *HostInfo) {
-	attempt := q.metrics.addAttempts(1, host)
+	q.AddAttempts(1, host)
 	q.AddLatency(end.Sub(start).Nanoseconds(), host)
 
 	if q.observer != nil {
@@ -968,7 +928,6 @@ func (q *Query) attempt(keyspace string, end, start time.Time, iter *Iter, host 
 			Host:      host,
 			Metrics:   q.metrics.hostMetrics(host),
 			Err:       iter.err,
-			Attempt:   attempt,
 		})
 	}
 }
@@ -979,9 +938,6 @@ func (q *Query) retryPolicy() RetryPolicy {
 
 // Keyspace returns the keyspace the query will be executed against.
 func (q *Query) Keyspace() string {
-	if q.getKeyspace != nil {
-		return q.getKeyspace()
-	}
 	if q.session == nil {
 		return ""
 	}
@@ -1077,7 +1033,6 @@ func (q *Query) Idempotent(value bool) *Query {
 // to an existing query instance.
 func (q *Query) Bind(v ...interface{}) *Query {
 	q.values = v
-	q.pageState = nil
 	return q
 }
 
@@ -1534,16 +1489,16 @@ func NewBatch(typ BatchType) *Batch {
 func (s *Session) NewBatch(typ BatchType) *Batch {
 	s.mu.RLock()
 	batch := &Batch{
-		Type:             typ,
-		rt:               s.cfg.RetryPolicy,
-		serialCons:       s.cfg.SerialConsistency,
-		observer:         s.batchObserver,
-		session:          s,
-		Cons:             s.cons,
-		defaultTimestamp: s.cfg.DefaultTimestamp,
-		keyspace:         s.cfg.Keyspace,
-		metrics:          &queryMetrics{m: make(map[string]*hostMetrics)},
-		spec:             &NonSpeculativeExecution{},
+		Type:              typ,
+		rt:                s.cfg.RetryPolicy,
+		serialCons:        s.cfg.SerialConsistency,
+		observer:          s.batchObserver,
+		session:           s,
+		Cons:              s.cons,
+		defaultTimestamp:  s.cfg.DefaultTimestamp,
+		keyspace:          s.cfg.Keyspace,
+		metrics:           &queryMetrics{m: make(map[string]*hostMetrics)},
+		spec:              &NonSpeculativeExecution{},
 	}
 
 	s.mu.RUnlock()
@@ -1934,10 +1889,6 @@ type ObservedQuery struct {
 	// Err is the error in the query.
 	// It only tracks network errors or errors of bad cassandra syntax, in particular selects with no match return nil error
 	Err error
-
-	// Attempt is the index of attempt at executing this query.
-	// The first attempt is number zero and any retries have non-zero attempt number.
-	Attempt int
 }
 
 // QueryObserver is the interface implemented by query observers / stat collectors.
