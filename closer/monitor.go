@@ -20,6 +20,12 @@ const (
 	Wait
 )
 
+type MonitorOption func(*Monitor)
+
+func WithClosingPolicy(cp ClosingPolicy) MonitorOption {
+	return func(m *Monitor) { m.cp = cp }
+}
+
 type Monitor struct {
 	s  State
 	cp ClosingPolicy
@@ -33,8 +39,12 @@ type Monitor struct {
 	count int
 }
 
-func NewMonitor() *Monitor {
-	m := Monitor{}
+func NewMonitor(opts ...MonitorOption) *Monitor {
+	var m Monitor
+
+	for _, opt := range opts {
+		opt(&m)
+	}
 
 	m.cond = sync.NewCond(&m.mu)
 	m.Ctx, m.cancel = context.WithCancel(context.Background())
