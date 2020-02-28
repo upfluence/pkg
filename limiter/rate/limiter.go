@@ -30,7 +30,7 @@ func NewLimiter(c Config) *Limiter {
 
 	return &Limiter{
 		l: rate.NewLimiter(
-			rate.Limit(float64(c.Baseline)/float64(c.Period)),
+			rate.Limit(float64(c.Baseline)/float64(c.Period.Seconds())),
 			burst,
 		),
 	}
