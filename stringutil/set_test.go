@@ -8,9 +8,7 @@ import (
 
 type assertStrings func(*testing.T, []string)
 
-var assertNil = func(t *testing.T, es []string) {
-	assert.Nil(t, es)
-}
+var assertNil = func(t *testing.T, es []string) { assert.Nil(t, es) }
 
 func TestSet(t *testing.T) {
 	for _, tCase := range []struct {
@@ -45,7 +43,5 @@ func TestSet(t *testing.T) {
 }
 
 func assertElementsMatch(ss ...string) assertStrings {
-	return func(t *testing.T, es []string) {
-		assert.ElementsMatch(t, es, ss)
-	}
+	return func(t *testing.T, es []string) { assert.ElementsMatch(t, es, ss) }
 }
