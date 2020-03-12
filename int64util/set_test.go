@@ -8,9 +8,7 @@ import (
 
 type assertInt64s func(*testing.T, []int64)
 
-var assertNil = func(t *testing.T, es []int64) {
-	assert.Nil(t, es)
-}
+var assertNil = func(t *testing.T, es []int64) { assert.Nil(t, es) }
 
 func TestSet(t *testing.T) {
 
@@ -44,8 +42,7 @@ func TestSet(t *testing.T) {
 		tt.assert(t, s.Int64s())
 	}
 }
+
 func assertElementsMatch(ss ...int64) assertInt64s {
-	return func(t *testing.T, es []int64) {
-		assert.ElementsMatch(t, es, ss)
-	}
+	return func(t *testing.T, es []int64) { assert.ElementsMatch(t, es, ss) }
 }
