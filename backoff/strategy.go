@@ -6,8 +6,10 @@ import (
 )
 
 const (
-	Cancelled time.Duration = -1
-	Forever                 = -1
+	Canceled time.Duration = -1
+	Forever                = -1
+
+	Cancelled = Canceled
 )
 
 type Strategy interface {
@@ -29,7 +31,7 @@ func (b *limitedStrategy) Backoff(n int) (time.Duration, error) {
 		return b.Strategy.Backoff(n)
 	}
 
-	return Cancelled, nil
+	return Canceled, nil
 }
 
 type StrategyFn func(int) time.Duration
