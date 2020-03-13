@@ -10,16 +10,11 @@ import (
 	"github.com/upfluence/pkg/timeutil"
 )
 
-var (
-	defaultLockDuration   = 30 * time.Second
-	defaultRenewInterfval = (1 / 3) * defaultLockDuration
-
-	defaultExecutorOptions = executorOptions{
-		lockDuration:  defaultLockDuration,
-		renewInterval: defaultRenewInterfval,
-		clock:         timeutil.Background(),
-	}
-)
+var defaultExecutorOptions = executorOptions{
+	lockDuration:  30 * time.Second,
+	renewInterval: 10 * time.Second,
+	clock:         timeutil.Background(),
+}
 
 type executorOptions struct {
 	clock timeutil.Clock
