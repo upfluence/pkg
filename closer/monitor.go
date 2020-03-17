@@ -23,19 +23,20 @@ const (
 type MonitorOption func(*Monitor)
 
 func WithClosingPolicy(cp ClosingPolicy) MonitorOption {
-	return func(m *Monitor) { m.cp = cp }
+	return func(m *Monitor) { m.ClosingPolicy = cp }
 }
 
 type Monitor struct {
-	s  State
-	cp ClosingPolicy
+	ClosingPolicy ClosingPolicy
 
 	Ctx    context.Context
 	cancel context.CancelFunc
 
+	once sync.Once
 	mu   sync.Mutex
 	cond *sync.Cond
 
+	s     State
 	count int
 }
 
@@ -46,13 +47,19 @@ func NewMonitor(opts ...MonitorOption) *Monitor {
 		opt(&m)
 	}
 
-	m.cond = sync.NewCond(&m.mu)
-	m.Ctx, m.cancel = context.WithCancel(context.Background())
-
 	return &m
 }
 
+func (m *Monitor) init() {
+	m.once.Do(func() {
+		m.cond = sync.NewCond(&m.mu)
+		m.Ctx, m.cancel = context.WithCancel(context.Background())
+	})
+}
+
 func (m *Monitor) Run(fn func(context.Context)) {
+	m.init()
+
 	m.mu.Lock()
 	m.count++
 	m.mu.Unlock()
@@ -80,6 +87,8 @@ func (m *Monitor) IsOpen() bool {
 }
 
 func (m *Monitor) Shutdown(ctx context.Context) error {
+	m.init()
+
 	m.mu.Lock()
 	m.s = Closing
 	m.mu.Unlock()
@@ -122,12 +131,13 @@ func (m *Monitor) Shutdown(ctx context.Context) error {
 }
 
 func (m *Monitor) Close() error {
+	m.init()
 	m.cancel()
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if m.cp == NoWait {
+	if m.ClosingPolicy == NoWait {
 		m.s = Closed
 	}
 
