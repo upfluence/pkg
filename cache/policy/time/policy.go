@@ -29,7 +29,8 @@ type Policy struct {
 
 	fn func(string)
 
-	ch chan string
+	closeOnce sync.Once
+	ch        chan string
 }
 
 func NewIdlePolicy(ttl time.Duration) *Policy {
@@ -173,6 +174,6 @@ func (p *Policy) Close() error {
 	p.cancel()
 	p.wg.Wait()
 
-	close(p.ch)
+	p.closeOnce.Do(func() { close(p.ch) })
 	return nil
 }
