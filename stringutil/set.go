@@ -26,6 +26,15 @@ func (s *Set) Add(vs ...string) {
 	}
 }
 
+func (s *Set) Has(v string) bool {
+	if len(s.Set) == 0 {
+		return false
+	}
+
+	_, ok := s.Set[v]
+	return ok
+}
+
 func (s *Set) Strings() []string {
 	if len(s.Set) == 0 {
 		return nil

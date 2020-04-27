@@ -42,6 +42,17 @@ func TestSet(t *testing.T) {
 	}
 }
 
+func TestHas(t *testing.T) {
+	var s Set
+
+	assert.False(t, s.Has("foo"))
+
+	s.Add("foo")
+
+	assert.True(t, s.Has("foo"))
+	assert.False(t, s.Has("bar"))
+}
+
 func assertElementsMatch(ss ...string) assertStrings {
 	return func(t *testing.T, es []string) { assert.ElementsMatch(t, es, ss) }
 }
