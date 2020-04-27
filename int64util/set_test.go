@@ -43,6 +43,17 @@ func TestSet(t *testing.T) {
 	}
 }
 
+func TestHas(t *testing.T) {
+	var s Set
+
+	assert.False(t, s.Has(3))
+
+	s.Add(3)
+
+	assert.True(t, s.Has(3))
+	assert.False(t, s.Has(8))
+}
+
 func assertElementsMatch(ss ...int64) assertInt64s {
 	return func(t *testing.T, es []int64) { assert.ElementsMatch(t, es, ss) }
 }

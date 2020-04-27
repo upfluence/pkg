@@ -37,3 +37,12 @@ func (s *Set) Int64s() []int64 {
 
 	return res
 }
+
+func (s *Set) Has(v int64) bool {
+	if len(s.Set) == 0 {
+		return false
+	}
+
+	_, ok := s.Set[v]
+	return ok
+}
