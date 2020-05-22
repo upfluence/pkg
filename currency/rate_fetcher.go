@@ -28,7 +28,7 @@ func (e *Exchanger) Exchange(ctx context.Context, m Money, c Currency) (Money, e
 		return m, nil
 	}
 
-	if m.Cents == 0 {
+	if m.Cents == .0 {
 		return Money{Currency: c}, nil
 	}
 
@@ -58,7 +58,7 @@ func (e *Exchanger) Exchange(ctx context.Context, m Money, c Currency) (Money, e
 	}
 
 	if fromRate == .0 || toRate == .0 {
-		return Money{Cents: .0, Currency: c}, nil
+		return Money{Currency: c}, nil
 	}
 
 	cents := int(float64(m.Cents) * toRate / fromRate)
