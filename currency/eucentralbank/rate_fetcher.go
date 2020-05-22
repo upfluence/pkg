@@ -59,6 +59,7 @@ func (rf *RateFetcher) Rate(ctx context.Context, c currency.Currency) (float64, 
 
 	if rf.expiresAt.After(time.Now()) && rf.rates != nil {
 		r, ok := rf.rates[c]
+		rf.mu.RUnlock()
 
 		if ok {
 			return r, nil

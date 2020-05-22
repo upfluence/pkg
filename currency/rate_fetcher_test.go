@@ -50,6 +50,12 @@ func TestExchange(t *testing.T) {
 			t:         "bar",
 			wantMoney: Money{Currency: "bar", Cents: 200},
 		},
+		{
+			rates:     map[string]float64{"foo": 2., "bar": .0},
+			in:        Money{Currency: "foo", Cents: 100},
+			t:         "bar",
+			wantMoney: Money{Currency: "bar"},
+		},
 	} {
 		e := Exchanger{RateFetcher: staticRateFetcher(tt.rates)}
 
