@@ -46,6 +46,7 @@ func TestCodeFetcher(t *testing.T) {
 			k:    "cote d'ivoire",
 			want: mustFetch("CI"),
 		},
+		{k: ""},
 	} {
 		cc, ok := DefaultCodeFetcher.Fetch(tt.k)
 

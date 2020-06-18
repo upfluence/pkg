@@ -48,6 +48,10 @@ type IndexedCodeFetcher struct {
 }
 
 func (icf *IndexedCodeFetcher) Fetch(key string) (CountryCode, bool) {
+	if key == "" {
+		return CountryCode{}, false
+	}
+
 	icf.once.Do(func() {
 		ccs := icf.CountryCodes
 
@@ -70,6 +74,10 @@ func (icf *IndexedCodeFetcher) Fetch(key string) (CountryCode, bool) {
 type MultiCodeFetcher []CodeFetcher
 
 func (cfs MultiCodeFetcher) Fetch(key string) (CountryCode, bool) {
+	if key == "" {
+		return CountryCode{}, false
+	}
+
 	for _, cf := range cfs {
 		if cc, ok := cf.Fetch(key); ok {
 			return cc, true
