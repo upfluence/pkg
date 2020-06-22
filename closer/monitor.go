@@ -3,6 +3,8 @@ package closer
 import (
 	"context"
 	"sync"
+
+	"github.com/upfluence/pkg/syncutil"
 )
 
 type State uint8
@@ -29,12 +31,12 @@ func WithClosingPolicy(cp ClosingPolicy) MonitorOption {
 type Monitor struct {
 	ClosingPolicy ClosingPolicy
 
-	Ctx    context.Context
+	ctx    context.Context
 	cancel context.CancelFunc
 
 	once sync.Once
 	mu   sync.Mutex
-	cond *sync.Cond
+	cond *syncutil.Cond
 
 	s     State
 	count int
@@ -50,22 +52,31 @@ func NewMonitor(opts ...MonitorOption) *Monitor {
 	return &m
 }
 
+func (m *Monitor) Context() context.Context {
+	m.init()
+	return m.ctx
+}
+
 func (m *Monitor) init() {
 	m.once.Do(func() {
-		m.cond = sync.NewCond(&m.mu)
-		m.Ctx, m.cancel = context.WithCancel(context.Background())
+		m.cond = &syncutil.Cond{Locker: &m.mu}
+		m.ctx, m.cancel = context.WithCancel(context.Background())
 	})
 }
 
 func (m *Monitor) Run(fn func(context.Context)) {
 	m.init()
 
+	if !m.IsOpen() {
+		return
+	}
+
 	m.mu.Lock()
 	m.count++
 	m.mu.Unlock()
 
 	go func() {
-		fn(m.Ctx)
+		fn(m.ctx)
 
 		m.mu.Lock()
 		m.count--
@@ -93,41 +104,15 @@ func (m *Monitor) Shutdown(ctx context.Context) error {
 	m.s = Closing
 	m.mu.Unlock()
 
-	m.cancel()
-	done := make(chan struct{})
-	cancelled := false
-
-	go func() {
-		m.mu.Lock()
-		defer m.mu.Unlock()
-
-		for {
-			if m.count == 0 || m.s == Closed {
-				close(done)
-				m.s = Closed
-				break
-			}
-
-			if cancelled {
-				close(done)
-				break
-			}
-
-			m.cond.Wait()
-		}
-	}()
-
-	select {
-	case <-ctx.Done():
-		m.mu.Lock()
-		cancelled = true
-		m.cond.Broadcast()
-		m.mu.Unlock()
-
-		return ctx.Err()
-	case <-done:
-		return nil
+	if err := m.cond.Wait(ctx, func() bool { return m.count == 0 }); err != nil {
+		return err
 	}
+
+	m.mu.Lock()
+	m.s = Closed
+	m.mu.Unlock()
+
+	return nil
 }
 
 func (m *Monitor) Close() error {
@@ -135,17 +120,15 @@ func (m *Monitor) Close() error {
 	m.cancel()
 
 	m.mu.Lock()
-	defer m.mu.Unlock()
 
 	if m.ClosingPolicy == NoWait {
 		m.s = Closed
 	}
 
-	for {
-		if m.count == 0 || m.s == Closed {
-			return nil
-		}
+	m.mu.Unlock()
 
-		m.cond.Wait()
-	}
+	return m.cond.Wait(
+		context.Background(),
+		func() bool { return m.count == 0 || m.s == Closed },
+	)
 }

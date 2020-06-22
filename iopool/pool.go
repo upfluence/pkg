@@ -166,7 +166,7 @@ func (p *Pool) closer(ctx context.Context) {
 		ch := p.ep.C()
 
 		select {
-		case <-p.Ctx.Done():
+		case <-p.Context().Done():
 			return
 		case ewn, ok := <-ch:
 			if !ok {
@@ -234,7 +234,7 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 
 	for {
 		select {
-		case <-p.Ctx.Done():
+		case <-p.Context().Done():
 			return nil, ErrClosed
 		case <-ctx.Done():
 			return nil, ctx.Err()

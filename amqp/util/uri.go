@@ -26,15 +26,17 @@ func peerTable(p *lpeer.Peer) amqp.Table {
 	}
 }
 
-func peerURI(p *dpeer.Peer) string {
-	if strings.HasPrefix(p.Addr, "amqp://") {
-		return p.Addr
+func peerURI(p dpeer.Peer) string {
+	addr := p.Addr()
+
+	if strings.HasPrefix(addr, "amqp://") {
+		return addr
 	}
 
-	return fmt.Sprintf("amqp://guest:guest@%s/%%2f", p.Addr)
+	return fmt.Sprintf("amqp://guest:guest@%s/%%2f", addr)
 }
 
-func Dial(ctx context.Context, p *dpeer.Peer, l *lpeer.Peer, name string) (*amqp.Connection, error) {
+func Dial(ctx context.Context, p dpeer.Peer, l *lpeer.Peer, name string) (*amqp.Connection, error) {
 	var (
 		d net.Dialer
 

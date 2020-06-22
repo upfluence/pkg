@@ -71,7 +71,7 @@ func (p *picker) Pick(ctx context.Context) (*amqp.Connection, error) {
 	defer p.Unlock()
 
 	if len(p.cs) < p.targetOpenedConn {
-		peer, err := p.Balancer.Get(ctx, balancer.BalancerGetOptions{})
+		peer, err := p.Balancer.Get(ctx, balancer.GetOptions{})
 
 		if err != nil {
 			return nil, err
