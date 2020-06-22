@@ -19,7 +19,7 @@ type Rand interface {
 type Balancer struct {
 	*resolver.Puller
 
-	peers   []*peer.Peer
+	peers   []peer.Peer
 	peersMu *sync.RWMutex
 	rand    Rand
 
@@ -47,13 +47,13 @@ func (b *Balancer) updatePeers(u resolver.Update) {
 	b.peersMu.Lock()
 	defer b.peersMu.Unlock()
 
-	var newPeers = make(map[*peer.Peer]interface{})
+	var newPeers = make(map[peer.Peer]interface{})
 
 	for _, p := range b.peers {
 		var found bool
 
 		for _, peer := range u.Deletions {
-			if p.Addr == peer.Addr {
+			if p.Addr() == peer.Addr() {
 				found = true
 			}
 		}
@@ -67,7 +67,7 @@ func (b *Balancer) updatePeers(u resolver.Update) {
 		var found bool
 
 		for _, peer := range b.peers {
-			if p.Addr == peer.Addr {
+			if p.Addr() == peer.Addr() {
 				found = true
 			}
 		}
@@ -82,7 +82,7 @@ func (b *Balancer) updatePeers(u resolver.Update) {
 		empty = len(b.peers) == 0
 	)
 
-	b.peers = make([]*peer.Peer, len(newPeers))
+	b.peers = make([]peer.Peer, len(newPeers))
 
 	for p, _ := range newPeers {
 		b.peers[i] = p
@@ -107,7 +107,7 @@ func (b *Balancer) hasPeers() bool {
 	return len(b.peers) > 0
 }
 
-func (b *Balancer) Get(ctx context.Context, opts balancer.BalancerGetOptions) (*peer.Peer, error) {
+func (b *Balancer) Get(ctx context.Context, opts balancer.GetOptions) (peer.Peer, error) {
 	if !b.hasPeers() {
 		if opts.NoWait {
 			return nil, balancer.ErrNoPeerAvailable

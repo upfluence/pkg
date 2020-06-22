@@ -12,96 +12,98 @@ import (
 )
 
 type Balancer struct {
-	puller *resolver.Puller
+	resolver.Puller
 
+	addrs  map[string]*ring.Ring
 	ring   *ring.Ring
-	ringMu *sync.Mutex
+	ringMu sync.RWMutex
 
-	closeFn  func()
-	notifier chan interface{}
+	notifier chan struct{}
+}
+
+func BalancerFunc(r resolver.Resolver) balancer.Balancer {
+	return NewBalancer(r)
 }
 
 func NewBalancer(r resolver.Resolver) *Balancer {
-	var b = &Balancer{
-		ring:     &ring.Ring{},
-		ringMu:   &sync.Mutex{},
-		notifier: make(chan interface{}),
+	var b = Balancer{
+		addrs:    make(map[string]*ring.Ring),
+		notifier: make(chan struct{}),
 	}
 
-	b.puller, b.closeFn = resolver.NewPuller(r, b.updateRing)
+	b.Puller = resolver.Puller{Resolver: r, UpdateFunc: b.updateRing}
 
-	return b
+	return &b
 }
 
 func (b *Balancer) String() string {
-	return fmt.Sprintf("loadbalancer/roundrobin [resolver: %v]", b.puller)
-}
-
-func (b *Balancer) Open(ctx context.Context) error {
-	return b.puller.Open(ctx)
+	return fmt.Sprintf("loadbalancer/roundrobin [resolver: %v]", &b.Puller)
 }
 
 func (b *Balancer) updateRing(update resolver.Update) {
 	b.ringMu.Lock()
 	defer b.ringMu.Unlock()
 
-	var emptyRing = b.ring.Value == nil
+	wasEmpty := b.ring == nil
 
 	for _, p := range update.Additions {
-		if b.ring.Value == nil {
-			b.ring.Value = *p
-		} else {
-			b.ring.Link(&ring.Ring{Value: *p})
+		r := &ring.Ring{Value: p}
+		b.addrs[p.Addr()] = r
+
+		if b.ring == nil {
+			b.ring = r
+			continue
 		}
+
+		b.ring.Link(r)
 	}
 
 	for _, p := range update.Deletions {
-		var (
-			r     = b.ring
-			found = false
-		)
+		addr := p.Addr()
+		r, ok := b.addrs[addr]
 
-		b.ring = b.ring.Next()
-
-		for !found || r != b.ring {
-			if r.Value.(peer.Peer).Addr == p.Addr {
-				found = true
-			} else {
-				b.ring = b.ring.Next()
-			}
+		if !ok {
+			continue
 		}
 
-		if found {
-			b.ring = b.ring.Prev().Unlink(1)
+		delete(b.addrs, addr)
+
+		if p := r.Prev(); p != nil {
+			b.ring = p.Unlink(1)
+			continue
 		}
+
+		b.ring = nil
 	}
 
-	if emptyRing && b.ring.Value != nil {
-		for {
-			select {
-			case <-b.notifier:
-			default:
-				return
-			}
-		}
+	isEmpty := b.ring == nil
+
+	if wasEmpty && !isEmpty {
+		close(b.notifier)
+	} else if !wasEmpty && isEmpty {
+		b.notifier = make(chan struct{})
 	}
 }
 
-func (b *Balancer) Close() error {
-	b.closeFn()
-	return nil
-}
+func (b *Balancer) Get(ctx context.Context, opts balancer.GetOptions) (peer.Peer, error) {
+	b.ringMu.RLock()
+	r := b.ring
+	n := b.notifier
+	b.ringMu.RUnlock()
 
-func (b *Balancer) Get(ctx context.Context, opts balancer.BalancerGetOptions) (*peer.Peer, error) {
-	if v := b.ring.Value; v == nil {
+	if r == nil {
 		if opts.NoWait {
 			return nil, balancer.ErrNoPeerAvailable
 		}
 
+		pctx := b.Puller.Monitor.Context()
+
 		select {
-		case b.notifier <- true:
+		case <-n:
 		case <-ctx.Done():
 			return nil, ctx.Err()
+		case <-pctx.Done():
+			return nil, pctx.Err()
 		}
 	}
 
@@ -112,7 +114,7 @@ func (b *Balancer) Get(ctx context.Context, opts balancer.BalancerGetOptions) (*
 		b.ring = b.ring.Next()
 
 		p := v.(peer.Peer)
-		return &p, nil
+		return p, nil
 	}
 
 	return nil, balancer.ErrNoPeerAvailable

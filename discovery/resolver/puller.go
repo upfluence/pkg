@@ -5,94 +5,80 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/log"
+	"github.com/upfluence/pkg/multierror"
 )
 
 type Puller struct {
-	resolver Resolver
+	Resolver   Resolver
+	UpdateFunc func(Update)
+	Monitor    closer.Monitor
 
+	openErr  error
 	openOnce sync.Once
-
-	closed bool
-	closeL sync.RWMutex
-
-	closeOnce sync.Once
-	closeChan chan struct{}
-
-	updateFn func(Update)
 }
 
 func NewPuller(r Resolver, fn func(Update)) (*Puller, func()) {
 	var p = &Puller{
-		resolver:  r,
-		updateFn:  fn,
-		closeChan: make(chan struct{}),
+		Resolver:   r,
+		UpdateFunc: fn,
 	}
 
-	return p, func() { p.closeOnce.Do(func() { close(p.closeChan) }) }
+	return p, func() { p.Close() }
+}
+
+func (p *Puller) Close() error {
+	return multierror.Combine(p.Monitor.Close(), p.Resolver.Close())
 }
 
 func (p *Puller) IsOpen() bool {
-	p.closeL.RLock()
-	defer p.closeL.RUnlock()
-
-	return !p.closed
+	return p.openErr == nil && p.openOnce != sync.Once{}
 }
 
 func (p *Puller) String() string {
-	return fmt.Sprintf("%v", p.resolver)
+	return fmt.Sprintf("%v", p.Resolver)
 }
 
 func (p *Puller) Open(ctx context.Context) error {
-	var err error
-
 	p.openOnce.Do(func() {
-		if errO := p.resolver.Open(ctx); errO != nil {
-			err = errO
-		}
+		p.openErr = p.Resolver.Open(ctx)
 
-		go p.pull()
+		if p.openErr == nil {
+			p.Monitor.Run(p.pull)
+		}
 	})
 
-	return err
+	return p.openErr
 }
 
-func (p *Puller) close() {
-	p.resolver.Close()
+func (p *Puller) pull(ctx context.Context) {
+	var (
+		u   Update
+		err error
+		w   Watcher
+	)
 
-	p.closeL.Lock()
-	defer p.closeL.Unlock()
-
-	p.closed = true
-}
-
-func (p *Puller) pull() {
 	for {
-		var (
-			channelOpen = true
-			ch, err     = p.resolver.Resolve(context.Background())
-		)
+		w = p.Resolver.Resolve()
 
-		if err != nil {
-			log.Errorf("resolver: %+v", err)
+		for err == nil {
+			u, err = w.Next(ctx, ResolveOptions{})
 
-			p.close()
-			return
+			if err == nil {
+				p.UpdateFunc(u)
+				continue
+			}
+
+			if ctx.Err() == nil {
+				log.WithError(err).Error("resolving failed")
+			}
+
+			w.Close()
 		}
 
-		for channelOpen {
-			select {
-			case <-p.closeChan:
-				p.close()
-
-				return
-			case update, ok := <-ch:
-				if !ok {
-					channelOpen = false
-				} else {
-					p.updateFn(update)
-				}
-			}
+		if ctx.Err() != nil {
+			return
 		}
 	}
 }

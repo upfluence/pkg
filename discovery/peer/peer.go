@@ -1,6 +1,8 @@
 package peer
 
-type Peer struct {
-	Addr     string
-	Metadata interface{}
+import "github.com/upfluence/pkg/metadata"
+
+type Peer interface {
+	Addr() string
+	Metadata() metadata.Metadata
 }
