@@ -6,7 +6,7 @@ import (
 
 	"github.com/streadway/amqp"
 
-	"github.com/upfluence/pkg/amqp/util"
+	"github.com/upfluence/pkg/amqp/amqputil"
 	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/discovery/balancer"
 	"github.com/upfluence/pkg/group"
@@ -77,7 +77,7 @@ func (p *picker) Pick(ctx context.Context) (*amqp.Connection, error) {
 			return nil, err
 		}
 
-		conn, err := util.Dial(
+		conn, err := amqputil.Dial(
 			ctx,
 			peer,
 			p.peer,
