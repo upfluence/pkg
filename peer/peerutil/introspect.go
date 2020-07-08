@@ -6,14 +6,14 @@ import (
 	"github.com/upfluence/pkg/peer/version"
 )
 
-func Introspect(p *peer.Peer, ifs map[string]version.Version) {
+func Introspect(p *peer.Peer, ifaces map[string]version.Version) {
 	log.Noticef("Service %s %s", p.InstanceName, p.Version.String())
 
-	if len(p.Interfaces) > 0 {
+	if len(ifaces) > 0 {
 		log.Noticef("Interface versions:")
 
-		for _, iface := range ifs {
-			log.Noticef("* %s %s", iface.Name(), face.String())
+		for n, iface := range ifaces {
+			log.Noticef("* %s %s", n, iface.String())
 		}
 	}
 }

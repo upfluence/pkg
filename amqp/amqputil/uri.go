@@ -22,7 +22,7 @@ func peerTable(p *lpeer.Peer) amqp.Table {
 		"upfluence-app-name":     p.AppName,
 		"upfluence-project-name": p.ProjectName,
 		"upfluence-env":          p.Environment,
-		"upfluence-version":      lpeer.SerializeVersion(p.Version),
+		"upfluence-version":      p.Version.String(),
 	}
 }
 

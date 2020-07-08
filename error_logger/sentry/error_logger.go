@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/upfluence/pkg/peer"
+	"github.com/upfluence/pkg/peer/version"
 )
 
 type ErrorLogger struct {
@@ -18,12 +19,12 @@ type ErrorLogger struct {
 
 func NewErrorLogger(dsn string, p *peer.Peer) (*ErrorLogger, error) {
 	var tags = map[string]string{
-		"semver_version": peer.SerializeVersion(p.Version),
+		"semver_version": p.Version.Semantic.String(),
 		"unit_name":      p.InstanceName,
 		"environment":    p.Environment,
 	}
 
-	if v := p.Version.GitVersion; v != nil {
+	if v := p.Version.Git; v != (version.GitVersion{}) {
 		tags["git_commit"] = v.Commit
 		tags["git_branch"] = v.Branch
 		tags["git_remote"] = v.Remote
@@ -36,7 +37,7 @@ func NewErrorLogger(dsn string, p *peer.Peer) (*ErrorLogger, error) {
 	}
 
 	cl.SetRelease(
-		fmt.Sprintf("%s-%s", p.ProjectName, peer.SerializeVersion(p.Version)),
+		fmt.Sprintf("%s-%s", p.ProjectName, p.Version.String()),
 	)
 
 	if v := os.Getenv("ENV"); v != "" {
