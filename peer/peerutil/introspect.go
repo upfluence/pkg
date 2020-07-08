@@ -3,16 +3,17 @@ package peerutil
 import (
 	"github.com/upfluence/pkg/log"
 	"github.com/upfluence/pkg/peer"
+	"github.com/upfluence/pkg/peer/version"
 )
 
-func Introspect(p *peer.Peer) {
-	log.Noticef("Service %s %s", p.InstanceName, peer.SerializeVersion(p.Version))
+func Introspect(p *peer.Peer, ifs map[string]version.Version) {
+	log.Noticef("Service %s %s", p.InstanceName, p.Version.String())
 
 	if len(p.Interfaces) > 0 {
 		log.Noticef("Interface versions:")
 
-		for _, iface := range p.Interfaces {
-			log.Noticef("* %s %s", iface.Name(), peer.SerializeVersion(iface.Version()))
+		for _, iface := range ifs {
+			log.Noticef("* %s %s", iface.Name(), face.String())
 		}
 	}
 }
