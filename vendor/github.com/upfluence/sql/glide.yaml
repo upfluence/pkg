@@ -1,0 +1,11 @@
+package: github.com/upfluence/sql
+import:
+- package: github.com/mattn/go-sqlite3
+- package: github.com/lib/pq
+- package: github.com/upfluence/log
+  subpackages:
+  - record
+- package: github.com/upfluence/pkg
+  version: ^1.1.1
+  subpackages:
+  - log

@@ -68,7 +68,8 @@ type Session struct {
 
 	cfg ClusterConfig
 
-	quit chan struct{}
+	ctx    context.Context
+	cancel context.CancelFunc
 
 	closeMu  sync.RWMutex
 	isClosed bool
@@ -113,14 +114,18 @@ func NewSession(cfg ClusterConfig) (*Session, error) {
 		return nil, errors.New("Can't use both Authenticator and AuthProvider in cluster config.")
 	}
 
+	// TODO: we should take a context in here at some point
+	ctx, cancel := context.WithCancel(context.TODO())
+
 	s := &Session{
 		cons:            cfg.Consistency,
 		prefetch:        0.25,
 		cfg:             cfg,
 		pageSize:        cfg.PageSize,
 		stmtsLRU:        &preparedLRU{lru: lru.New(cfg.MaxPreparedStmts)},
-		quit:            make(chan struct{}),
 		connectObserver: cfg.ConnectObserver,
+		ctx:             ctx,
+		cancel:          cancel,
 	}
 
 	s.schemaDescriber = newSchemaDescriber(s)
@@ -221,9 +226,28 @@ func (s *Session) init() error {
 		hostMap[host.ConnectAddress().String()] = host
 	}
 
+	hosts = hosts[:0]
 	for _, host := range hostMap {
 		host = s.ring.addOrUpdate(host)
-		s.addNewNode(host)
+		if s.cfg.filterHost(host) {
+			continue
+		}
+
+		host.setState(NodeUp)
+		s.pool.addHost(host)
+
+		hosts = append(hosts, host)
+	}
+
+	type bulkAddHosts interface {
+		AddHosts([]*HostInfo)
+	}
+	if v, ok := s.policy.(bulkAddHosts); ok {
+		v.AddHosts(hosts)
+	} else {
+		for _, host := range hosts {
+			s.policy.AddHost(host)
+		}
 	}
 
 	// TODO(zariel): we probably dont need this any more as we verify that we
@@ -259,6 +283,21 @@ func (s *Session) init() error {
 	return nil
 }
 
+// AwaitSchemaAgreement will wait until schema versions across all nodes in the
+// cluster are the same (as seen from the point of view of the control connection).
+// The maximum amount of time this takes is governed
+// by the MaxWaitSchemaAgreement setting in the configuration (default: 60s).
+// AwaitSchemaAgreement returns an error in case schema versions are not the same
+// after the timeout specified in MaxWaitSchemaAgreement elapses.
+func (s *Session) AwaitSchemaAgreement(ctx context.Context) error {
+	if s.cfg.disableControlConn {
+		return errNoControl
+	}
+	return s.control.withConn(func(conn *Conn) *Iter {
+		return &Iter{err: conn.awaitSchemaAgreement(ctx)}
+	}).err
+}
+
 func (s *Session) reconnectDownedHosts(intv time.Duration) {
 	reconnectTicker := time.NewTicker(intv)
 	defer reconnectTicker.Stop()
@@ -283,7 +322,7 @@ func (s *Session) reconnectDownedHosts(intv time.Duration) {
 				}
 				s.handleNodeUp(h.ConnectAddress(), h.Port(), true)
 			}
-		case <-s.quit:
+		case <-s.ctx.Done():
 			return
 		}
 	}
@@ -386,8 +425,8 @@ func (s *Session) Close() {
 		s.schemaEvents.stop()
 	}
 
-	if s.quit != nil {
-		close(s.quit)
+	if s.cancel != nil {
+		s.cancel()
 	}
 }
 
@@ -616,7 +655,7 @@ func (s *Session) ExecuteBatch(batch *Batch) error {
 }
 
 // ExecuteBatchCAS executes a batch operation and returns true if successful and
-// an iterator (to scan aditional rows if more than one conditional statement)
+// an iterator (to scan additional rows if more than one conditional statement)
 // was sent.
 // Further scans on the interator must also remember to include
 // the applied boolean as the first argument to *Iter.Scan
@@ -657,21 +696,40 @@ func (s *Session) MapExecuteBatchCAS(batch *Batch, dest map[string]interface{}) 
 }
 
 type hostMetrics struct {
-	Attempts     int
+	// Attempts is count of how many times this query has been attempted for this host.
+	// An attempt is either a retry or fetching next page of results.
+	Attempts int
+
+	// TotalLatency is the sum of attempt latencies for this host in nanoseconds.
 	TotalLatency int64
 }
 
 type queryMetrics struct {
 	l sync.RWMutex
 	m map[string]*hostMetrics
+	// totalAttempts is total number of attempts.
+	// Equal to sum of all hostMetrics' Attempts.
+	totalAttempts int
 }
 
-// hostMetricsLocked gets or creates host metrics for given host.
+// preFilledQueryMetrics initializes new queryMetrics based on per-host supplied data.
+func preFilledQueryMetrics(m map[string]*hostMetrics) *queryMetrics {
+	qm := &queryMetrics{m: m}
+	for _, hm := range qm.m {
+		qm.totalAttempts += hm.Attempts
+	}
+	return qm
+}
+
+// hostMetrics returns a snapshot of metrics for given host.
+// If the metrics for host don't exist, they are created.
 func (qm *queryMetrics) hostMetrics(host *HostInfo) *hostMetrics {
 	qm.l.Lock()
 	metrics := qm.hostMetricsLocked(host)
+	copied := new(hostMetrics)
+	*copied = *metrics
 	qm.l.Unlock()
-	return metrics
+	return copied
 }
 
 // hostMetricsLocked gets or creates host metrics for given host.
@@ -690,26 +748,16 @@ func (qm *queryMetrics) hostMetricsLocked(host *HostInfo) *hostMetrics {
 // attempts returns the number of times the query was executed.
 func (qm *queryMetrics) attempts() int {
 	qm.l.Lock()
-	var attempts int
-	for _, metric := range qm.m {
-		attempts += metric.Attempts
-	}
+	attempts := qm.totalAttempts
 	qm.l.Unlock()
 	return attempts
-}
-
-func (qm *queryMetrics) addAttempts(i int, host *HostInfo) {
-	qm.l.Lock()
-	hostMetric := qm.hostMetricsLocked(host)
-	hostMetric.Attempts += i
-	qm.l.Unlock()
 }
 
 func (qm *queryMetrics) latency() int64 {
 	qm.l.Lock()
 	var (
 		attempts int
-		latency int64
+		latency  int64
 	)
 	for _, metric := range qm.m {
 		attempts += metric.Attempts
@@ -722,11 +770,28 @@ func (qm *queryMetrics) latency() int64 {
 	return 0
 }
 
-func (qm *queryMetrics) addLatency(l int64, host *HostInfo) {
+// attempt adds given number of attempts and latency for given host.
+// It returns previous total attempts.
+// If needsHostMetrics is true, a copy of updated hostMetrics is returned.
+func (qm *queryMetrics) attempt(addAttempts int, addLatency time.Duration,
+	host *HostInfo, needsHostMetrics bool) (int, *hostMetrics) {
 	qm.l.Lock()
-	hostMetric := qm.hostMetricsLocked(host)
-	hostMetric.TotalLatency += l
+
+	totalAttempts := qm.totalAttempts
+	qm.totalAttempts += addAttempts
+
+	updateHostMetrics := qm.hostMetricsLocked(host)
+	updateHostMetrics.Attempts += addAttempts
+	updateHostMetrics.TotalLatency += addLatency.Nanoseconds()
+
+	var hostMetricsCopy *hostMetrics
+	if needsHostMetrics {
+		hostMetricsCopy = new(hostMetrics)
+		*hostMetricsCopy = *updateHostMetrics
+	}
+
 	qm.l.Unlock()
+	return totalAttempts, hostMetricsCopy
 }
 
 // Query represents a CQL statement that can be executed.
@@ -754,6 +819,13 @@ type Query struct {
 	metrics               *queryMetrics
 
 	disableAutoPage bool
+
+	// getKeyspace is field so that it can be overriden in tests
+	getKeyspace func() string
+
+	// used by control conn queries to prevent triggering a write to systems
+	// tables in AWS MCS see
+	skipPrepare bool
 }
 
 func (q *Query) defaultsFromSession() {
@@ -791,7 +863,7 @@ func (q *Query) Attempts() int {
 }
 
 func (q *Query) AddAttempts(i int, host *HostInfo) {
-	q.metrics.addAttempts(i, host)
+	q.metrics.attempt(i, 0, host, false)
 }
 
 //Latency returns the average amount of nanoseconds per attempt of the query.
@@ -800,7 +872,7 @@ func (q *Query) Latency() int64 {
 }
 
 func (q *Query) AddLatency(l int64, host *HostInfo) {
-	q.metrics.addLatency(l, host)
+	q.metrics.attempt(0, time.Duration(l)*time.Nanosecond, host, false)
 }
 
 // Consistency sets the consistency level for this query. If no consistency
@@ -872,7 +944,7 @@ func (q *Query) DefaultTimestamp(enable bool) *Query {
 // WithTimestamp will enable the with default timestamp flag on the query
 // like DefaultTimestamp does. But also allows to define value for timestamp.
 // It works the same way as USING TIMESTAMP in the query itself, but
-// should not break prepared query optimization
+// should not break prepared query optimization.
 //
 // Only available on protocol >= 3
 func (q *Query) WithTimestamp(timestamp int64) *Query {
@@ -915,8 +987,8 @@ func (q *Query) execute(ctx context.Context, conn *Conn) *Iter {
 }
 
 func (q *Query) attempt(keyspace string, end, start time.Time, iter *Iter, host *HostInfo) {
-	q.AddAttempts(1, host)
-	q.AddLatency(end.Sub(start).Nanoseconds(), host)
+	latency := end.Sub(start)
+	attempt, metricsForHost := q.metrics.attempt(1, latency, host, q.observer != nil)
 
 	if q.observer != nil {
 		q.observer.ObserveQuery(q.Context(), ObservedQuery{
@@ -926,8 +998,9 @@ func (q *Query) attempt(keyspace string, end, start time.Time, iter *Iter, host 
 			End:       end,
 			Rows:      iter.numRows,
 			Host:      host,
-			Metrics:   q.metrics.hostMetrics(host),
+			Metrics:   metricsForHost,
 			Err:       iter.err,
+			Attempt:   attempt,
 		})
 	}
 }
@@ -938,6 +1011,9 @@ func (q *Query) retryPolicy() RetryPolicy {
 
 // Keyspace returns the keyspace the query will be executed against.
 func (q *Query) Keyspace() string {
+	if q.getKeyspace != nil {
+		return q.getKeyspace()
+	}
 	if q.session == nil {
 		return ""
 	}
@@ -1033,6 +1109,7 @@ func (q *Query) Idempotent(value bool) *Query {
 // to an existing query instance.
 func (q *Query) Bind(v ...interface{}) *Query {
 	q.values = v
+	q.pageState = nil
 	return q
 }
 
@@ -1058,7 +1135,7 @@ func (q *Query) PageState(state []byte) *Query {
 // NoSkipMetadata will override the internal result metadata cache so that the driver does not
 // send skip_metadata for queries, this means that the result will always contain
 // the metadata to parse the rows and will not reuse the metadata from the prepared
-// staement. This should only be used to work around cassandra bugs, such as when using
+// statement. This should only be used to work around cassandra bugs, such as when using
 // CAS operations which do not end in Cas.
 //
 // See https://issues.apache.org/jira/browse/CASSANDRA-11099
@@ -1489,16 +1566,16 @@ func NewBatch(typ BatchType) *Batch {
 func (s *Session) NewBatch(typ BatchType) *Batch {
 	s.mu.RLock()
 	batch := &Batch{
-		Type:              typ,
-		rt:                s.cfg.RetryPolicy,
-		serialCons:        s.cfg.SerialConsistency,
-		observer:          s.batchObserver,
-		session:           s,
-		Cons:              s.cons,
-		defaultTimestamp:  s.cfg.DefaultTimestamp,
-		keyspace:          s.cfg.Keyspace,
-		metrics:           &queryMetrics{m: make(map[string]*hostMetrics)},
-		spec:              &NonSpeculativeExecution{},
+		Type:             typ,
+		rt:               s.cfg.RetryPolicy,
+		serialCons:       s.cfg.SerialConsistency,
+		observer:         s.batchObserver,
+		session:          s,
+		Cons:             s.cons,
+		defaultTimestamp: s.cfg.DefaultTimestamp,
+		keyspace:         s.cfg.Keyspace,
+		metrics:          &queryMetrics{m: make(map[string]*hostMetrics)},
+		spec:             &NonSpeculativeExecution{},
 	}
 
 	s.mu.RUnlock()
@@ -1522,7 +1599,7 @@ func (b *Batch) Attempts() int {
 }
 
 func (b *Batch) AddAttempts(i int, host *HostInfo) {
-	b.metrics.addAttempts(i, host)
+	b.metrics.attempt(i, 0, host, false)
 }
 
 //Latency returns the average number of nanoseconds to execute a single attempt of the batch.
@@ -1531,7 +1608,7 @@ func (b *Batch) Latency() int64 {
 }
 
 func (b *Batch) AddLatency(l int64, host *HostInfo) {
-	b.metrics.addLatency(l, host)
+	b.metrics.attempt(0, time.Duration(l)*time.Nanosecond, host, false)
 }
 
 // GetConsistency returns the currently configured consistency level for the batch
@@ -1645,7 +1722,7 @@ func (b *Batch) DefaultTimestamp(enable bool) *Batch {
 // WithTimestamp will enable the with default timestamp flag on the query
 // like DefaultTimestamp does. But also allows to define value for timestamp.
 // It works the same way as USING TIMESTAMP in the query itself, but
-// should not break prepared query optimization
+// should not break prepared query optimization.
 //
 // Only available on protocol >= 3
 func (b *Batch) WithTimestamp(timestamp int64) *Batch {
@@ -1655,8 +1732,8 @@ func (b *Batch) WithTimestamp(timestamp int64) *Batch {
 }
 
 func (b *Batch) attempt(keyspace string, end, start time.Time, iter *Iter, host *HostInfo) {
-	b.AddAttempts(1, host)
-	b.AddLatency(end.Sub(start).Nanoseconds(), host)
+	latency := end.Sub(start)
+	_, metricsForHost := b.metrics.attempt(1, latency, host, b.observer != nil)
 
 	if b.observer == nil {
 		return
@@ -1674,7 +1751,7 @@ func (b *Batch) attempt(keyspace string, end, start time.Time, iter *Iter, host 
 		End:        end,
 		// Rows not used in batch observations // TODO - might be able to support it when using BatchCAS
 		Host:    host,
-		Metrics: b.metrics.hostMetrics(host),
+		Metrics: metricsForHost,
 		Err:     iter.err,
 	})
 }
@@ -1889,6 +1966,11 @@ type ObservedQuery struct {
 	// Err is the error in the query.
 	// It only tracks network errors or errors of bad cassandra syntax, in particular selects with no match return nil error
 	Err error
+
+	// Attempt is the index of attempt at executing this query.
+	// An attempt might be either retry or fetching next page of a query.
+	// The first attempt is number zero and any retries have non-zero attempt number.
+	Attempt int
 }
 
 // QueryObserver is the interface implemented by query observers / stat collectors.
