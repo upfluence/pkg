@@ -43,6 +43,10 @@ type GitVersion struct {
 	Branch string
 }
 
+func (gv GitVersion) Valid() bool {
+	return gv.Commit != ""
+}
+
 func (gv GitVersion) String() string {
 	return fmt.Sprintf("v.0.0.0+git-%s", gv.Commit[:7])
 }
@@ -53,6 +57,10 @@ type SemanticVersion struct {
 	Patch int
 
 	Suffix string
+}
+
+func (sv SemanticVersion) Valid() bool {
+	return sv != SemanticVersion{}
 }
 
 func (sv SemanticVersion) String() string {

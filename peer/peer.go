@@ -1,6 +1,10 @@
 package peer
 
 import (
+	"fmt"
+	"net/url"
+	"strings"
+
 	"github.com/upfluence/pkg/cfg"
 	"github.com/upfluence/pkg/peer/version"
 )
@@ -36,13 +40,81 @@ type Peer struct {
 	Version version.Version
 }
 
+func ParsePeerURL(u string) (*Peer, error) {
+	uu, err := url.Parse(u)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if uu.Scheme != "peer" {
+		return nil, fmt.Errorf("invalid scheme: %q", uu.Scheme)
+	}
+
+	p := Peer{
+		InstanceName: strings.TrimPrefix(uu.Path, "/"),
+		AppName:      uu.Host,
+		ProjectName:  uu.Host,
+	}
+
+	if uu.User != nil {
+		p.Environment = uu.User.Username()
+	}
+
+	vs := uu.Query()
+
+	if v := vs.Get("project-name"); v != "" {
+		p.ProjectName = v
+	}
+
+	if v := vs.Get("semantic-version"); v != "" {
+		p.Version.Semantic = version.ParseSemanticVersion(v)
+	}
+
+	if v := vs.Get("git-version"); v != "" {
+		p.Version.Git.Commit = v
+	}
+
+	return &p, nil
+}
+
+func (p *Peer) URL() *url.URL {
+	vs := url.Values{}
+
+	if p.AppName != p.ProjectName {
+		vs.Add("project-name", p.ProjectName)
+	}
+
+	if p.Version.Semantic.Valid() {
+		vs.Add("semantic-version", p.Version.Semantic.String())
+	}
+
+	if p.Version.Git.Valid() {
+		vs.Add("git-version", p.Version.Git.Commit)
+	}
+
+	var u *url.Userinfo
+
+	if p.Environment != "" {
+		u = url.User(p.Environment)
+	}
+
+	return &url.URL{
+		Scheme:   "peer",
+		Host:     p.AppName,
+		User:     u,
+		Path:     p.InstanceName,
+		RawQuery: vs.Encode(),
+	}
+}
+
 func FromEnv() *Peer {
 	sv := version.ParseSemanticVersion(cfg.FetchString("VERSION", Version))
 
 	return &Peer{
 		InstanceName: cfg.FetchString("UNIT_NAME", "unknow-service"),
 		AppName:      cfg.FetchString("APP_NAME", "unknown-app"),
-		ProjectName:  cfg.FetchString("PROJECT_NAME", "unknown-project"),
+		ProjectName:  cfg.FetchString("PROJECT_NAME", "unknown-app"),
 		Environment:  cfg.FetchString("ENV", "development"),
 		Version:      version.Version{Git: buildGitVersion(), Semantic: sv},
 	}
