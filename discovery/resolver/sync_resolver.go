@@ -8,53 +8,68 @@ import (
 	"github.com/upfluence/pkg/multierror"
 )
 
-type NameResolver struct {
-	Builder Builder
+type SyncResolver interface {
+	ResolveSync(context.Context, string) ([]peer.Peer, error)
+	Close() error
+}
+
+func SyncResolverFromBuilder(b Builder, noWait bool) SyncResolver {
+	return &syncResolver{
+		builder: b,
+		noWait:  noWait,
+		lrs:     make(map[string]*localResolver),
+	}
+}
+
+type syncResolver struct {
+	builder Builder
+	noWait  bool
 
 	mu  sync.Mutex
 	lrs map[string]*localResolver
 }
 
-func (nr *NameResolver) Resolve(ctx context.Context, n string) ([]peer.Peer, error) {
-	nr.mu.Lock()
+func (sr *syncResolver) ResolveSync(ctx context.Context, n string) ([]peer.Peer, error) {
+	sr.mu.Lock()
 
-	if nr.lrs == nil {
-		nr.lrs = make(map[string]*localResolver)
-	}
-
-	lr, ok := nr.lrs[n]
+	lr, ok := sr.lrs[n]
 
 	if !ok {
 		lr = &localResolver{readyc: make(chan struct{})}
-		lr.p = &Puller{Resolver: nr.Builder.Build(n), UpdateFunc: lr.update}
+
+		lr.p = &Puller{
+			Resolver:   sr.builder.Build(n),
+			UpdateFunc: lr.update,
+			NoWait:     sr.noWait,
+		}
 
 		if err := lr.p.Open(ctx); err != nil {
-			nr.mu.Unlock()
+			sr.mu.Unlock()
 			close(lr.readyc)
 			return nil, err
 		}
 
-		nr.lrs[n] = lr
+		sr.lrs[n] = lr
 	}
 
-	nr.mu.Unlock()
+	sr.mu.Unlock()
 
 	return lr.resolve(ctx)
 }
 
-func (nr *NameResolver) Close() error {
+func (sr *syncResolver) Close() error {
 	var errs []error
 
-	nr.mu.Lock()
+	sr.mu.Lock()
 
-	for _, lr := range nr.lrs {
+	for _, lr := range sr.lrs {
 		if err := lr.close(); err != nil {
 			errs = append(errs)
 		}
 	}
 
-	nr.lrs = nil
-	nr.mu.Unlock()
+	sr.lrs = nil
+	sr.mu.Unlock()
 
 	return multierror.Wrap(errs)
 }
@@ -90,9 +105,7 @@ func (lr *localResolver) update(u Update) {
 
 	lr.mu.Unlock()
 
-	if len(lr.ps) > 0 {
-		lr.readyOnce.Do(func() { close(lr.readyc) })
-	}
+	lr.readyOnce.Do(func() { close(lr.readyc) })
 }
 
 func (lr *localResolver) close() error {

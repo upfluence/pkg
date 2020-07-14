@@ -14,6 +14,7 @@ type Puller struct {
 	Resolver   Resolver
 	UpdateFunc func(Update)
 	Monitor    closer.Monitor
+	NoWait     bool
 
 	openErr  error
 	openOnce sync.Once
@@ -57,15 +58,18 @@ func (p *Puller) pull(ctx context.Context) {
 		u   Update
 		err error
 		w   Watcher
+
+		noWait = p.NoWait
 	)
 
 	for {
 		w = p.Resolver.Resolve()
 
 		for err == nil {
-			u, err = w.Next(ctx, ResolveOptions{})
+			u, err = w.Next(ctx, ResolveOptions{NoWait: noWait})
 
-			if err == nil {
+			if err == nil || err == ErrNoUpdates {
+				noWait = false
 				p.UpdateFunc(u)
 				continue
 			}
