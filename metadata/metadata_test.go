@@ -17,3 +17,11 @@ func TestStringPassing(t *testing.T) {
 
 	assert.Equal(t, "bar", got)
 }
+
+func TestPais(t *testing.T) {
+	md := Pairs("foo", "bar", "buz", "biz")
+
+	assert.Equal(t, 2, len(md))
+	assert.Equal(t, "bar", md.Fetch("foo"))
+	assert.Equal(t, "biz", md.Fetch("buz"))
+}

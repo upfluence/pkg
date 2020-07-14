@@ -3,13 +3,39 @@ package metadata
 import (
 	"fmt"
 	"net/textproto"
+	"strings"
 )
 
 type Metadata map[string][]string
 
+func Pairs(kvs ...string) Metadata {
+	if len(kvs)%2 == 1 {
+		panic(fmt.Sprintf("metadata: Pairs got the odd number of input pairs for metadata: %d", len(kvs)))
+	}
+
+	var (
+		key string
+
+		md = make(Metadata, len(kvs)/2)
+	)
+
+	for i, v := range kvs {
+		if i%2 == 0 {
+			key = v
+			continue
+		}
+
+		md.Add(key, v)
+	}
+
+	return md
+}
+
 func (md Metadata) Set(k string, vs []string) {
 	md[textproto.CanonicalMIMEHeaderKey(k)] = vs
 }
+
+func (md Metadata) Add(k, v string) { md.Set(k, []string{v}) }
 
 func (md Metadata) Get(k string) []string {
 	if len(md) == 0 {
@@ -17,6 +43,16 @@ func (md Metadata) Get(k string) []string {
 	}
 
 	return md[textproto.CanonicalMIMEHeaderKey(k)]
+}
+
+func (md Metadata) Fetch(k string) string {
+	return strings.Join(md.Get(k), ";")
+}
+
+func (md Metadata) Append(childMD Metadata) {
+	for k, vs := range childMD {
+		md.Set(k, vs)
+	}
 }
 
 type Encoding interface {
