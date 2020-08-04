@@ -32,6 +32,7 @@ func buildGitVersion() version.GitVersion {
 }
 
 type Peer struct {
+	Authority    string
 	InstanceName string
 	AppName      string
 	ProjectName  string
@@ -51,10 +52,13 @@ func ParsePeerURL(u string) (*Peer, error) {
 		return nil, fmt.Errorf("invalid scheme: %q", uu.Scheme)
 	}
 
+	unitName := strings.TrimPrefix(uu.Path, "/")
+
 	p := Peer{
-		InstanceName: strings.TrimPrefix(uu.Path, "/"),
-		AppName:      uu.Host,
-		ProjectName:  uu.Host,
+		InstanceName: unitName,
+		Authority:    uu.Host,
+		AppName:      unitName,
+		ProjectName:  unitName,
 	}
 
 	if uu.User != nil {
@@ -62,6 +66,11 @@ func ParsePeerURL(u string) (*Peer, error) {
 	}
 
 	vs := uu.Query()
+
+	if v := vs.Get("app-name"); v != "" {
+		p.AppName = v
+		p.ProjectName = v
+	}
 
 	if v := vs.Get("project-name"); v != "" {
 		p.ProjectName = v
@@ -80,6 +89,10 @@ func ParsePeerURL(u string) (*Peer, error) {
 
 func (p *Peer) URL() *url.URL {
 	vs := url.Values{}
+
+	if p.InstanceName != p.AppName {
+		vs.Add("app-name", p.AppName)
+	}
 
 	if p.AppName != p.ProjectName {
 		vs.Add("project-name", p.ProjectName)
@@ -101,7 +114,7 @@ func (p *Peer) URL() *url.URL {
 
 	return &url.URL{
 		Scheme:   "peer",
-		Host:     p.AppName,
+		Host:     p.Authority,
 		User:     u,
 		Path:     p.InstanceName,
 		RawQuery: vs.Encode(),
@@ -112,6 +125,7 @@ func FromEnv() *Peer {
 	sv := version.ParseSemanticVersion(cfg.FetchString("VERSION", Version))
 
 	return &Peer{
+		Authority:    cfg.FetchString("AUTHORITY", "local"),
 		InstanceName: cfg.FetchString("UNIT_NAME", "unknow-service"),
 		AppName:      cfg.FetchString("APP_NAME", "unknown-app"),
 		ProjectName:  cfg.FetchString("PROJECT_NAME", "unknown-app"),

@@ -12,8 +12,9 @@ func TestPeerParsing(t *testing.T) {
 		peer Peer
 	}{
 		{
-			url: "peer://staging@facade/facade-abcd",
+			url: "peer://staging@k8s.upfluence.co/facade-abcd?app-name=facade",
 			peer: Peer{
+				Authority:    "k8s.upfluence.co",
 				InstanceName: "facade-abcd",
 				AppName:      "facade",
 				Environment:  "staging",
@@ -21,10 +22,11 @@ func TestPeerParsing(t *testing.T) {
 			},
 		},
 		{
-			url: "peer://facade/facade-abcd?project-name=facade-project",
+			url: "peer://local/facade-abcd?project-name=facade-project",
 			peer: Peer{
+				Authority:    "local",
 				InstanceName: "facade-abcd",
-				AppName:      "facade",
+				AppName:      "facade-abcd",
 				ProjectName:  "facade-project",
 			},
 		},
