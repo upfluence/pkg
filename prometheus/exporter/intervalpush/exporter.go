@@ -1,12 +1,14 @@
 package intervalexporter
 
 import (
+	"context"
 	"os"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
 
+	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/log"
 	exp "github.com/upfluence/pkg/prometheus/exporter"
 )
@@ -14,6 +16,8 @@ import (
 const defaultInterval = 15 * time.Second
 
 type exporter struct {
+	*closer.Monitor
+
 	t *time.Ticker
 	p *push.Pusher
 }
@@ -24,7 +28,8 @@ func NewExporter(url string, interval time.Duration) exp.Exporter {
 	}
 
 	return &exporter{
-		t: time.NewTicker(interval),
+		Monitor: closer.NewMonitor(closer.WithClosingPolicy(closer.Wait)),
+		t:       time.NewTicker(interval),
 		p: push.New(
 			url,
 			os.Getenv("APP_NAME"),
@@ -35,14 +40,21 @@ func NewExporter(url string, interval time.Duration) exp.Exporter {
 }
 
 func (e *exporter) Export(exitChan <-chan bool) {
-	for {
-		select {
-		case <-exitChan:
-			return
-		case <-e.t.C:
-			if err := e.p.Push(); err != nil {
-				log.Noticef("Push to gatherer failed: %s", err.Error())
+	e.Run(func(ctx context.Context) {
+		for {
+			select {
+			case <-exitChan:
+				return
+			case <-ctx.Done():
+				if err := e.p.Push(); err != nil {
+					log.Noticef("Push to gatherer failed: %s", err.Error())
+				}
+				return
+			case <-e.t.C:
+				if err := e.p.Push(); err != nil {
+					log.Noticef("Push to gatherer failed: %s", err.Error())
+				}
 			}
 		}
-	}
+	})
 }
