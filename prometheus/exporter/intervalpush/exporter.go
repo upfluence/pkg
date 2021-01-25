@@ -44,8 +44,10 @@ func (e *exporter) Export(exitChan <-chan bool) {
 		for {
 			select {
 			case <-exitChan:
+				e.t.Stop()
 				return
 			case <-ctx.Done():
+				e.t.Stop()
 				if err := e.p.Push(); err != nil {
 					log.Noticef("Push to gatherer failed: %s", err.Error())
 				}
