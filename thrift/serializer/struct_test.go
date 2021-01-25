@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
@@ -36,17 +37,16 @@ func TestStringSerialization(t *testing.T) {
 }
 
 func TestMapSerialization(t *testing.T) {
-	vs := map[string]TStruct{
-		"foo": &stringTStruct{"bar"},
-		"biz": &stringTStruct{"buz"},
-	}
+	var (
+		dvs = make(map[string]TStruct)
+		vs  = map[string]TStruct{
+			"foo": &stringTStruct{"bar"},
+			"biz": &stringTStruct{"buz"},
+		}
+	)
 
 	out, err := NewDefaultTSerializer().WriteString(MapWriter(vs))
-
-	assert.Nil(t, err)
-	assert.Equal(t, "[\"str\",\"rec\",2,{\"foo\":\"bar\",\"biz\":\"buz\"}]", out)
-
-	dvs := make(map[string]TStruct)
+	require.NoError(t, err)
 
 	err = NewDefaultTDeserializer().ReadString(
 		MapReader(func(k string, p thrift.TProtocol) error {
@@ -62,6 +62,6 @@ func TestMapSerialization(t *testing.T) {
 		out,
 	)
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, vs, dvs)
 }
