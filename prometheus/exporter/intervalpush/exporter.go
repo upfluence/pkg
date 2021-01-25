@@ -18,8 +18,9 @@ const defaultInterval = 15 * time.Second
 type exporter struct {
 	*closer.Monitor
 
-	t *time.Ticker
-	p *push.Pusher
+	td time.Duration
+	t  *time.Ticker
+	p  *push.Pusher
 }
 
 func NewExporter(url string, interval time.Duration) exp.Exporter {
@@ -37,6 +38,59 @@ func NewExporter(url string, interval time.Duration) exp.Exporter {
 			prometheus.DefaultGatherer,
 		).Grouping("instance", os.Getenv("UNIT_NAME")),
 	}
+}
+
+type Option func(exporter *exporter)
+
+func WithInterval(interval time.Duration) Option {
+	return func(e *exporter) {
+		e.td = interval
+	}
+}
+
+func WithEnvironment(env string) Option {
+	return func(e *exporter) {
+		e.p = e.p.Grouping("env", env)
+	}
+}
+
+func WithAppName(name string) Option {
+	return func(e *exporter) {
+		e.p = e.p.Grouping("app", name)
+	}
+}
+
+func WithProject(project string) Option {
+	return func(e *exporter) {
+		e.p = e.p.Grouping("project", project)
+	}
+}
+
+func WithGrouping(name, value string) Option {
+	return func(e *exporter) {
+		e.p = e.p.Grouping(name, value)
+	}
+}
+
+func NewExporterWithOptions(url string, opts ...Option) exp.Exporter {
+	var e = exporter{
+		Monitor: closer.NewMonitor(closer.WithClosingPolicy(closer.Wait)),
+		td:      defaultInterval,
+		p: push.New(
+			url,
+			os.Getenv("APP_NAME"),
+		).Gatherer(
+			prometheus.DefaultGatherer,
+		),
+	}
+
+	for _, opt := range opts {
+		opt(&e)
+	}
+
+	e.t = time.NewTicker(e.td)
+
+	return &e
 }
 
 func (e *exporter) Export(exitChan <-chan bool) {
