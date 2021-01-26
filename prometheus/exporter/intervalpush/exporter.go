@@ -34,7 +34,7 @@ type Option func(exporter *exporter)
 
 func WithInterval(interval time.Duration) Option {
 	return func(e *exporter) {
-		e.t = time.NewTicker(interval)
+		e.t.Reset(interval)
 	}
 }
 
