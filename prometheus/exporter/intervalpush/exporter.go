@@ -49,21 +49,15 @@ func WithInterval(interval time.Duration) Option {
 }
 
 func WithEnvironment(env string) Option {
-	return func(e *exporter) {
-		e.p = e.p.Grouping("env", env)
-	}
+	return WithGrouping("env", env)
 }
 
 func WithAppName(name string) Option {
-	return func(e *exporter) {
-		e.p = e.p.Grouping("app", name)
-	}
+	return WithGrouping("app", name)
 }
 
 func WithProject(project string) Option {
-	return func(e *exporter) {
-		e.p = e.p.Grouping("project", project)
-	}
+	return WithGrouping("project", project")
 }
 
 func WithGrouping(name, value string) Option {
