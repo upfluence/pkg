@@ -27,16 +27,44 @@ func NewExporter(url string, interval time.Duration) exp.Exporter {
 		interval = defaultInterval
 	}
 
-	return &exporter{
+	return NewExporterWithOptions(
+		url,
+		WithInterval(interval),
+		WithGrouping("instance", os.Getenv("UNIT_NAME")),
+	)
+}
+
+type Option func(exporter *exporter)
+
+func WithInterval(interval time.Duration) Option {
+	return func(e *exporter) {
+		e.t.Reset(interval)
+	}
+}
+
+func WithGrouping(name, value string) Option {
+	return func(e *exporter) {
+		e.p = e.p.Grouping(name, value)
+	}
+}
+
+func NewExporterWithOptions(url string, opts ...Option) exp.Exporter {
+	var e = exporter{
 		Monitor: closer.NewMonitor(closer.WithClosingPolicy(closer.Wait)),
-		t:       time.NewTicker(interval),
+		t:       time.NewTicker(defaultInterval),
 		p: push.New(
 			url,
 			os.Getenv("APP_NAME"),
 		).Gatherer(
 			prometheus.DefaultGatherer,
-		).Grouping("instance", os.Getenv("UNIT_NAME")),
+		),
 	}
+
+	for _, opt := range opts {
+		opt(&e)
+	}
+
+	return &e
 }
 
 func (e *exporter) Export(exitChan <-chan bool) {
