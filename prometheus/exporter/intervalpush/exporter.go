@@ -23,6 +23,10 @@ type exporter struct {
 }
 
 func NewExporter(url string, interval time.Duration) exp.Exporter {
+	if interval == 0 {
+		interval = defaultInterval
+	}
+
 	return NewExporterWithOptions(
 		url,
 		WithInterval(interval),
@@ -36,18 +40,6 @@ func WithInterval(interval time.Duration) Option {
 	return func(e *exporter) {
 		e.t.Reset(interval)
 	}
-}
-
-func WithEnvironment(env string) Option {
-	return WithGrouping("env", env)
-}
-
-func WithAppName(name string) Option {
-	return WithGrouping("app", name)
-}
-
-func WithProject(project string) Option {
-	return WithGrouping("project", project)
 }
 
 func WithGrouping(name, value string) Option {
