@@ -63,6 +63,7 @@ func TestSingleflightDedupEarlyCancel(t *testing.T) {
 	var (
 		sf  Singleflight
 		ctr int32
+		wg  sync.WaitGroup
 
 		ctx   = context.Background()
 		donec = make(chan struct{})
@@ -74,6 +75,8 @@ func TestSingleflightDedupEarlyCancel(t *testing.T) {
 		return nil
 	}
 
+	wg.Add(2)
+
 	go func() {
 		cctx, cancel := context.WithCancel(ctx)
 		cancel()
@@ -82,6 +85,8 @@ func TestSingleflightDedupEarlyCancel(t *testing.T) {
 
 		assert.True(t, ok)
 		assert.Equal(t, context.Canceled, err)
+
+		wg.Done()
 	}()
 
 	time.Sleep(10 * time.Millisecond)
@@ -91,11 +96,15 @@ func TestSingleflightDedupEarlyCancel(t *testing.T) {
 
 		assert.False(t, ok)
 		assert.Nil(t, err)
+
+		wg.Done()
 	}()
 
 	time.Sleep(10 * time.Millisecond)
-
 	close(donec)
+
+	wg.Wait()
+
 	assert.Equal(t, int32(1), atomic.LoadInt32(&ctr))
 
 	sf.Close()
