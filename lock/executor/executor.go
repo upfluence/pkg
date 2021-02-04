@@ -49,6 +49,10 @@ func WithRenewInterval(d time.Duration) ExecutorOption {
 	return func(eos *executorOptions) { eos.renewInterval = d }
 }
 
+func WithNoWait(w bool) ExecutorOption {
+	return func(eos *executorOptions) { eos.noWait = w }
+}
+
 type Executor struct {
 	l lock.Lock
 	t Task
