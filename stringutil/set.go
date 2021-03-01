@@ -48,3 +48,9 @@ func (s *Set) Strings() []string {
 
 	return res
 }
+
+func (s *Set) Delete(vs ...string) {
+	for _, v := range vs {
+		delete(s.Set, v)
+	}
+}

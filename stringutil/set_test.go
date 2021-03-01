@@ -53,6 +53,24 @@ func TestHas(t *testing.T) {
 	assert.False(t, s.Has("bar"))
 }
 
+func TestDelete(t *testing.T) {
+	var s Set
+
+	assert.False(t, s.Has("foo"))
+
+	s.Add("foo")
+	s.Add("bar")
+	s.Add("biz")
+	assert.True(t, s.Has("foo"))
+	assert.True(t, s.Has("bar"))
+	assert.True(t, s.Has("biz"))
+
+	s.Delete("bar", "biz")
+	assert.True(t, s.Has("foo"))
+	assert.False(t, s.Has("bar"))
+	assert.False(t, s.Has("biz"))
+}
+
 func assertElementsMatch(ss ...string) assertStrings {
 	return func(t *testing.T, es []string) { assert.ElementsMatch(t, es, ss) }
 }
