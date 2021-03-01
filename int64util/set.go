@@ -46,3 +46,9 @@ func (s *Set) Has(v int64) bool {
 	_, ok := s.Set[v]
 	return ok
 }
+
+func (s *Set) Delete(vv ...int64) {
+	for _, v := range vv {
+		delete(s.Set, v)
+	}
+}
