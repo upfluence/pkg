@@ -104,7 +104,7 @@ func (p *poolEntity) Open(context.Context) error {
 }
 
 func (p *poolEntity) IsOpen() bool {
-	return p.closed
+	return !p.closed
 }
 
 func (p *poolEntity) supervise(ctx context.Context) {
