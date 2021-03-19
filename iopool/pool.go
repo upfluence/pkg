@@ -248,6 +248,11 @@ func (p *Pool) requeue(ew *entityWrapper) error {
 	case p.poolc <- ew:
 		p.metrics.idle.Update(int64(len(p.poolc)))
 	default:
+		select {
+		case p.createc <- struct{}{}:
+		default:
+		}
+
 		return ew.e.Close()
 	}
 
