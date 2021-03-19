@@ -2,6 +2,7 @@ package locktest
 
 import (
 	"context"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -16,12 +17,22 @@ type TestCase interface {
 }
 
 type testCase struct {
-	name string
-	fn   func(testing.TB, lock.LockManager)
+	name   string
+	skipCI bool
+	fn     func(testing.TB, lock.LockManager)
 }
 
-func (tc testCase) Name() string                             { return tc.name }
-func (tc testCase) Assert(t testing.TB, lm lock.LockManager) { tc.fn(t, lm) }
+func (tc testCase) Name() string { return tc.name }
+
+func (tc testCase) Assert(t testing.TB, lm lock.LockManager) {
+	if tc.skipCI && os.Getenv("CI") == "true" {
+		t.Skip(
+			"Skip test, it can be flaky in certain CPU condition it is only ran locally",
+		)
+	}
+
+	tc.fn(t, lm)
+}
 
 func assertNoWait(t testing.TB, lm lock.LockManager) {
 	var (
@@ -124,7 +135,7 @@ func assertKeepAlive(t testing.TB, lm lock.LockManager) {
 func IntegrationTest(t *testing.T, lfn func(testing.TB) lock.LockManager) {
 	for _, tt := range []TestCase{
 		testCase{name: "no wait", fn: assertNoWait},
-		testCase{name: "sync", fn: assertSync},
+		testCase{name: "sync", fn: assertSync, skipCI: true},
 		testCase{name: "keep alive", fn: assertKeepAlive},
 	} {
 		t.Run(tt.Name(), func(t *testing.T) {

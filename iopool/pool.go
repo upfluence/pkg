@@ -10,10 +10,8 @@ import (
 	"time"
 
 	"github.com/upfluence/pkg/cache/policy"
-	ptime "github.com/upfluence/pkg/cache/policy/time"
 	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/multierror"
-	"github.com/upfluence/stats"
 )
 
 var (
@@ -30,30 +28,6 @@ type Entity interface {
 	IsOpen() bool
 }
 
-type poolMetrics struct {
-	get     stats.Counter
-	put     stats.Counter
-	discard stats.Counter
-
-	idleClosed stats.Counter
-
-	idle     stats.Gauge
-	checkout stats.Gauge
-	size     stats.Gauge
-}
-
-func newPoolMetrics(s stats.Scope) poolMetrics {
-	return poolMetrics{
-		get:        s.Counter("get_total"),
-		put:        s.Counter("put_total"),
-		discard:    s.Counter("discard_total"),
-		idleClosed: s.Counter("entity_idle_closed_total"),
-		idle:       s.Gauge("idle"),
-		checkout:   s.Gauge("checkout"),
-		size:       s.Gauge("size"),
-	}
-}
-
 type entityWrapper struct {
 	e Entity
 	n string
@@ -62,8 +36,10 @@ type entityWrapper struct {
 }
 
 type Pool struct {
-	*options
 	*closer.Monitor
+
+	size     int
+	idleSize int
 
 	closeOnce sync.Once
 
@@ -79,80 +55,28 @@ type Pool struct {
 
 	ep      policy.EvictionPolicy
 	cnt     uint64
-	metrics poolMetrics
-}
-
-type options struct {
-	size     int
-	idleSize int
-
-	eps []policy.EvictionPolicy
-
-	scope stats.Scope
-}
-
-type Option func(*options)
-
-func WithIdleTimeout(d time.Duration) Option {
-	return func(o *options) {
-		o.eps = append(o.eps, ptime.NewIdlePolicy(d))
-	}
-}
-
-func WithScope(s stats.Scope) Option {
-	return func(o *options) { o.scope = s }
-}
-
-func WithMaxIdle(s int) Option {
-	return func(o *options) {
-		o.idleSize = s
-
-		if s > o.size {
-			o.size = s
-		}
-	}
-}
-
-func WithSize(s int) Option {
-	return func(o *options) {
-		o.size = s
-
-		if o.idleSize > s {
-			o.idleSize = s
-		}
-	}
-}
-
-var defaultOptions = &options{
-	size:     10,
-	idleSize: 5,
-	scope:    stats.RootScope(stats.NewStaticCollector()),
+	metrics metrics
 }
 
 func NewPool(f Factory, opts ...Option) *Pool {
-	options := *defaultOptions
-
-	for _, opt := range opts {
-		opt(&options)
-	}
-
+	o := newOptions(opts...)
 	p := Pool{
+		size:       o.size,
+		idleSize:   o.idleSize,
 		Monitor:    closer.NewMonitor(),
 		factory:    f,
-		options:    &options,
-		createc:    make(chan struct{}, options.size),
-		poolc:      make(chan *entityWrapper, options.idleSize),
+		createc:    make(chan struct{}, o.size),
+		poolc:      make(chan *entityWrapper, o.idleSize),
 		checkedout: make(map[Entity]*entityWrapper),
 		checkout:   make(map[string]*entityWrapper),
 		checkin:    make(map[string]*entityWrapper),
-		ep:         policy.CombinePolicies(options.eps...),
+		ep:         o.evictionPolicy(),
 	}
 
-	p.metrics = newPoolMetrics(options.scope)
+	p.metrics = newMetrics(o.scope())
+	p.metrics.size.Update(int64(o.size))
 
-	p.metrics.size.Update(int64(options.size))
-
-	for i := 0; i < options.size; i++ {
+	for i := 0; i < o.size; i++ {
 		p.createc <- struct{}{}
 	}
 
@@ -232,6 +156,12 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 		return e, err
 	}
 
+	t0 := time.Now()
+	checkout := func() {
+		p.metrics.getWait.Inc()
+		p.metrics.getWaitDuration.Add(time.Since(t0).Milliseconds())
+	}
+
 	for {
 		select {
 		case <-p.Context().Done():
@@ -244,6 +174,7 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 			}
 
 			if p.checkoutWrapper(ew) {
+				checkout()
 				return ew.e, nil
 			}
 		case _, ok := <-p.createc:
@@ -263,6 +194,7 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 			}
 
 			p.markOut(ew)
+			checkout()
 
 			return ew.e, nil
 		}
@@ -316,6 +248,11 @@ func (p *Pool) requeue(ew *entityWrapper) error {
 	case p.poolc <- ew:
 		p.metrics.idle.Update(int64(len(p.poolc)))
 	default:
+		select {
+		case p.createc <- struct{}{}:
+		default:
+		}
+
 		return ew.e.Close()
 	}
 
