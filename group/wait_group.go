@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/upfluence/pkg/multierror"
+	"github.com/upfluence/errors"
 )
 
 type waitGroup struct {
@@ -47,5 +47,5 @@ func (wg *waitGroup) Wait() error {
 	wg.wg.Wait()
 	wg.fn()
 
-	return multierror.Wrap(wg.errs)
+	return errors.WrapErrors(wg.errs)
 }

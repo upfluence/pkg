@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/upfluence/errors"
+
 	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/log"
-	"github.com/upfluence/pkg/multierror"
 )
 
 type Puller struct {
@@ -30,7 +31,7 @@ func NewPuller(r Resolver, fn func(Update)) (*Puller, func()) {
 }
 
 func (p *Puller) Close() error {
-	return multierror.Combine(p.Monitor.Close(), p.Resolver.Close())
+	return errors.Combine(p.Monitor.Close(), p.Resolver.Close())
 }
 
 func (p *Puller) IsOpen() bool {

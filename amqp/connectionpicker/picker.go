@@ -5,13 +5,13 @@ import (
 	"sync"
 
 	"github.com/streadway/amqp"
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/pkg/amqp/amqputil"
 	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/discovery/balancer"
 	"github.com/upfluence/pkg/group"
 	"github.com/upfluence/pkg/log"
-	"github.com/upfluence/pkg/multierror"
 )
 
 type Picker interface {
@@ -60,7 +60,7 @@ func (p *picker) Shutdown(ctx context.Context) error {
 }
 
 func (p *picker) Close() error {
-	return multierror.Combine(
+	return errors.Combine(
 		p.Balancer.Close(),
 		p.Monitor.Close(),
 	)

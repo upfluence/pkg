@@ -12,7 +12,6 @@ import (
 
 	"github.com/upfluence/pkg/cache/policy"
 	"github.com/upfluence/pkg/closer"
-	"github.com/upfluence/pkg/multierror"
 )
 
 var (
@@ -355,7 +354,7 @@ func (p *Pool) Shutdown(ctx context.Context) error {
 		}
 	}
 
-	return multierror.Wrap(errs)
+	return errors.WrapErrors(errs)
 }
 
 func (p *Pool) Close() error {
@@ -390,7 +389,7 @@ func (p *Pool) Close() error {
 		close(p.createc)
 		close(p.poolc)
 
-		err = multierror.Wrap(errs)
+		err = errors.WrapErrors(errs)
 	})
 
 	return err

@@ -4,8 +4,9 @@ import (
 	"context"
 	"sync"
 
+	"github.com/upfluence/errors"
+
 	"github.com/upfluence/pkg/discovery/peer"
-	"github.com/upfluence/pkg/multierror"
 )
 
 type SyncResolver interface {
@@ -71,7 +72,7 @@ func (sr *syncResolver) Close() error {
 	sr.lrs = nil
 	sr.mu.Unlock()
 
-	return multierror.Wrap(errs)
+	return errors.WrapErrors(errs)
 }
 
 type localResolver struct {
@@ -109,7 +110,7 @@ func (lr *localResolver) update(u Update) {
 }
 
 func (lr *localResolver) close() error {
-	return multierror.Combine(lr.p.Close())
+	return errors.Combine(lr.p.Close())
 }
 
 func (lr *localResolver) resolve(ctx context.Context) ([]peer.Peer, error) {
