@@ -1,8 +1,9 @@
 package thriftutil
 
 import (
-	"errors"
 	"io"
+
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/thrift/lib/go/thrift"
 )

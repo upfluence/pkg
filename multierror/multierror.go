@@ -1,6 +1,6 @@
 package multierror
 
-import "github.com/pkg/errors"
+import "github.com/upfluence/errors"
 
 func Wrap(errs []error) error { return errors.Wrap(errs) }
 

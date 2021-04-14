@@ -2,12 +2,13 @@ package iopool
 
 import (
 	"context"
-	"errors"
 	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/pkg/cache/policy"
 	"github.com/upfluence/pkg/closer"

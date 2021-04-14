@@ -2,8 +2,9 @@ package resolver
 
 import (
 	"context"
-	"errors"
 	"io"
+
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/pkg/discovery/peer"
 )

@@ -1,7 +1,7 @@
 package serializer
 
 import (
-	"errors"
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/thrift/lib/go/thrift"
 )

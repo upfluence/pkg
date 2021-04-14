@@ -1,8 +1,9 @@
 package policy
 
 import (
-	"errors"
 	"io"
+
+	"github.com/upfluence/errors"
 )
 
 type OpType uint8

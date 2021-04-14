@@ -1,9 +1,10 @@
 package serializer
 
 import (
-	"errors"
 	"io"
 	"strings"
+
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/pkg/encoding"
 	"github.com/upfluence/pkg/thrift/thriftutil"

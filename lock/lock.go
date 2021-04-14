@@ -2,8 +2,9 @@ package lock
 
 import (
 	"context"
-	"errors"
 	"time"
+
+	"github.com/upfluence/errors"
 )
 
 var (

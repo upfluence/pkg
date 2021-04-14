@@ -2,8 +2,9 @@ package group
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/pkg/multierror"
 )

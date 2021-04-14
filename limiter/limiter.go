@@ -2,7 +2,8 @@ package limiter
 
 import (
 	"context"
-	"errors"
+
+	"github.com/upfluence/errors"
 )
 
 var ErrLimited = errors.New("limiter: Limited")

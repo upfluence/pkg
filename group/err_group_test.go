@@ -2,9 +2,10 @@ package group
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
+
+	"github.com/upfluence/errors"
 )
 
 func TestErrorGroup(t *testing.T) {
