@@ -111,10 +111,9 @@ func (spo *sentryPeerOption) apply(opts *sentry.Options) {
 }
 
 func Capture(err error, tags map[string]interface{}) error {
-	return DefaultReporter.Report(
-		err,
-		reporter.ReportOptions{Tags: tags, Depth: 1},
-	)
+	DefaultReporter.Report(err, reporter.ReportOptions{Tags: tags, Depth: 1})
+
+	return nil
 }
 
 func Close() {

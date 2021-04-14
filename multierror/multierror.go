@@ -1,11 +1,12 @@
 package multierror
 
-import "github.com/upfluence/errors"
+import (
+	"github.com/upfluence/errors"
+	"github.com/upfluence/errors/multi"
+)
 
-func Wrap(errs []error) error { return errors.Wrap(errs) }
+func Wrap(errs []error) error { return errors.WrapErrors(errs) }
 
-func Combine(errs ...error) error { return errors.Wrap(errs) }
+func Combine(errs ...error) error { return errors.WrapErrors(errs) }
 
-type MultiError interface {
-	Errors() []error
-}
+type MultiError = multi.MultiError

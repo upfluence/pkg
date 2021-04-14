@@ -40,13 +40,12 @@ require (
 	github.com/prometheus/client_golang v1.1.0
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 // indirect
 	github.com/prometheus/procfs v0.0.10 // indirect
-	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.6.1
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20200427203606-3cfed13b9966 // indirect
-	github.com/upfluence/errors v0.0.1
-	github.com/upfluence/log v0.0.0-20200124211732-c9875854d3b8
+	github.com/upfluence/errors v0.0.2
+	github.com/upfluence/log v0.0.1
 	github.com/upfluence/stats v0.0.0-20200119200538-5dd0f0409179
 	github.com/upfluence/thrift v2.0.11+incompatible
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
