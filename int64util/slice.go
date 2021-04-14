@@ -8,6 +8,9 @@ func (s Slice) Len() int           { return len(s) }
 func (s Slice) Less(i, j int) bool { return s[i] < s[j] }
 func (s Slice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
+func (s Slice) Sort()              { sort.Sort(s) }
+func (s Slice) Search(v int64) int { return Search(s, v) }
+
 func (s Slice) ToSet() *Set {
 	var res Set
 
