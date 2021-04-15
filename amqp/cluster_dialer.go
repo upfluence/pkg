@@ -3,12 +3,13 @@ package amqp
 import (
 	"sync"
 
+	"github.com/upfluence/errors"
+
 	"github.com/upfluence/pkg/amqp/channelpool"
 	"github.com/upfluence/pkg/amqp/connectionpicker"
 	"github.com/upfluence/pkg/discovery/balancer"
 	"github.com/upfluence/pkg/discovery/balancer/roundrobin"
 	"github.com/upfluence/pkg/discovery/resolver"
-	"github.com/upfluence/pkg/multierror"
 )
 
 type Cluster struct {
@@ -19,7 +20,7 @@ type Cluster struct {
 }
 
 func (c *Cluster) Close() error {
-	return multierror.Combine(
+	return errors.Combine(
 		c.Pool.Close(),
 		c.Picker.Close(),
 		c.b.Close(),
@@ -96,5 +97,5 @@ func (cd *ClusterDialer) Close() error {
 
 	cd.cs = nil
 
-	return multierror.Wrap(errs)
+	return errors.WrapErrors(errs)
 }

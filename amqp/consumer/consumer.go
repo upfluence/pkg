@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/log"

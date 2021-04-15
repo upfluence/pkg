@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/upfluence/pkg/multierror"
+	"github.com/upfluence/errors"
 )
 
 func CombinePolicies(ps ...EvictionPolicy) EvictionPolicy {
@@ -70,7 +70,7 @@ func (mp *multiPolicy) C() <-chan string {
 }
 
 func (mp *multiPolicy) Op(k string, op OpType) error {
-	return multierror.Combine(mp.l.Op(k, op), mp.r.Op(k, op))
+	return errors.Combine(mp.l.Op(k, op), mp.r.Op(k, op))
 }
 
 func (mp *multiPolicy) Close() error {
@@ -78,5 +78,5 @@ func (mp *multiPolicy) Close() error {
 	mp.wg.Wait()
 	close(mp.ch)
 
-	return multierror.Combine(mp.l.Close(), mp.r.Close())
+	return errors.Combine(mp.l.Close(), mp.r.Close())
 }

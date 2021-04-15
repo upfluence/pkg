@@ -2,7 +2,8 @@ package currency
 
 import (
 	"context"
-	"errors"
+
+	"github.com/upfluence/errors"
 )
 
 type Currency string

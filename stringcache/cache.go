@@ -1,6 +1,6 @@
 package stringcache
 
-import "errors"
+import "github.com/upfluence/errors"
 
 var ErrNotFound = errors.New("stringcache: Key not found")
 

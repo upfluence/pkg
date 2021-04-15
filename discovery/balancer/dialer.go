@@ -5,7 +5,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/upfluence/pkg/multierror"
+	"github.com/upfluence/errors"
+
 	"github.com/upfluence/pkg/syncutil"
 )
 
@@ -62,7 +63,7 @@ func (d *Dialer) Close() error {
 	d.lds = nil
 	d.mu.Unlock()
 
-	return multierror.Wrap(errs)
+	return errors.WrapErrors(errs)
 }
 
 type localDialer struct {
@@ -109,5 +110,5 @@ func (ld *localDialer) dial(ctx context.Context, network string) (net.Conn, erro
 }
 
 func (ld *localDialer) close() error {
-	return multierror.Combine(ld.sf.Close(), ld.b.Close())
+	return errors.Combine(ld.sf.Close(), ld.b.Close())
 }

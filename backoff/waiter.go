@@ -2,8 +2,9 @@ package backoff
 
 import (
 	"context"
-	"errors"
 	"sync/atomic"
+
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/pkg/timeutil"
 )

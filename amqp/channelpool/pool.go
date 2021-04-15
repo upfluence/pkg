@@ -5,12 +5,12 @@ import (
 	"sync"
 
 	"github.com/streadway/amqp"
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/pkg/amqp/connectionpicker"
 	"github.com/upfluence/pkg/closer"
 	"github.com/upfluence/pkg/iopool"
 	"github.com/upfluence/pkg/log"
-	"github.com/upfluence/pkg/multierror"
 )
 
 type Pool interface {
@@ -78,7 +78,7 @@ func (p *pool) IsOpen() bool {
 }
 
 func (p *pool) Shutdown(ctx context.Context) error {
-	return multierror.Combine(
+	return errors.Combine(
 		p.pool.Shutdown(ctx),
 		p.Monitor.Shutdown(ctx),
 		p.Picker.Shutdown(ctx),
@@ -86,7 +86,7 @@ func (p *pool) Shutdown(ctx context.Context) error {
 }
 
 func (p *pool) Close() error {
-	return multierror.Combine(
+	return errors.Combine(
 		p.pool.Close(),
 		p.Monitor.Close(),
 		p.Picker.Close(),

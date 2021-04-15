@@ -2,7 +2,8 @@ package balancer
 
 import (
 	"context"
-	"errors"
+
+	"github.com/upfluence/errors"
 
 	"github.com/upfluence/pkg/discovery/peer"
 	"github.com/upfluence/pkg/discovery/resolver"
@@ -32,6 +33,5 @@ type Balancer interface {
 	IsOpen() bool
 	Close() error
 
-	// Up(peer.Peer) func(error)
 	Get(context.Context, GetOptions) (peer.Peer, error)
 }

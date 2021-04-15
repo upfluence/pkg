@@ -29,7 +29,7 @@ var (
 				),
 				leveled.NewSink(
 					record.Error,
-					elsink.NewSink(error_logger.DefaultErrorLogger),
+					elsink.WrapReporter(error_logger.DefaultReporter, 3),
 				),
 			),
 		),

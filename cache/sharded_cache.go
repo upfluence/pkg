@@ -1,8 +1,6 @@
 package cache
 
-import (
-	"github.com/upfluence/pkg/multierror"
-)
+import "github.com/upfluence/errors"
 
 const (
 	defaultSharding = 256
@@ -64,5 +62,5 @@ func (sc *shardedCache) Close() error {
 		}
 	}
 
-	return multierror.Wrap(errs)
+	return errors.WrapErrors(errs)
 }
