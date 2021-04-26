@@ -93,8 +93,12 @@ func (p *pool) Close() error {
 	)
 }
 
+var errClosed = errors.New("channel is closed")
+
 type poolEntity struct {
 	*amqp.Channel
+
+	mu     sync.RWMutex
 	err    error
 	closed bool
 }
@@ -108,23 +112,44 @@ func (p *poolEntity) IsOpen() bool {
 }
 
 func (p *poolEntity) supervise(ctx context.Context) {
-	var ch = make(chan *amqp.Error)
+	var (
+		ch = make(chan *amqp.Error)
+
+		err error
+		ok  bool
+	)
 
 	p.NotifyClose(ch)
 	select {
-	case err, ok := <-ch:
+	case err, ok = <-ch:
 		if ok {
 			if err != nil {
 				log.WithError(err).Warning("AMQPChannelPool channel closed")
 			}
-
-			p.err = err
 		}
-		p.closed = true
 	case <-ctx.Done():
-		p.err = p.Close()
-		p.closed = true
+		err = p.Close()
 	}
+
+	p.mu.Lock()
+	p.err = err
+	p.closed = true
+	p.mu.Unlock()
+}
+
+func (p *poolEntity) error() error {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	if p.err != nil {
+		return p.err
+	}
+
+	if p.closed {
+		return errClosed
+	}
+
+	return nil
 }
 
 func (p *pool) factory(ctx context.Context) (iopool.Entity, error) {
@@ -147,6 +172,24 @@ func (p *pool) factory(ctx context.Context) (iopool.Entity, error) {
 }
 
 func (p *pool) Get(ctx context.Context) (*amqp.Channel, error) {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		ch, err := p.get(ctx)
+
+		if err != nil {
+			continue
+		}
+
+		return ch, nil
+	}
+}
+
+func (p *pool) get(ctx context.Context) (*amqp.Channel, error) {
 	var e, err = p.pool.Get(ctx)
 
 	if err != nil {
@@ -154,6 +197,11 @@ func (p *pool) Get(ctx context.Context) (*amqp.Channel, error) {
 	}
 
 	pe := e.(*poolEntity)
+
+	if err := pe.error(); err != nil {
+		return nil, err
+	}
+
 	ch := pe.Channel
 	p.st.Store(ch, pe)
 
