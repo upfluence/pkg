@@ -288,10 +288,14 @@ github.com/upfluence/errors v0.0.1 h1:/6q+GhFAffsT9Ec8qKrbMJ/VkZrs6HILrfYl2DJF2F
 github.com/upfluence/errors v0.0.1/go.mod h1:+w8wjYMIRBPhbO05esgcEmIFa2RXY9xKp+G8AUQqbG8=
 github.com/upfluence/errors v0.0.2 h1:0x5QPfac8+yUe5T8ZepPhRmMdrj7HMm+rnfvbfzbu8g=
 github.com/upfluence/errors v0.0.2/go.mod h1:+w8wjYMIRBPhbO05esgcEmIFa2RXY9xKp+G8AUQqbG8=
+github.com/upfluence/errors v0.0.6 h1:pTtLTZHpz0s8V1dbLN3FOzOsc+vmB/L3k6GJmbFxHJM=
+github.com/upfluence/errors v0.0.6/go.mod h1:+w8wjYMIRBPhbO05esgcEmIFa2RXY9xKp+G8AUQqbG8=
 github.com/upfluence/log v0.0.0-20200124211732-c9875854d3b8 h1:3hrpeaH32KHIyiYFkxSVcbzG0nv7VaExYfbAp86COd8=
 github.com/upfluence/log v0.0.0-20200124211732-c9875854d3b8/go.mod h1:EyoKhjBV+ExtiGckSHxSodXgln4Vi9CpxszAi/Ez9Qk=
 github.com/upfluence/log v0.0.1 h1:yfZe2t4idwPUuaIZ2u4S47qXx+pzJVUXVxyogG1Wdls=
 github.com/upfluence/log v0.0.1/go.mod h1:1uMfWKPiN8wDCUtENVcYC0bRrTqMeSyAP5R3P5yWXsc=
+github.com/upfluence/log v0.0.3 h1:yikPvlErTFvDM3KLt6rz75GXNyRJ/PkL5aU1DNkVgm0=
+github.com/upfluence/log v0.0.3/go.mod h1:1uMfWKPiN8wDCUtENVcYC0bRrTqMeSyAP5R3P5yWXsc=
 github.com/upfluence/stats v0.0.0-20200119200538-5dd0f0409179 h1:E2rpj66yPg6+vCK7nAWK4zgmRTFwaT1TciqHVSE4dg0=
 github.com/upfluence/stats v0.0.0-20200119200538-5dd0f0409179/go.mod h1:qHyr+npTty8kVLu8gMKjalGpeWHzMg7PD1rv4TKMrbI=
 github.com/upfluence/thrift v2.0.11+incompatible h1:cn65JxB4IeLB6q/EL0rKMgjUxqO825/0MBJzfxg8HVI=
