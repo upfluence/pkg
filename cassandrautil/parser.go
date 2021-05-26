@@ -45,6 +45,10 @@ func RetryPolicy(p gocql.RetryPolicy) Option {
 	return func(o *options) { o.retryPolicy = p }
 }
 
+func WithRawOption(fn func(*gocql.ClusterConfig)) Option {
+	return func(o *options) { o.rawOptions = append(o.rawOptions, fn) }
+}
+
 type options struct {
 	keyspace, cassandraURL string
 	port, protocolVersion  int
@@ -52,6 +56,8 @@ type options struct {
 	consistency gocql.Consistency
 	retryPolicy gocql.RetryPolicy
 	timeout     time.Duration
+
+	rawOptions []func(*gocql.ClusterConfig)
 }
 
 func (o options) cassandraIPs() []string {
@@ -74,6 +80,10 @@ func BuildSession(opts ...Option) (*gocql.Session, error) {
 	cluster.Keyspace = opt.keyspace
 	cluster.Timeout = opt.timeout
 	cluster.RetryPolicy = opt.retryPolicy
+
+	for _, o := range opt.rawOptions {
+		o(cluster)
+	}
 
 	return cluster.CreateSession()
 }
