@@ -45,7 +45,21 @@ func isMn(r rune) bool {
 	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
 }
 
+func IsASCII(s string) bool {
+	for _, r := range s {
+		if r > unicode.MaxASCII {
+			return false
+		}
+	}
+
+	return true
+}
+
 func DecodeToASCII(s string) string {
+	if IsASCII(s) {
+		return s
+	}
+
 	var (
 		t = transform.Chain(norm.NFD, transform.RemoveFunc(isMn), transform.RemoveFunc(isAboveAscii), norm.NFC)
 
