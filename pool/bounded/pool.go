@@ -66,7 +66,7 @@ func (p *poolWrapper) Get(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	return v.(*entityWrapper).v, nil
+	return v.(entityWrapper).v, nil
 }
 
 func (p *poolWrapper) Put(v interface{}) error {
