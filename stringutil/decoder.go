@@ -15,6 +15,23 @@ import (
 var cmap = charmap.ISO8859_1
 var defaultDecoder = charmap.ISO8859_1.NewDecoder()
 
+type ASCIIDecodeOption func(*asciiDecodeOptions)
+
+type asciiDecodeOptions struct {
+	composer   transform.Transformer
+	decomposer transform.Transformer
+}
+
+func NKFD(opts *asciiDecodeOptions) {
+	opts.composer = norm.NFKC
+	opts.decomposer = norm.NFKD
+}
+
+var defaultDecodeOptions = asciiDecodeOptions{
+	composer:   norm.NFC,
+	decomposer: norm.NFD,
+}
+
 func DecodeToUTF8(s string) string {
 	s = strings.Replace(s, "\x00", "", -1)
 
@@ -55,13 +72,19 @@ func IsASCII(s string) bool {
 	return true
 }
 
-func DecodeToASCII(s string) string {
+func DecodeToASCII(s string, opts ...ASCIIDecodeOption) string {
 	if IsASCII(s) {
 		return s
 	}
 
+	os := defaultDecodeOptions
+
+	for _, opt := range opts {
+		opt(&os)
+	}
+
 	var (
-		t = transform.Chain(norm.NFD, transform.RemoveFunc(isMn), transform.RemoveFunc(isAboveAscii), norm.NFC)
+		t = transform.Chain(os.decomposer, transform.RemoveFunc(isMn), transform.RemoveFunc(isAboveAscii), os.composer)
 
 		result, _, err = transform.String(t, s)
 	)

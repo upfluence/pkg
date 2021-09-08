@@ -21,16 +21,49 @@ func TestDecodeToUTF8(t *testing.T) {
 }
 
 func TestDecodeToASCII(t *testing.T) {
+	var nfkd = []ASCIIDecodeOption{NKFD}
+
 	for _, tt := range []struct {
 		in, out string
+		opts    []ASCIIDecodeOption
 	}{
-		{"étesté", "eteste"},
-		{"RhôöÔÖne", "RhooOOne"},
-		{"東京都, JP", ", JP"},
-		{"Collaboration: 𝕸𝖎𝖆𝖒𝖎 🌞 x KiwiKurve", "Collaboration:   x KiwiKurve"},
-		{"foo", "foo"},
+		{
+			in:  "étesté",
+			out: "eteste",
+		},
+		{
+			in:  "RhôöÔÖne",
+			out: "RhooOOne",
+		},
+		{
+			in:  "東京都, JP",
+			out: ", JP",
+		},
+		{
+			in:  "Collaboration: 𝕸𝖎𝖆𝖒𝖎 🌞 x KiwiKurve",
+			out: "Collaboration:   x KiwiKurve",
+		},
+		{
+			in:   "Collaboration: 𝕸𝖎𝖆𝖒𝖎 🌞 x KiwiKurve",
+			out:  "Collaboration: Miami  x KiwiKurve",
+			opts: nfkd,
+		},
+		{
+			in:  "foo",
+			out: "foo",
+		},
+		{
+			in:   "foo",
+			out:  "foo",
+			opts: nfkd,
+		},
+		{
+			in:   "𝐓𝐲𝐫𝐚𝐉𝐚𝐧𝐞𝐚✨🎨",
+			out:  "TyraJanea",
+			opts: nfkd,
+		},
 	} {
-		if out := DecodeToASCII(tt.in); tt.out != out {
+		if out := DecodeToASCII(tt.in, tt.opts...); tt.out != out {
 			t.Errorf("DecodeToASCII(%q) = %q wanted: %q", tt.in, out, tt.out)
 		}
 	}
