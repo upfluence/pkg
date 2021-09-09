@@ -6,6 +6,7 @@ import (
 	"unicode/utf8"
 
 	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/runes"
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 
@@ -54,12 +55,14 @@ func IsUTF8(s string) bool {
 	return utf8.ValidString(s)
 }
 
-func isAboveAscii(r rune) bool {
-	return r > unicode.MaxASCII
+type setFunc func(rune) bool
+
+func (s setFunc) Contains(r rune) bool {
+	return s(r)
 }
 
-func isMn(r rune) bool {
-	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
+func isAboveASCII(r rune) bool {
+	return r > unicode.MaxASCII
 }
 
 func IsASCII(s string) bool {
@@ -84,7 +87,12 @@ func DecodeToASCII(s string, opts ...ASCIIDecodeOption) string {
 	}
 
 	var (
-		t = transform.Chain(os.decomposer, transform.RemoveFunc(isMn), transform.RemoveFunc(isAboveAscii), os.composer)
+		t = transform.Chain(
+			os.decomposer,
+			runes.Remove(runes.In(unicode.Mn)),
+			runes.Remove(setFunc(isAboveASCII)),
+			os.composer,
+		)
 
 		result, _, err = transform.String(t, s)
 	)
