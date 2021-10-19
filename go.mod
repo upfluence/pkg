@@ -26,13 +26,13 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.7.0 // indirect
-	github.com/jinzhu/gorm v1.9.12
+	github.com/jinzhu/gorm v1.9.2
 	github.com/jinzhu/inflection v1.0.1-0.20200216102404-196e6ce06ca4 // indirect
 	github.com/jonboulle/clockwork v0.2.0 // indirect
 	github.com/json-iterator/go v1.1.10-0.20200206015604-7acbb404a45b // indirect
 	github.com/lib/pq v1.3.1-0.20200116171513-9eb3fc897d6f
 	github.com/mattes/migrate v3.0.2-0.20180508041624-4768a648fbd9+incompatible
-	github.com/mattn/go-sqlite3 v2.0.1+incompatible
+	github.com/mattn/go-sqlite3 v1.14.9
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -50,6 +50,7 @@ require (
 	github.com/upfluence/thrift v2.0.11+incompatible
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	go.uber.org/zap v1.15.0 // indirect
+	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
@@ -60,8 +61,13 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/coreos/go-semver v0.2.0 // indirect
+	github.com/denisenkom/go-mssqldb v0.11.0 // indirect
+	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/getsentry/sentry-go v0.9.0 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/gofrs/uuid v4.1.0+incompatible // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
+	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/prometheus/common v0.6.0 // indirect
