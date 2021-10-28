@@ -151,7 +151,9 @@ func (p *Policy) cleanup(now int64) {
 	ee := e.Value.(element)
 
 	for ee.t+p.ttl < now {
+		next := e.Next()
 		p.l.Remove(e)
+		e = next
 
 		k := ee.key
 		select {
@@ -160,8 +162,6 @@ func (p *Policy) cleanup(now int64) {
 		}
 
 		delete(p.ks, k)
-
-		e = e.Next()
 
 		if e == nil {
 			return
