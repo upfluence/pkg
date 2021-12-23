@@ -5,21 +5,34 @@ import (
 	"sync"
 )
 
+const DefaultMaxBufferSize = 1 << 22 // 4MB
+
 type BufferPool struct {
-	sync.Pool
+	pool          sync.Pool
+	maxBufferSize int
 }
 
 func NewBufferPool() *BufferPool {
+	return NewBufferPoolWithMaxBufferSize(DefaultMaxBufferSize)
+}
+
+func NewBufferPoolWithMaxBufferSize(maxBufferSize int) *BufferPool {
 	return &BufferPool{
-		Pool: sync.Pool{New: func() interface{} { return &bytes.Buffer{} }},
+		pool:          sync.Pool{New: func() interface{} { return &bytes.Buffer{} }},
+		maxBufferSize: maxBufferSize,
 	}
 }
 
 func (bp *BufferPool) Get() *bytes.Buffer {
-	return bp.Pool.Get().(*bytes.Buffer)
+	return bp.pool.Get().(*bytes.Buffer)
 }
 
 func (bp *BufferPool) Put(buf *bytes.Buffer) {
+	if buf.Cap() > bp.maxBufferSize {
+		// let it be garbage collected
+		return
+	}
+
 	buf.Reset()
-	bp.Pool.Put(buf)
+	bp.pool.Put(buf)
 }
