@@ -220,9 +220,11 @@ func (p *Pool) checkoutWrapper(ew *entityWrapper) bool {
 	p.mu.Lock()
 	delete(p.checkin, ew.n)
 	p.mu.Unlock()
+
 	p.markOut(ew)
 	p.ep.Op(ew.n, policy.Evict)
 	p.metrics.idle.Update(int64(len(p.poolc)))
+
 	return true
 }
 
@@ -253,6 +255,7 @@ func (p *Pool) requeue(ew *entityWrapper) error {
 		default:
 		}
 
+		p.ep.Op(ew.n, policy.Evict)
 		return ew.e.Close()
 	}
 
@@ -280,11 +283,12 @@ func (p *Pool) Put(e Entity) error {
 	}
 
 	p.checkin[ew.n] = ew
-	p.ep.Op(ew.n, policy.Set)
 	delete(p.checkedout, ew.e)
 	delete(p.checkout, ew.n)
-	p.metrics.checkout.Update(int64(len(p.checkout)))
 	p.mu.Unlock()
+
+	p.ep.Op(ew.n, policy.Set)
+	p.metrics.checkout.Update(int64(len(p.checkout)))
 
 	return p.requeue(ew)
 }
@@ -301,9 +305,10 @@ func (p *Pool) Discard(e Entity) error {
 
 	delete(p.checkedout, ew.e)
 	delete(p.checkout, ew.n)
+	p.mu.Unlock()
+
 	p.ep.Op(ew.n, policy.Evict)
 	p.metrics.checkout.Update(int64(len(p.checkout)))
-	p.mu.Unlock()
 
 	err := e.Close()
 
