@@ -113,6 +113,7 @@ func (p *Pool) closer(ctx context.Context) {
 				delete(p.checkin, ew.n)
 				p.mu.Unlock()
 				ew.e.Close()
+				ew.e = nil
 			}
 		}
 	}
@@ -202,10 +203,16 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 }
 
 func (p *Pool) checkoutWrapper(ew *entityWrapper) bool {
-	if ew.closed || !ew.e.IsOpen() {
-		ew.e.Close()
+	if ew.closed || ew.e == nil || !ew.e.IsOpen() {
+		if ew.e != nil {
+			ew.e.Close()
+		}
 		p.mu.Lock()
-		delete(p.checkedout, ew.e)
+
+		if ew.e != nil {
+			delete(p.checkedout, ew.e)
+		}
+
 		delete(p.checkout, ew.n)
 		p.mu.Unlock()
 
@@ -256,6 +263,9 @@ func (p *Pool) requeue(ew *entityWrapper) error {
 		}
 
 		p.ep.Op(ew.n, policy.Evict)
+		p.mu.Lock()
+		delete(p.checkin, ew.n)
+		p.mu.Unlock()
 		return ew.e.Close()
 	}
 
@@ -381,8 +391,10 @@ func (p *Pool) Close() error {
 			case ew := <-p.poolc:
 				p.metrics.idle.Update(int64(len(p.poolc)))
 
-				if err := ew.e.Close(); err != nil {
-					errs = append(errs, err)
+				if !ew.closed && ew.e != nil {
+					if err := ew.e.Close(); err != nil {
+						errs = append(errs, err)
+					}
 				}
 			}
 
