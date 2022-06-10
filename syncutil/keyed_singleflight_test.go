@@ -11,7 +11,7 @@ import (
 
 func TestKeyedSingleflight(t *testing.T) {
 	var (
-		ksf KeyedSingleflight
+		ksf KeyedSingleflight[string]
 		wg  sync.WaitGroup
 
 		ctx   = context.Background()

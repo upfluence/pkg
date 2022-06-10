@@ -5,23 +5,23 @@ import (
 	"sync"
 )
 
-type KeyedSingleflight struct {
+type KeyedSingleflight[K comparable] struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	once   sync.Once
 
 	mu  sync.Mutex
-	sfs map[string]*Singleflight
+	sfs map[K]*Singleflight
 }
 
-func (ksf *KeyedSingleflight) init() {
+func (ksf *KeyedSingleflight[K]) init() {
 	ksf.once.Do(func() {
 		ksf.ctx, ksf.cancel = context.WithCancel(context.Background())
-		ksf.sfs = make(map[string]*Singleflight)
+		ksf.sfs = make(map[K]*Singleflight)
 	})
 }
 
-func (ksf *KeyedSingleflight) Do(ctx context.Context, key string, fn func(context.Context) error) (bool, error) {
+func (ksf *KeyedSingleflight[K]) Do(ctx context.Context, key K, fn func(context.Context) error) (bool, error) {
 	ksf.init()
 
 	ksf.mu.Lock()
@@ -49,7 +49,7 @@ func (ksf *KeyedSingleflight) Do(ctx context.Context, key string, fn func(contex
 	)
 }
 
-func (ksf *KeyedSingleflight) Close() error {
+func (ksf *KeyedSingleflight[K]) Close() error {
 	ksf.init()
 	ksf.cancel()
 
