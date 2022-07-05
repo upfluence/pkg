@@ -1,10 +1,15 @@
 package pool
 
-import "context"
+import (
+	"context"
+	"io"
+)
 
 type Factory func(context.Context) (interface{}, error)
 
 type Pool interface {
+	io.Closer
+
 	Get(context.Context) (interface{}, error)
 	Put(interface{}) error
 	Discard(interface{}) error

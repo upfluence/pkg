@@ -82,3 +82,11 @@ func (p *Pool) Discard(e interface{}) error {
 
 	return p.next.Discard(e)
 }
+
+func (p *Pool) Close() error {
+	var t0 = time.Now()
+
+	defer p.logAction("Close", t0)
+
+	return p.next.Close()
+}

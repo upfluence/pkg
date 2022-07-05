@@ -10,9 +10,11 @@ import (
 
 type PoolFactory struct {
 	size int
+
+	opts []iopool.Option
 }
 
-func NewPoolFactory(size int) *PoolFactory {
+func NewPoolFactory(size int, opts ...iopool.Option) *PoolFactory {
 	return &PoolFactory{size: size}
 }
 
@@ -21,7 +23,7 @@ func (f *PoolFactory) GetPool(factory pool.Factory) pool.Pool {
 }
 
 func (f *PoolFactory) GetIntrospectablePool(factory pool.Factory) pool.IntrospectablePool {
-	return NewPool(f.size, factory)
+	return NewPool(f.size, factory, f.opts...)
 }
 
 type entityWrapper struct {
@@ -32,7 +34,7 @@ func (e entityWrapper) Close() error               { return nil }
 func (e entityWrapper) Open(context.Context) error { return nil }
 func (e entityWrapper) IsOpen() bool               { return true }
 
-func NewPool(limit int, factory pool.Factory) pool.IntrospectablePool {
+func NewPool(limit int, factory pool.Factory, opts ...iopool.Option) pool.IntrospectablePool {
 	c := stats.NewStaticCollector()
 
 	return &poolWrapper{
@@ -45,9 +47,14 @@ func NewPool(limit int, factory pool.Factory) pool.IntrospectablePool {
 
 				return entityWrapper{v}, nil
 			},
-			iopool.WithSize(limit),
-			iopool.WithMaxIdle(limit),
-			iopool.WithScope(stats.RootScope(c)),
+			append(
+				[]iopool.Option{
+					iopool.WithSize(limit),
+					iopool.WithMaxIdle(limit),
+					iopool.WithScope(stats.RootScope(c)),
+				},
+				opts...,
+			)...,
 		),
 		c: c,
 	}
