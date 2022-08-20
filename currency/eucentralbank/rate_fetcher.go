@@ -4,19 +4,16 @@ import (
 	"context"
 	"encoding/xml"
 	"net/http"
-	"sync"
 	"time"
 
-	"golang.org/x/sync/singleflight"
-
 	"github.com/upfluence/pkg/currency"
+	"github.com/upfluence/pkg/syncutil"
 )
 
 const apiURL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"
 
 type RateFetcher struct {
-	mu sync.RWMutex
-	g  singleflight.Group
+	sf syncutil.Singleflight[map[currency.Currency]float64]
 
 	cl  *http.Client
 	req *http.Request
@@ -40,6 +37,7 @@ type ratePayload struct {
 
 func NewRateFetcher() *RateFetcher {
 	req, _ := http.NewRequest("GET", apiURL, http.NoBody)
+
 	return &RateFetcher{
 		cl:       http.DefaultClient,
 		req:      req,
@@ -55,22 +53,11 @@ func (rf *RateFetcher) Rate(ctx context.Context, c currency.Currency) (float64, 
 		return 1., nil
 	}
 
-	rf.mu.RLock()
-
-	if rf.expiresAt.After(time.Now()) && rf.rates != nil {
-		r, ok := rf.rates[c]
-		rf.mu.RUnlock()
-
-		if ok {
-			return r, nil
+	_, rates, err := rf.sf.Do(ctx, func(ctx context.Context) (map[currency.Currency]float64, error) {
+		if rf.expiresAt.After(time.Now()) && rf.rates != nil {
+			return rf.rates, nil
 		}
 
-		return .0, currency.ErrCurrencyNotHandled
-	}
-
-	rf.mu.RUnlock()
-
-	resc := rf.g.DoChan("", func() (interface{}, error) {
 		resp, err := rf.cl.Do(rf.req)
 
 		if err != nil {
@@ -91,31 +78,19 @@ func (rf *RateFetcher) Rate(ctx context.Context, c currency.Currency) (float64, 
 			res[currency.Currency(cube.Currency)] = cube.Rate
 		}
 
-		rf.mu.Lock()
-
 		rf.rates = res
 		rf.expiresAt = time.Now().Add(rf.duration)
-
-		rf.mu.Unlock()
 
 		return res, nil
 	})
 
-	select {
-	case <-ctx.Done():
-		return .0, ctx.Err()
-	case res := <-resc:
-		if res.Err != nil {
-			return .0, res.Err
-		}
-
-		rates := res.Val.(map[currency.Currency]float64)
-		r, ok := rates[c]
-
-		if ok {
-			return r, nil
-		}
-
-		return .0, currency.ErrCurrencyNotHandled
+	if err != nil {
+		return .0, err
 	}
+
+	if r, ok := rates[c]; ok {
+		return r, nil
+	}
+
+	return .0, currency.ErrCurrencyNotHandled
 }
