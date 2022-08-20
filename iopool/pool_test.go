@@ -35,8 +35,8 @@ func (e *entity) IsOpen() bool {
 
 func TestGarbageIdleConnections(t *testing.T) {
 	e := &entity{isOpen: true}
-	p := NewPool(
-		func(context.Context) (Entity, error) { return e, nil },
+	p := NewPool[*entity](
+		func(context.Context) (*entity, error) { return e, nil },
 		WithIdleTimeout(100*time.Millisecond),
 	)
 
@@ -68,8 +68,8 @@ func TestGarbageIdleConnections(t *testing.T) {
 
 func TestReuseConnections(t *testing.T) {
 	e := &entity{isOpen: true}
-	p := NewPool(
-		func(context.Context) (Entity, error) { return e, nil },
+	p := NewPool[*entity](
+		func(context.Context) (*entity, error) { return e, nil },
 		WithIdleTimeout(100*time.Millisecond),
 	)
 
@@ -89,8 +89,8 @@ func TestReuseConnections(t *testing.T) {
 
 func TestCloseSync(t *testing.T) {
 	e := &entity{isOpen: true}
-	p := NewPool(
-		func(context.Context) (Entity, error) { return e, nil },
+	p := NewPool[*entity](
+		func(context.Context) (*entity, error) { return e, nil },
 		WithIdleTimeout(100*time.Millisecond),
 	)
 
@@ -121,8 +121,8 @@ func TestLimitedIdleSize(t *testing.T) {
 		&entity{isOpen: true},
 	}
 
-	p := NewPool(
-		func(context.Context) (Entity, error) {
+	p := NewPool[*entity](
+		func(context.Context) (*entity, error) {
 			i++
 			return es[i-1], nil
 		},
@@ -152,8 +152,8 @@ func TestConcurrentPut(t *testing.T) {
 		&entity{isOpen: true},
 	}
 
-	p := NewPool(
-		func(context.Context) (Entity, error) {
+	p := NewPool[*entity](
+		func(context.Context) (*entity, error) {
 			i++
 			return es[i-1], nil
 		},
@@ -192,8 +192,8 @@ func TestConcurrentDiscard(t *testing.T) {
 		&entity{isOpen: true},
 	}
 
-	p := NewPool(
-		func(context.Context) (Entity, error) {
+	p := NewPool[*entity](
+		func(context.Context) (*entity, error) {
 			i++
 			return es[i-1], nil
 		},
