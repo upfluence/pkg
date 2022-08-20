@@ -8,29 +8,29 @@ import (
 	"github.com/upfluence/pkg/cache/policy"
 )
 
-type Policy struct {
+type Policy[K comparable] struct {
 	sync.Mutex
 
 	size int
 
 	l  *list.List
-	ks map[string]*list.Element
+	ks map[K]*list.Element
 
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	fn func(string)
+	fn func(K)
 
 	closeOnce sync.Once
-	ch        chan string
+	ch        chan K
 }
 
-func NewLRUPolicy(size int) *Policy {
-	p := Policy{
+func NewLRUPolicy[K comparable](size int) *Policy[K] {
+	p := Policy[K]{
 		l:    list.New(),
 		size: size,
-		ks:   make(map[string]*list.Element),
-		ch:   make(chan string, 1),
+		ks:   make(map[K]*list.Element),
+		ch:   make(chan K, 1),
 	}
 
 	p.ctx, p.cancel = context.WithCancel(context.Background())
@@ -39,11 +39,11 @@ func NewLRUPolicy(size int) *Policy {
 	return &p
 }
 
-func (p *Policy) C() <-chan string {
+func (p *Policy[K]) C() <-chan K {
 	return p.ch
 }
 
-func (p *Policy) Op(k string, op policy.OpType) error {
+func (p *Policy[K]) Op(k K, op policy.OpType) error {
 	if p.ctx.Err() != nil {
 		return policy.ErrClosed
 	}
@@ -64,7 +64,7 @@ func (p *Policy) Op(k string, op policy.OpType) error {
 	return nil
 }
 
-func (p *Policy) move(k string) {
+func (p *Policy[K]) move(k K) {
 	e, ok := p.ks[k]
 
 	if !ok {
@@ -74,7 +74,7 @@ func (p *Policy) move(k string) {
 	p.l.MoveToBack(e)
 }
 
-func (p *Policy) insert(k string) {
+func (p *Policy[K]) insert(k K) {
 	if _, ok := p.ks[k]; ok {
 		return
 	}
@@ -90,7 +90,7 @@ func (p *Policy) insert(k string) {
 	p.ks[k] = e
 
 	if p.l.Len() > p.size {
-		v := p.l.Remove(p.l.Front()).(string)
+		v := p.l.Remove(p.l.Front()).(K)
 		delete(p.ks, v)
 
 		select {
@@ -100,7 +100,7 @@ func (p *Policy) insert(k string) {
 	}
 }
 
-func (p *Policy) evict(k string) {
+func (p *Policy[K]) evict(k K) {
 	e, ok := p.ks[k]
 
 	if !ok {
@@ -111,7 +111,7 @@ func (p *Policy) evict(k string) {
 	delete(p.ks, k)
 }
 
-func (p *Policy) Close() error {
+func (p *Policy[K]) Close() error {
 	p.cancel()
 	p.closeOnce.Do(func() { close(p.ch) })
 	return nil

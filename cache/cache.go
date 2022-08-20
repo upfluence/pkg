@@ -1,11 +1,13 @@
 package cache
 
-import "io"
+import (
+	"io"
+)
 
-type Cache interface {
-	Get(string) (interface{}, bool, error)
-	Set(string, interface{}) error
-	Evict(string) error
+type Cache[K comparable, V any] interface {
+	Get(K) (V, bool, error)
+	Set(K, V) error
+	Evict(K) error
 
 	io.Closer
 }

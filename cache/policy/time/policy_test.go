@@ -9,7 +9,7 @@ import (
 )
 
 func TestIdlePolicy(t *testing.T) {
-	p := NewIdlePolicy(10 * time.Millisecond)
+	p := NewIdlePolicy[string](10 * time.Millisecond)
 
 	p.Op("foo", policy.Set)
 	p.Op("bar", policy.Set)
@@ -26,7 +26,7 @@ func TestIdlePolicy(t *testing.T) {
 }
 
 func TestLifetimePolicy(t *testing.T) {
-	p := NewLifetimePolicy(10 * time.Millisecond)
+	p := NewLifetimePolicy[string](10 * time.Millisecond)
 
 	p.Op("foo", policy.Set)
 	p.Op("bar", policy.Set)

@@ -239,7 +239,7 @@ func (p *Pool[E]) checkoutWrapper(ew *entityWrapper[E]) bool {
 	p.mu.Unlock()
 
 	p.markOut(ew)
-	p.ep.Op(policy.Evict, ew.n)
+	p.ep.Op(ew.n, policy.Evict)
 	p.metrics.idle.Update(int64(len(p.poolc)))
 
 	return true
@@ -272,7 +272,7 @@ func (p *Pool[E]) requeue(ew *entityWrapper[E]) error {
 		default:
 		}
 
-		p.ep.Op(policy.Evict, ew.n)
+		p.ep.Op(ew.n, policy.Evict)
 		p.mu.Lock()
 		delete(p.checkin, ew.n)
 		p.mu.Unlock()
@@ -307,7 +307,7 @@ func (p *Pool[E]) Put(e E) error {
 	delete(p.checkout, ew.n)
 	p.mu.Unlock()
 
-	p.ep.Op(policy.Set, ew.n)
+	p.ep.Op(ew.n, policy.Set)
 	p.metrics.checkout.Update(int64(len(p.checkout)))
 
 	return p.requeue(ew)
@@ -327,7 +327,7 @@ func (p *Pool[E]) Discard(e E) error {
 	delete(p.checkout, ew.n)
 	p.mu.Unlock()
 
-	p.ep.Op(policy.Evict, ew.n)
+	p.ep.Op(ew.n, policy.Evict)
 	p.metrics.checkout.Update(int64(len(p.checkout)))
 
 	err := e.Close()
@@ -347,7 +347,7 @@ func (p *Pool[E]) drainPoolChannel() []error {
 		select {
 		case ew := <-p.poolc:
 			p.metrics.idle.Update(int64(len(p.poolc)))
-			p.ep.Op(policy.Evict, ew.n)
+			p.ep.Op(ew.n, policy.Evict)
 
 			if err := ew.e.Close(); err != nil {
 				errs = append(errs, err)

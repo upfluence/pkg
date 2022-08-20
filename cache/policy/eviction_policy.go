@@ -6,6 +6,8 @@ import (
 	"github.com/upfluence/errors"
 )
 
+var ErrClosed = errors.New("cache/policy: eviction policy closed")
+
 type OpType uint8
 
 const (
@@ -14,12 +16,10 @@ const (
 	Evict
 )
 
-type EvictionPolicy interface {
-	C() <-chan string
+type EvictionPolicy[K comparable] interface {
+	C() <-chan K
 
-	Op(string, OpType) error
+	Op(K, OpType) error
 
 	io.Closer
 }
-
-var ErrClosed = errors.New("cache/policy: eviction policy closed")
