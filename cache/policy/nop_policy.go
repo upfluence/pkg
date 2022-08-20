@@ -5,21 +5,21 @@ import (
 	"sync/atomic"
 )
 
-type NopPolicy struct {
+type NopPolicy[K comparable] struct {
 	sync.Once
 	sync.Mutex
 
 	closed int32
-	ch     chan string
+	ch     chan K
 }
 
-func (np *NopPolicy) C() <-chan string {
+func (np *NopPolicy[K]) C() <-chan K {
 	np.Do(func() {
 		np.Lock()
 		defer np.Unlock()
 
 		if np.ch == nil {
-			np.ch = make(chan string)
+			np.ch = make(chan K)
 
 			if atomic.LoadInt32(&np.closed) == 1 {
 				close(np.ch)
@@ -30,7 +30,7 @@ func (np *NopPolicy) C() <-chan string {
 	return np.ch
 }
 
-func (np *NopPolicy) Op(string, OpType) error {
+func (np *NopPolicy[K]) Op(K, OpType) error {
 	if atomic.LoadInt32(&np.closed) == 1 {
 		return ErrClosed
 	}
@@ -38,7 +38,7 @@ func (np *NopPolicy) Op(string, OpType) error {
 	return nil
 }
 
-func (np *NopPolicy) Close() error {
+func (np *NopPolicy[K]) Close() error {
 	if atomic.CompareAndSwapInt32(&np.closed, 0, 1) {
 		np.Lock()
 		if np.ch != nil {
