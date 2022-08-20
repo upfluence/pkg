@@ -19,7 +19,7 @@ type options struct {
 	size     int
 	idleSize int
 
-	eps []policy.EvictionPolicy
+	eps []policy.EvictionPolicy[uint64]
 
 	sc   stats.Scope
 	scfn func(stats.Scope) stats.Scope
@@ -37,15 +37,15 @@ func newOptions(opts ...Option) *options {
 
 func (o *options) scope() stats.Scope { return o.scfn(o.sc) }
 
-func (o *options) evictionPolicy() policy.EvictionPolicy {
-	return policy.CombinePolicies(o.eps...)
+func (o *options) evictionPolicy() policy.EvictionPolicy[uint64] {
+	return policy.CombinePolicies[uint64](o.eps...)
 }
 
 type Option func(*options)
 
 func WithIdleTimeout(d time.Duration) Option {
 	return func(o *options) {
-		o.eps = append(o.eps, ptime.NewIdlePolicy(d))
+		o.eps = append(o.eps, ptime.NewIdlePolicy[uint64](d))
 	}
 }
 
