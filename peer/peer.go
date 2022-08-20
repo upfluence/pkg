@@ -3,9 +3,10 @@ package peer
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
-	"github.com/upfluence/pkg/cfg"
+	"github.com/upfluence/pkg/envutil"
 	"github.com/upfluence/pkg/peer/version"
 )
 
@@ -18,7 +19,7 @@ var (
 )
 
 func buildGitVersion() version.GitVersion {
-	commit := cfg.FetchString("GIT_COMMIT", GitCommit)
+	commit := envutil.FetchString("GIT_COMMIT", GitCommit)
 
 	if commit == "" {
 		return version.GitVersion{}
@@ -26,8 +27,8 @@ func buildGitVersion() version.GitVersion {
 
 	return version.GitVersion{
 		Commit: commit,
-		Remote: cfg.FetchString("GIT_REMOTE", GitRemote),
-		Branch: cfg.FetchString("GIT_BRANCH", GitBranch),
+		Remote: envutil.FetchString("GIT_REMOTE", GitRemote),
+		Branch: envutil.FetchString("GIT_BRANCH", GitBranch),
 	}
 }
 
@@ -140,14 +141,14 @@ func (p *Peer) URL() *url.URL {
 }
 
 func FromEnv() *Peer {
-	sv := version.ParseSemanticVersion(cfg.FetchString("VERSION", Version))
+	sv := version.ParseSemanticVersion(envutil.FetchString("VERSION", Version))
 
 	return &Peer{
-		Authority:    cfg.FetchString("AUTHORITY", "local"),
-		InstanceName: cfg.FetchString("UNIT_NAME", "unknow-service"),
-		AppName:      cfg.FetchString("APP_NAME", "unknown-app"),
-		ProjectName:  cfg.FetchString("PROJECT_NAME", "unknown-app"),
-		Environment:  cfg.FetchString("ENV", "development"),
+		Authority:    envutil.FetchString("AUTHORITY", "local"),
+		InstanceName: envutil.FetchString("UNIT_NAME", "unknow-service"),
+		AppName:      envutil.FetchString("APP_NAME", "unknown-app"),
+		ProjectName:  envutil.FetchString("PROJECT_NAME", "unknown-app"),
+		Environment:  envutil.FetchString("ENV", "development"),
 		Version:      version.Version{Git: buildGitVersion(), Semantic: sv},
 	}
 }
