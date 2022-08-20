@@ -70,32 +70,25 @@ type localDialer struct {
 	d *Dialer
 	b Balancer
 
-	mu     sync.RWMutex
 	opened bool
-	sf     syncutil.Singleflight
+	sf     syncutil.Singleflight[struct{}]
 }
 
-func (ld *localDialer) open(ctx context.Context) error {
+func (ld *localDialer) open(ctx context.Context) (struct{}, error) {
 	if !ld.b.IsOpen() {
 		if err := ld.b.Open(ctx); err != nil {
-			return err
+			return struct{}{}, err
 		}
 	}
 
-	ld.mu.Lock()
 	ld.opened = true
-	ld.mu.Unlock()
 
-	return nil
+	return struct{}{}, nil
 }
 
 func (ld *localDialer) dial(ctx context.Context, network string) (net.Conn, error) {
-	ld.mu.RLock()
-	opened := ld.opened
-	ld.mu.RUnlock()
-
-	if !opened {
-		if _, err := ld.sf.Do(ctx, ld.open); err != nil {
+	if !ld.opened {
+		if _, _, err := ld.sf.Do(ctx, ld.open); err != nil {
 			return nil, err
 		}
 	}
