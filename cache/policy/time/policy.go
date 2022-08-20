@@ -9,12 +9,12 @@ import (
 	"github.com/upfluence/pkg/cache/policy"
 )
 
-type element struct {
-	key string
+type element[K comparable] struct {
+	key K
 	t   int64
 }
 
-type Policy struct {
+type Policy[K comparable] struct {
 	sync.Mutex
 
 	ttl int64
@@ -24,29 +24,29 @@ type Policy struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	ks map[string]*list.Element
+	ks map[K]*list.Element
 	l  *list.List
 
-	fn func(string)
+	fn func(K)
 
 	closeOnce sync.Once
-	ch        chan string
+	ch        chan K
 }
 
-func NewIdlePolicy(ttl time.Duration) *Policy {
-	return newPolicy(ttl, func(p *Policy) func(string) { return p.move })
+func NewIdlePolicy[K comparable](ttl time.Duration) *Policy[K] {
+	return newPolicy[K](ttl, func(p *Policy[K]) func(K) { return p.move })
 }
 
-func NewLifetimePolicy(ttl time.Duration) *Policy {
-	return newPolicy(ttl, func(p *Policy) func(string) { return func(string) {} })
+func NewLifetimePolicy[K comparable](ttl time.Duration) *Policy[K] {
+	return newPolicy[K](ttl, func(p *Policy[K]) func(K) { return func(K) {} })
 }
 
-func newPolicy(ttl time.Duration, fn func(*Policy) func(string)) *Policy {
-	p := Policy{
+func newPolicy[K comparable](ttl time.Duration, fn func(*Policy[K]) func(K)) *Policy[K] {
+	p := Policy[K]{
 		ttl: int64(ttl),
-		ks:  make(map[string]*list.Element),
+		ks:  make(map[K]*list.Element),
 		l:   list.New(),
-		ch:  make(chan string),
+		ch:  make(chan K),
 	}
 
 	p.fn = fn(&p)
@@ -58,15 +58,15 @@ func newPolicy(ttl time.Duration, fn func(*Policy) func(string)) *Policy {
 	return &p
 }
 
-func (p *Policy) now() int64 { return time.Now().UnixNano() }
+func (p *Policy[K]) now() int64 { return time.Now().UnixNano() }
 
-func (p *Policy) C() <-chan string {
+func (p *Policy[K]) C() <-chan K {
 	return p.ch
 }
 
-func (p *Policy) insert(k string) {
+func (p *Policy[K]) insert(k K) {
 	if p.l.Len() == 0 {
-		p.ks[k] = p.l.PushFront(element{key: k, t: p.now()})
+		p.ks[k] = p.l.PushFront(element[K]{key: k, t: p.now()})
 	}
 
 	_, ok := p.ks[k]
@@ -75,23 +75,23 @@ func (p *Policy) insert(k string) {
 		return
 	}
 
-	p.ks[k] = p.l.InsertAfter(element{key: k, t: p.now()}, p.l.Back())
+	p.ks[k] = p.l.InsertAfter(element[K]{key: k, t: p.now()}, p.l.Back())
 }
 
-func (p *Policy) move(k string) {
+func (p *Policy[K]) move(k K) {
 	e, ok := p.ks[k]
 
 	if !ok {
 		return
 	}
 
-	ee := e.Value.(element)
+	ee := e.Value.(element[K])
 	ee.t = p.now()
 
 	p.l.MoveToBack(e)
 }
 
-func (p *Policy) evict(k string) {
+func (p *Policy[K]) evict(k K) {
 	e, ok := p.ks[k]
 
 	if !ok {
@@ -102,7 +102,7 @@ func (p *Policy) evict(k string) {
 	delete(p.ks, k)
 }
 
-func (p *Policy) Op(k string, op policy.OpType) error {
+func (p *Policy[K]) Op(k K, op policy.OpType) error {
 	if p.ctx.Err() != nil {
 		return policy.ErrClosed
 	}
@@ -123,7 +123,7 @@ func (p *Policy) Op(k string, op policy.OpType) error {
 	return nil
 }
 
-func (p *Policy) pump() {
+func (p *Policy[K]) pump() {
 	defer p.wg.Done()
 
 	for {
@@ -138,7 +138,7 @@ func (p *Policy) pump() {
 	}
 }
 
-func (p *Policy) cleanup(now int64) {
+func (p *Policy[K]) cleanup(now int64) {
 	p.Lock()
 	defer p.Unlock()
 
@@ -148,7 +148,7 @@ func (p *Policy) cleanup(now int64) {
 		return
 	}
 
-	ee := e.Value.(element)
+	ee := e.Value.(element[K])
 
 	for ee.t+p.ttl < now {
 		next := e.Next()
@@ -166,11 +166,11 @@ func (p *Policy) cleanup(now int64) {
 		if e == nil {
 			return
 		}
-		ee = e.Value.(element)
+		ee = e.Value.(element[K])
 	}
 }
 
-func (p *Policy) Close() error {
+func (p *Policy[K]) Close() error {
 	p.cancel()
 	p.wg.Wait()
 

@@ -8,7 +8,7 @@ import (
 )
 
 func TestLRUPolicy(t *testing.T) {
-	p := NewLRUPolicy(2)
+	p := NewLRUPolicy[string](2)
 
 	p.Op("foo", policy.Set)
 	p.Op("bar", policy.Set)
