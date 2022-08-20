@@ -27,7 +27,6 @@ func NewDefaultTMultiTypeDeserializer() *TMultiTypeDeserializer {
 		thriftutil.JSONProtocolFactory,
 		[]thriftutil.TTypedProtocolFactory{thriftutil.BinaryProtocolFactory},
 		[]encoding.Encoding{
-			encoding.SnappyEncoding,
 			encoding.GZipEncoding,
 			encoding.Base64Encoding,
 		},

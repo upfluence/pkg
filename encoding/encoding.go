@@ -5,8 +5,6 @@ import (
 	"encoding/base64"
 	"io"
 	"strings"
-
-	"github.com/golang/snappy"
 )
 
 var (
@@ -14,12 +12,6 @@ var (
 		Type:       "gzip",
 		WriterFunc: func(w io.Writer) (io.Writer, error) { return gzip.NewWriter(w), nil },
 		ReaderFunc: func(r io.Reader) (io.Reader, error) { return gzip.NewReader(r) },
-	}
-
-	SnappyEncoding = &StaticEncoding{
-		Type:       "snappy",
-		WriterFunc: func(w io.Writer) (io.Writer, error) { return snappy.NewWriter(w), nil },
-		ReaderFunc: func(r io.Reader) (io.Reader, error) { return snappy.NewReader(r), nil },
 	}
 
 	Base64Encoding = &StaticEncoding{

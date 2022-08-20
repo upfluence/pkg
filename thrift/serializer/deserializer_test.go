@@ -38,27 +38,16 @@ func TestDeserializerReadString(t *testing.T) {
 			errfn: errtest.NoError(),
 		},
 		{
-			name: "snappy+base64",
+			name: "gzip+base64",
 			pf:   thrift.NewTBinaryProtocolFactoryDefault(),
 			es: []encoding.Encoding{
-				encoding.SnappyEncoding,
+				encoding.GZipEncoding,
 				encoding.Base64Encoding,
 			},
-			in:    "/wYAAHNOYVBwWQEIAABlyOH6AAAABgEKAACWBYFbZm9vYmFy",
+			in:    "H4sIAAAAAAAA/2JgYGBLy89PSiwCAAAA//8AAAD//wEAAP//euNurwoA",
 			msgfn: func() TStruct { return &stringTStruct{} },
 			out:   &stringTStruct{"foobar"},
 			errfn: errtest.NoError(),
-		},
-		{
-			name: "snappy",
-			pf:   thrift.NewTJSONProtocolFactory(),
-			es: []encoding.Encoding{
-				encoding.SnappyEncoding,
-			},
-			msgfn: func() TStruct { return &stringTStruct{} },
-			out:   &stringTStruct{"foobar"},
-			errfn: errtest.NoError(),
-			in:    "\xff\x06\x00\x00sNaPpY\x01\f\x00\x00\xff\x12\xfd\\\"foobar\"",
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
