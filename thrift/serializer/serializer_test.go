@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/upfluence/thrift/lib/go/thrift"
 
+	"github.com/upfluence/errors/errtest"
 	"github.com/upfluence/pkg/encoding"
-	"github.com/upfluence/pkg/testutil"
 )
 
 func TestContentType(t *testing.T) {
@@ -69,21 +69,21 @@ func TestSerializerWriteString(t *testing.T) {
 		es    []encoding.Encoding
 		in    TStruct
 		out   string
-		errfn testutil.ErrorAssertion
+		errfn errtest.ErrorAssertion
 	}{
 		{
 			name:  "regular binary",
 			pf:    thrift.NewTBinaryProtocolFactoryDefault(),
 			in:    &stringTStruct{"foobar"},
 			out:   "\x00\x00\x00\x06foobar",
-			errfn: testutil.NoError(),
+			errfn: errtest.NoError(),
 		},
 		{
 			name:  "regular encoding",
 			pf:    thrift.NewTJSONProtocolFactory(),
 			in:    &stringTStruct{"foobar"},
 			out:   "\"foobar\"",
-			errfn: testutil.NoError(),
+			errfn: errtest.NoError(),
 		},
 		{
 			name:  "base64",
@@ -91,7 +91,7 @@ func TestSerializerWriteString(t *testing.T) {
 			es:    []encoding.Encoding{encoding.Base64Encoding},
 			in:    &stringTStruct{"foobar"},
 			out:   "ImZvb2JhciI=",
-			errfn: testutil.NoError(),
+			errfn: errtest.NoError(),
 		},
 		{
 			name: "snappy",
@@ -101,7 +101,7 @@ func TestSerializerWriteString(t *testing.T) {
 			},
 			in:    &stringTStruct{"foobar"},
 			out:   "\xff\x06\x00\x00sNaPpY\x01\f\x00\x00\xff\x12\xfd\\\"foobar\"",
-			errfn: testutil.NoError(),
+			errfn: errtest.NoError(),
 		},
 		{
 			name: "snappy+base64",
@@ -112,7 +112,7 @@ func TestSerializerWriteString(t *testing.T) {
 			},
 			in:    &stringTStruct{"foobar"},
 			out:   "/wYAAHNOYVBwWQEIAABlyOH6AAAABgEKAACWBYFbZm9vYmFy",
-			errfn: testutil.NoError(),
+			errfn: errtest.NoError(),
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -120,7 +120,7 @@ func TestSerializerWriteString(t *testing.T) {
 
 			out, err := s.WriteString(tt.in)
 
-			tt.errfn(t, err)
+			tt.errfn.Assert(t, err)
 			assert.Equal(t, tt.out, out)
 		})
 	}
