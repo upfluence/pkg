@@ -28,10 +28,10 @@ func TestContentType(t *testing.T) {
 		{
 			pf: thrift.NewTBinaryProtocolFactoryDefault(),
 			es: []encoding.Encoding{
-				encoding.SnappyEncoding,
+				encoding.GZipEncoding,
 				encoding.Base64Encoding,
 			},
-			out: "application/binary+snappy+base64",
+			out: "application/binary+gzip+base64",
 		},
 	} {
 		s := NewTSerializer(tt.pf, tt.es...)
@@ -94,24 +94,24 @@ func TestSerializerWriteString(t *testing.T) {
 			errfn: errtest.NoError(),
 		},
 		{
-			name: "snappy",
+			name: "gzip",
 			pf:   thrift.NewTJSONProtocolFactory(),
 			es: []encoding.Encoding{
-				encoding.SnappyEncoding,
+				encoding.GZipEncoding,
 			},
 			in:    &stringTStruct{"foobar"},
-			out:   "\xff\x06\x00\x00sNaPpY\x01\f\x00\x00\xff\x12\xfd\\\"foobar\"",
+			out:   "\x1f\x8b\b\x00\x00\x00\x00\x00\x00\xffRJ\xcb\xcfOJ,R\x02\x00\x00\x00\xff\xff\x00\x00\x00\xff\xff\x01\x00\x00\xff\xff\x81Z\x84\xc4\b\x00\x00\x00",
 			errfn: errtest.NoError(),
 		},
 		{
-			name: "snappy+base64",
+			name: "gzip+base64",
 			pf:   thrift.NewTBinaryProtocolFactoryDefault(),
 			es: []encoding.Encoding{
-				encoding.SnappyEncoding,
+				encoding.GZipEncoding,
 				encoding.Base64Encoding,
 			},
 			in:    &stringTStruct{"foobar"},
-			out:   "/wYAAHNOYVBwWQEIAABlyOH6AAAABgEKAACWBYFbZm9vYmFy",
+			out:   "H4sIAAAAAAAA/2JgYGBLy89PSiwCAAAA//8AAAD//wEAAP//euNurwoA",
 			errfn: errtest.NoError(),
 		},
 	} {
