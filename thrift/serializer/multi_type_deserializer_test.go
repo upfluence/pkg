@@ -42,16 +42,16 @@ func TestMTDReadString(t *testing.T) {
 			ct:    "application/binary",
 		},
 		{
-			p:     "\xff\x06\x00\x00sNaPpY\x01\f\x00\x00\xff\x12\xfd\\\"foobar\"",
+			p:     "\x1f\x8b\b\x00\x00\x00\x00\x00\x00\xffRJ\xcb\xcfOJ,R\x02\x00\x00\x00\xff\xff\x00\x00\x00\xff\xff\x01\x00\x00\xff\xff\x81Z\x84\xc4\b\x00\x00\x00",
 			errfn: errtest.NoError(),
 			out:   "foobar",
-			ct:    "application/json+snappy",
+			ct:    "application/json+gzip",
 		},
 		{
-			p:     "/wYAAHNOYVBwWQEIAABlyOH6AAAABgEKAACWBYFbZm9vYmFy",
+			p:     "H4sIAAAAAAAA/2JgYGBLy89PSiwCAAAA//8AAAD//wEAAP//euNurwoA",
 			errfn: errtest.NoError(),
 			out:   "foobar",
-			ct:    "application/binary+snappy+base64",
+			ct:    "application/binary+gzip+base64",
 		},
 	} {
 		var (
