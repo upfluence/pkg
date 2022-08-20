@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/upfluence/errors/errtest"
 	"github.com/upfluence/thrift/lib/go/thrift"
 
 	"github.com/upfluence/pkg/encoding"
-	"github.com/upfluence/pkg/testutil"
 )
 
 func TestDeserializerReadString(t *testing.T) {
@@ -18,7 +18,7 @@ func TestDeserializerReadString(t *testing.T) {
 		in    string
 		msgfn func() TStruct
 		out   TStruct
-		errfn testutil.ErrorAssertion
+		errfn errtest.ErrorAssertion
 	}{
 		{
 			name:  "regular encoding",
@@ -26,7 +26,7 @@ func TestDeserializerReadString(t *testing.T) {
 			in:    "\"foobar\"",
 			msgfn: func() TStruct { return &stringTStruct{} },
 			out:   &stringTStruct{"foobar"},
-			errfn: testutil.NoError(),
+			errfn: errtest.NoError(),
 		},
 		{
 			name:  "base64",
@@ -35,7 +35,7 @@ func TestDeserializerReadString(t *testing.T) {
 			in:    "ImZvb2JhciI=",
 			msgfn: func() TStruct { return &stringTStruct{} },
 			out:   &stringTStruct{"foobar"},
-			errfn: testutil.NoError(),
+			errfn: errtest.NoError(),
 		},
 		{
 			name: "snappy+base64",
@@ -47,7 +47,7 @@ func TestDeserializerReadString(t *testing.T) {
 			in:    "/wYAAHNOYVBwWQEIAABlyOH6AAAABgEKAACWBYFbZm9vYmFy",
 			msgfn: func() TStruct { return &stringTStruct{} },
 			out:   &stringTStruct{"foobar"},
-			errfn: testutil.NoError(),
+			errfn: errtest.NoError(),
 		},
 		{
 			name: "snappy",
@@ -57,7 +57,7 @@ func TestDeserializerReadString(t *testing.T) {
 			},
 			msgfn: func() TStruct { return &stringTStruct{} },
 			out:   &stringTStruct{"foobar"},
-			errfn: testutil.NoError(),
+			errfn: errtest.NoError(),
 			in:    "\xff\x06\x00\x00sNaPpY\x01\f\x00\x00\xff\x12\xfd\\\"foobar\"",
 		},
 	} {
@@ -68,7 +68,7 @@ func TestDeserializerReadString(t *testing.T) {
 
 			err := s.ReadString(msg, tt.in)
 
-			tt.errfn(t, err)
+			tt.errfn.Assert(t, err)
 			assert.Equal(t, tt.out, msg)
 		})
 	}
