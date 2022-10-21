@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/upfluence/errors"
+	"github.com/upfluence/errors/multi"
 )
 
 func TestWaitGroup(t *testing.T) {
@@ -20,9 +21,7 @@ func TestWaitGroup(t *testing.T) {
 
 	err := g.Wait()
 
-	merr, ok := err.(interface{ Errors() []error })
-
-	if !ok || len(merr.Errors()) != 2 {
+	if errs := multi.ExtractErrors(err); len(errs) != 2 {
 		t.Errorf("Wait() = %v, wanted MultiError([%v, %v])", err, err1, err2)
 	}
 }
