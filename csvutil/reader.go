@@ -1,4 +1,4 @@
-package csv
+package csvutil
 
 import (
 	"context"
