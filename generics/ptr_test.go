@@ -21,6 +21,7 @@ func TestReferenceSlice(t *testing.T) {
 		i = 1
 		j = 2
 	)
+
 	assert.Equal(
 		t,
 		[]*int{&i, &j},
@@ -33,6 +34,7 @@ func TestIndirectSlice(t *testing.T) {
 		i = 1
 		j = 2
 	)
+
 	assert.Equal(
 		t,
 		[]int{i, j},
