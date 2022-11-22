@@ -18,3 +18,13 @@ func ReferenceSlice[T comparable](s []T) []*T {
 
 	return r
 }
+
+func IndirectSlice[T comparable](s []*T) []T {
+	var r = make([]T, len(s))
+
+	for i, v := range s {
+		r[i] = *v
+	}
+
+	return r
+}
