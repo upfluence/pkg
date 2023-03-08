@@ -40,7 +40,10 @@ require (
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 )
 
-require github.com/upfluence/cfg v0.2.4
+require (
+	github.com/upfluence/cfg v0.2.4
+	golang.org/x/term v0.6.0
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -59,7 +62,7 @@ require (
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/multierr v1.5.0 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
-	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1 // indirect
+	golang.org/x/sys v0.6.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
