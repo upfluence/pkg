@@ -2,7 +2,7 @@ package levenshtein
 
 import "unicode/utf8"
 
-// DistanceCalculator is the levenshtein distance calculator interface
+// DistanceCalculator is the levenshtein distance calculator interface.
 type DistanceCalculator interface {
 	// Dist calculates levenshtein distance between two utf-8 encoded strings
 	Dist(string, string) int
@@ -22,9 +22,11 @@ type calculator struct {
 func (c *calculator) Dist(s1, s2 string) int {
 	l := utf8.RuneCountInString(s1)
 	m := make([]int, l+1)
+
 	for i := 1; i <= l; i++ {
 		m[i] = i * c.indel
 	}
+
 	lastdiag, x, y := 0, 1, 1
 	for _, rx := range s2 {
 		m[0], lastdiag, y = x*c.indel, (x-1)*c.indel, 1
@@ -34,6 +36,7 @@ func (c *calculator) Dist(s1, s2 string) int {
 		}
 		x++
 	}
+
 	return m[l]
 }
 
@@ -41,6 +44,7 @@ func (c *calculator) subCost(r1, r2 rune) int {
 	if r1 == r2 {
 		return 0
 	}
+
 	return c.sub
 }
 
@@ -60,6 +64,7 @@ func min(a, b int) int {
 	if a < b {
 		return a
 	}
+
 	return b
 }
 
