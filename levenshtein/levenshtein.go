@@ -27,7 +27,9 @@ func (c *calculator) Dist(s1, s2 string) int {
 		m[i] = i * c.indel
 	}
 
-	lastdiag, x, y := 0, 1, 1
+	var y int
+
+	lastdiag, x := 0, 1
 	for _, rx := range s2 {
 		m[0], lastdiag, y = x*c.indel, (x-1)*c.indel, 1
 		for _, ry := range s1 {
