@@ -1,16 +1,16 @@
-package levenshtein
+package stringutil
 
 import "unicode/utf8"
 
 // DistanceCalculator is the levenshtein distance calculator interface.
 type DistanceCalculator interface {
-	// Dist calculates levenshtein distance between two utf-8 encoded strings
-	Dist(string, string) int
+	// LevenshteinDist calculates levenshtein distance between two utf-8 encoded strings
+	LevenshteinDist(string, string) int
 }
 
-// NewDistanceCalculator creates a new levenshtein distance calculator where indel is increment/deletion cost
+// NewLevenshteinDistanceCalculator creates a new levenshtein distance calculator where indel is increment/deletion cost
 // and sub is the substitution cost.
-func NewDistanceCalculator(indel, sub int) DistanceCalculator {
+func NewLevenshteinDistanceCalculator(indel, sub int) DistanceCalculator {
 	return &calculator{indel, sub}
 }
 
@@ -19,7 +19,7 @@ type calculator struct {
 }
 
 // https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C
-func (c *calculator) Dist(s1, s2 string) int {
+func (c *calculator) LevenshteinDist(s1, s2 string) int {
 	l := utf8.RuneCountInString(s1)
 	m := make([]int, l+1)
 
@@ -70,9 +70,9 @@ func min(a, b int) int {
 	return b
 }
 
-var defaultCalculator = NewDistanceCalculator(1, 1)
+var defaultCalculator = NewLevenshteinDistanceCalculator(1, 1)
 
-// Dist is a convenience function for a levenshtein distance calculator with equal costs.
-func Dist(s1, s2 string) float64 {
-	return float64(defaultCalculator.Dist(s1, s2)) / float64(max(len(s1), len(s2)))
+// LevenshteinDist is a convenience function for a levenshtein distance calculator with equal costs.
+func LevenshteinDist(s1, s2 string) float64 {
+	return float64(defaultCalculator.LevenshteinDist(s1, s2)) / float64(max(len(s1), len(s2)))
 }
