@@ -93,7 +93,6 @@ func TestLevenshteinDist(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-
 			res := LevenshteinDist(tt.s1, tt.s2)
 			assert.InDelta(t, tt.want, res, 0.01)
 		})
