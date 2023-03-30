@@ -2,6 +2,7 @@ package executor
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -105,8 +106,13 @@ func (e *Executor) Execute(ctx context.Context) error {
 				wg.Done()
 				return
 			case <-t.C():
-				if kerr := le.KeepAlive(ctx, e.deadline()); kerr != nil {
-					log.WithError(kerr).Error("cant renew lock")
+				if kerr := le.KeepAlive(
+					ctx,
+					e.deadline(),
+				); kerr != nil && !errors.Is(kerr, context.Canceled) {
+					log.WithContext(ctx).WithError(
+						kerr,
+					).Error("cant renew lock")
 				}
 			}
 
@@ -118,8 +124,10 @@ func (e *Executor) Execute(ctx context.Context) error {
 
 	cancel()
 
-	if rerr := le.Release(ctx); rerr != nil {
-		log.WithError(rerr).Error("cant release lock")
+	if rerr := le.Release(
+		ctx,
+	); rerr != nil && !errors.Is(rerr, context.Canceled) {
+		log.WithContext(ctx).WithError(rerr).Error("cant release lock")
 	}
 
 	wg.Wait()
