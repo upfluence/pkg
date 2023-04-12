@@ -49,6 +49,8 @@ type lockImpl struct {
 	cnt int32
 }
 
+func (l *lockImpl) String() string { return l.n }
+
 func (l *lockImpl) Acquire(ctx context.Context, opts lock.AcquireOptions) (lock.Lease, error) {
 	if time.Since(opts.Deadline) > 0 {
 		return nil, lock.ErrPastTime

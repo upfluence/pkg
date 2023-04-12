@@ -2,12 +2,9 @@ package executor
 
 import (
 	"context"
-	"errors"
-	"sync"
 	"time"
 
 	"github.com/upfluence/pkg/lock"
-	"github.com/upfluence/pkg/log"
 	"github.com/upfluence/pkg/timeutil"
 )
 
@@ -55,82 +52,14 @@ func WithNoWait(w bool) ExecutorOption {
 }
 
 type Executor struct {
-	l lock.Lock
-	t Task
-
-	executorOptions
+	tw *TaskWrapper
+	t  Task
 }
 
 func NewExecutor(l lock.Lock, t Task, opts ...ExecutorOption) *Executor {
-	var e = Executor{l: l, t: t, executorOptions: defaultExecutorOptions}
-
-	for _, opt := range opts {
-		opt(&e.executorOptions)
-	}
-
-	return &e
+	return &Executor{t: t, tw: NewTaskWrapper(l, opts...)}
 }
 
 func (e *Executor) Execute(ctx context.Context) error {
-	var (
-		wg sync.WaitGroup
-
-		le, err      = e.l.Acquire(ctx, e.acquireOptions())
-		cctx, cancel = context.WithCancel(ctx)
-	)
-
-	if err != nil {
-		cancel()
-		return err
-	}
-
-	wg.Add(2)
-
-	go func() {
-		select {
-		case <-le.Done():
-			cancel()
-		case <-cctx.Done():
-		}
-
-		wg.Done()
-	}()
-
-	go func() {
-		t := e.clock.Timer(e.renewInterval)
-
-		for {
-			select {
-			case <-cctx.Done():
-				t.Stop()
-				wg.Done()
-				return
-			case <-t.C():
-				if kerr := le.KeepAlive(
-					ctx,
-					e.deadline(),
-				); kerr != nil && !errors.Is(kerr, context.Canceled) {
-					log.WithContext(ctx).WithError(
-						kerr,
-					).Error("cant renew lock")
-				}
-			}
-
-			t.Reset(e.renewInterval)
-		}
-	}()
-
-	err = e.t(cctx)
-
-	cancel()
-
-	if rerr := le.Release(
-		ctx,
-	); rerr != nil && !errors.Is(rerr, context.Canceled) {
-		log.WithContext(ctx).WithError(rerr).Error("cant release lock")
-	}
-
-	wg.Wait()
-
-	return err
+	return e.tw.Execute(ctx, e.t)
 }

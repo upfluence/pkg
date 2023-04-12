@@ -31,6 +31,8 @@ type lockImpl struct {
 	lm *LockManager
 }
 
+func (l *lockImpl) String() string { return l.n }
+
 func (l *lockImpl) Acquire(ctx context.Context, opts lock.AcquireOptions) (lock.Lease, error) {
 	return l.lm.acquire(ctx, l.n, opts)
 }

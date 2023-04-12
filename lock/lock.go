@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	ErrPastTime        = errors.New("lock: Deadline is in the past")
-	ErrAlreadyAcquired = errors.New("lock: Lock already acquired")
+	ErrPastTime        = errors.New("Deadline is in the past")
+	ErrAlreadyAcquired = errors.New("Lock already acquired")
+	ErrLeaseNotFound   = errors.New("Lease not found")
 )
 
 type OpType uint8
