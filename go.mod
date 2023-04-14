@@ -1,6 +1,6 @@
 module github.com/upfluence/pkg
 
-go 1.18
+go 1.20
 
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
@@ -31,20 +31,15 @@ require (
 	github.com/prometheus/procfs v0.1.3 // indirect
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.6.1
+	github.com/upfluence/cfg v0.2.4
 	github.com/upfluence/errors v0.2.4
 	github.com/upfluence/log v0.0.3
 	github.com/upfluence/stats v0.0.0-20200119200538-5dd0f0409179
 	github.com/upfluence/thrift v2.0.11+incompatible
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
+	golang.org/x/term v0.6.0
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
-)
-
-require (
-	github.com/upfluence/cfg v0.2.4
-	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
-	golang.org/x/net v0.0.0-20200625001655-4c5254603344
-	golang.org/x/term v0.6.0
 )
 
 require (
@@ -56,6 +51,7 @@ require (
 	github.com/getsentry/sentry-go v0.9.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gofrs/uuid v4.1.0+incompatible // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -63,6 +59,7 @@ require (
 	github.com/prometheus/common v0.10.0 // indirect
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/multierr v1.5.0 // indirect
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
