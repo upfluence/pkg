@@ -10,15 +10,15 @@ func Pointer[T comparable](v T) *T {
 
 // ReferenceSlice returns slice with the value of the slice in params as
 // pointers.
-// Deprecated
-// Use slices.References instead
+// Deprecated.
+// Use slices.References instead.
 func ReferenceSlice[T comparable](s []T) []*T {
 	return slices.References(s)
 }
 
 // IndirectSlice
-// Deprecated
-// Use slices.Indirect instead
+// Deprecated.
+// Use slices.Indirect instead.
 func IndirectSlice[T comparable](s []*T) []T {
 	return slices.Indirect(s)
 }
