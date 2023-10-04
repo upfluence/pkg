@@ -16,6 +16,14 @@ func TestPointer(t *testing.T) {
 	)
 }
 
+func TestNullablePtr(t *testing.T) {
+	assert.Equal(t, *NullablePtr[int](-5), -5)
+	assert.Equal(t, NullablePtr[int](0), (*int)(nil))
+
+	assert.Equal(t, *NullablePtr[string]("string"), "string")
+	assert.Equal(t, NullablePtr[string](""), (*string)(nil))
+}
+
 func TestReferenceSlice(t *testing.T) {
 	var (
 		i = 1
