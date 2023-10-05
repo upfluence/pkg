@@ -1,10 +1,6 @@
-//go:build go1.18
-
-package generics
+package slices
 
 // Unique creates a map with keys being the values of a slice
-// Deprecated
-// Use slices.Unique
 func Unique[T comparable](s []T) map[T]struct{} {
 	var m = make(map[T]struct{}, len(s))
 
@@ -17,8 +13,6 @@ func Unique[T comparable](s []T) map[T]struct{} {
 
 // UniquePtr creates a map with keys being the de-referenced value of a pointer
 // contained in a slice. Nil ptr are ignored.
-// Deprecated.
-// Use slices.UniquePtr
 func UniquePtr[T comparable](s []*T) map[T]struct{} {
 	var m = make(map[T]struct{}, len(s))
 

@@ -1,13 +1,19 @@
 //go:build go1.18
 
+// Package generics
+// Deprecated
 package generics
 
 import "github.com/upfluence/pkg/slices"
 
+// Pointer pointers
+// Deprecated. Use pointers.Ptr
 func Pointer[T comparable](v T) *T {
 	return &v
 }
 
+// NullablePtr return nil if the value is zero
+// Deprecated. Use pointers.NullablePtr
 func NullablePtr[T comparable](v T) *T {
 	var zero T
 
