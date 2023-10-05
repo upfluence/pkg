@@ -1,6 +1,6 @@
 package stringutil
 
-// Deprecated: Prefer using generics.NullablePtr().
+// Deprecated: Use generics.NullablePtr instead.
 func NullablePtr(s string) *string {
 	if s == "" {
 		return nil
