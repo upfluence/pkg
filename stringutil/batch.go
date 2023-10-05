@@ -1,5 +1,6 @@
 package stringutil
 
+// Deprecated: Use generics.Batch instead.
 func Batch(slice []string, size int) [][]string {
 	if len(slice) == 0 {
 		return nil
