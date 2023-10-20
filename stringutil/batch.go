@@ -1,6 +1,6 @@
 package stringutil
 
-// Deprecated: Use generics.Batch instead.
+// Deprecated: Use slices.Batch.
 func Batch(slice []string, size int) [][]string {
 	if len(slice) == 0 {
 		return nil
