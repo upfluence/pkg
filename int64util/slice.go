@@ -19,6 +19,7 @@ func (s Slice) ToSet() *Set {
 	return &res
 }
 
+// Deprecated: Consider using slices.Sort, slices.Index and upfluence/pkg/slices functions.
 func ToSlice(int64s []int64) Slice {
 	var s = Slice(int64s)
 
