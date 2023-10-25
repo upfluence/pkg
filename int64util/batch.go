@@ -1,6 +1,6 @@
 package int64util
 
-// Deprecated: Use generics.Batch instead.
+// Deprecated: Use slices.Batch.
 func Batch(slice []int64, size int) [][]int64 {
 	if len(slice) == 0 {
 		return nil
