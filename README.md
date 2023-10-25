@@ -23,7 +23,7 @@ Fetches custom values from environment variables, or default values if they don'
 
 ### `pkg/currency`
 
-Abstracts the money type and provides an up-do-date euro conversion rate.
+Abstracts the money type and provides an interface, a default implementation (based on the EU central bank API) and helpers to exchange amounts of money to various currencies
 
 ### `pkg/slices`
 
