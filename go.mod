@@ -13,7 +13,6 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/garyburd/redigo v1.6.4
 	github.com/gocql/gocql v1.6.0
-	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/inflection v1.0.1-0.20231016084002-bbe0a3e7399f // indirect
@@ -22,7 +21,6 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mattes/migrate v3.0.2-0.20180508041624-4768a648fbd9+incompatible
 	github.com/mattn/go-sqlite3 v1.14.17
-	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.17.0
@@ -47,10 +45,8 @@ require (
 	github.com/coreos/bbolt v1.3.4 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/denisenkom/go-mssqldb v0.11.0 // indirect
-	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/getsentry/sentry-go v0.25.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
-	github.com/gofrs/uuid v4.1.0+incompatible // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
