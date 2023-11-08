@@ -1,6 +1,7 @@
 package error_logger
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -36,23 +37,62 @@ func (rw *reporterWrapper) Capture(err error, tags map[string]interface{}) error
 	return nil
 }
 
+func (rw *reporterWrapper) WhitelistTag(fns ...func(string) bool) {
+	rw.r.WhitelistTag(fns...)
+}
+
 func (rw *reporterWrapper) Close() { _ = rw.r.Close() }
+
+type TagWhitelister interface {
+	WhitelistTag(...func(string) bool)
+}
+
+type noopTagWhitelister struct{}
+
+func (noopTagWhitelister) WhitelistTag(...func(string) bool) {}
+
+type ErrorIgnorer interface {
+	AddErrorInhibitors(...inhibit.ErrorInhibitor)
+}
 
 type Reporter interface {
 	reporter.Reporter
+	TagWhitelister
+	ErrorIgnorer
+}
 
-	AddErrorInhibitors(...inhibit.ErrorInhibitor)
+type reporterImpl struct {
+	reporter.Reporter
+	TagWhitelister
+	ErrorIgnorer
+}
+
+func expandReporter(r reporter.Reporter) Reporter {
+	impl := reporterImpl{Reporter: r, TagWhitelister: noopTagWhitelister{}}
+
+	if tw, ok := r.(TagWhitelister); ok {
+		impl.TagWhitelister = tw
+	}
+
+	if ei, ok := r.(ErrorIgnorer); ok {
+		impl.ErrorIgnorer = ei
+	} else {
+		impl.ErrorIgnorer = inhibit.NewReporter(r)
+	}
+
+	return &impl
 }
 
 type ErrorLogger interface {
 	IgnoreErrors(...func(error) bool)
+	WhitelistTag(...func(string) bool)
 	Capture(error, map[string]interface{}) error
 
 	Close()
 }
 
 func init() {
-	DefaultReporter = inhibit.NewReporter(buildReporter())
+	DefaultReporter = expandReporter(buildReporter())
 	DefaultErrorLogger = &reporterWrapper{r: DefaultReporter}
 
 	if e := recover(); e != nil {
@@ -107,6 +147,7 @@ func (spo *sentryPeerOption) apply(opts *sentry.Options) {
 		spo.p.ProjectName,
 		spo.p.Version.String(),
 	)
+
 	opts.SentryOptions.Environment = spo.p.Environment
 }
 
@@ -121,5 +162,5 @@ func Close() {
 }
 
 func IgnoreError(err error) func(error) bool {
-	return func(e error) bool { return e == err }
+	return func(e error) bool { return errors.Is(e, err) }
 }
