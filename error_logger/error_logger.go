@@ -77,7 +77,10 @@ func expandReporter(r reporter.Reporter) Reporter {
 	if ei, ok := r.(ErrorIgnorer); ok {
 		impl.ErrorIgnorer = ei
 	} else {
-		impl.ErrorIgnorer = inhibit.NewReporter(r)
+		eir := inhibit.NewReporter(r)
+
+		impl.ErrorIgnorer = eir
+		impl.Reporter = eir
 	}
 
 	return &impl
