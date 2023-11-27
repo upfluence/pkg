@@ -8,7 +8,7 @@ import (
 )
 
 type Clock struct {
-	sync.RWMutex
+	mu sync.RWMutex
 
 	now time.Time
 
@@ -17,15 +17,15 @@ type Clock struct {
 }
 
 func (c *Clock) MoveTo(t time.Time) {
-	c.Lock()
+	c.mu.Lock()
 	c.moveTo(t)
-	c.Unlock()
+	c.mu.Unlock()
 }
 
 func (c *Clock) MoveBy(d time.Duration) {
-	c.Lock()
+	c.mu.Lock()
 	c.moveTo(c.now.Add(d))
-	c.Unlock()
+	c.mu.Unlock()
 }
 
 func (c *Clock) moveTo(n time.Time) {
@@ -41,7 +41,7 @@ func (c *Clock) moveTo(n time.Time) {
 }
 
 func (c *Clock) newTimer(d time.Duration, fn func()) *timer {
-	c.Lock()
+	c.mu.Lock()
 	t := timer{
 		c:        make(chan time.Time, 1),
 		now:      c.now,
@@ -50,7 +50,7 @@ func (c *Clock) newTimer(d time.Duration, fn func()) *timer {
 	}
 
 	c.timers = append(c.timers, &t)
-	c.Unlock()
+	c.mu.Unlock()
 
 	return &t
 }
@@ -64,7 +64,7 @@ func (c *Clock) TimerFunc(d time.Duration, fn func()) timeutil.Timer {
 }
 
 func (c *Clock) Ticker(d time.Duration) timeutil.Ticker {
-	c.Lock()
+	c.mu.Lock()
 	t := ticker{
 		c: make(chan time.Time, 1),
 		d: d,
@@ -72,15 +72,15 @@ func (c *Clock) Ticker(d time.Duration) timeutil.Ticker {
 	}
 
 	c.tickers = append(c.tickers, &t)
-	c.Unlock()
+	c.mu.Unlock()
 
 	return &t
 }
 
 func (c *Clock) Now() time.Time {
-	c.RLock()
+	c.mu.RLock()
 	t := c.now
-	c.RUnlock()
+	c.mu.RUnlock()
 
 	return t
 }
