@@ -56,6 +56,10 @@ func NewConsumer(opts ...Option) Consumer {
 }
 
 func (c *consumer) QueueName(ctx context.Context) (string, error) {
+	if !c.IsOpen() {
+		return "", ErrCancelled
+	}
+
 	c.queueM.Lock()
 	q := c.queue
 	c.queueM.Unlock()
@@ -101,7 +105,7 @@ func (c *consumer) loop(ctx context.Context) {
 	for {
 		var ok, err = c.consume(ctx)
 
-		if ok || !c.opts.shouldContinueFn(err) {
+		if ok || !c.opts.shouldContinueFn(err) || ctx.Err() != nil {
 			return
 		}
 
@@ -125,6 +129,7 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 		q, errQ := ch.QueueDeclare("", false, true, true, false, nil)
 
 		if errQ != nil {
+			c.opts.pool.Discard(ch)
 			return false, errors.Wrap(errQ, "channel.QueueDeclare")
 		}
 
@@ -149,6 +154,7 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 	)
 
 	if err != nil {
+		c.opts.pool.Discard(ch)
 		return false, errors.Wrap(err, "channel.Consume")
 	}
 
