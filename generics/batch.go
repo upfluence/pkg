@@ -1,6 +1,7 @@
 package generics
 
 // Batch
+//
 // Deprecated: use slices.Batch.
 func Batch[T any](slice []T, size int) [][]T {
 	if len(slice) == 0 {
