@@ -3,7 +3,6 @@ package peer
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/upfluence/pkg/envutil"
