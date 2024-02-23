@@ -2,8 +2,6 @@ package cache
 
 import (
 	"github.com/upfluence/errors"
-	"github.com/upfluence/pkg/maputil"
-	"github.com/upfluence/pkg/sliceutil"
 	"golang.org/x/exp/constraints"
 )
 
@@ -30,9 +28,6 @@ type shardedCache[K comparable, V any] struct {
 
 	kfn  func(K) uint64
 	size uint64
-
-	kp sliceutil.Pool[K]
-	mp maputil.Pool[*lockCache[K, V], []K]
 }
 
 func NewStringCache[V any]() Cache[string, V] {
