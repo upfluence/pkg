@@ -81,7 +81,7 @@ func (p *picker) Pick(ctx context.Context) (*amqp.Connection, error) {
 			ctx,
 			peer,
 			p.peer,
-			p.connectionNamer(len(p.cs)),
+			p.connectionNamer(p.peer, len(p.cs)),
 		)
 
 		if conn != nil {

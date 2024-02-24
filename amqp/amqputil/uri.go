@@ -45,6 +45,7 @@ func Dial(ctx context.Context, p dpeer.Peer, l *lpeer.Peer, name string) (*amqp.
 
 	if name != "" {
 		table["upfluence-connection-name"] = name
+		table["connection_name"] = name
 	}
 
 	return amqp.DialConfig(

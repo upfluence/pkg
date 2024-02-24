@@ -15,8 +15,8 @@ var (
 		Balancer:         defaultBalancer(),
 		peer:             peer.FromEnv(),
 		targetOpenedConn: 1,
-		connectionNamer: func(d int) string {
-			return fmt.Sprintf("connection-instance-%d", d)
+		connectionNamer: func(p *peer.Peer, d int) string {
+			return fmt.Sprintf("%s-%d", p.URL().String(), d)
 		},
 	}
 )
@@ -40,7 +40,7 @@ func WithPeer(p *peer.Peer) Option { return func(o *options) { o.peer = p } }
 
 func WithConnectionNameTemplate(tmpl string) Option {
 	return func(o *options) {
-		o.connectionNamer = func(v int) string { return fmt.Sprintf(tmpl, v) }
+		o.connectionNamer = func(p *peer.Peer, v int) string { return fmt.Sprintf(tmpl, p, v) }
 	}
 }
 
@@ -54,5 +54,5 @@ type options struct {
 	targetOpenedConn int
 
 	peer            *peer.Peer
-	connectionNamer func(int) string
+	connectionNamer func(*peer.Peer, int) string
 }
