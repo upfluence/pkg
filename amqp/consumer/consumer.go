@@ -160,7 +160,7 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 
 	c.queueCond.Broadcast()
 
-	closeCh := make(chan *amqp.Error)
+	closeCh := make(chan *amqp.Error, 1)
 	ch.NotifyClose(closeCh)
 
 	for {
@@ -170,8 +170,11 @@ func (c *consumer) consume(ctx context.Context) (bool, error) {
 			c.queue = ""
 			c.queueM.Unlock()
 
-			ch.Cancel(c.opts.consumerTag, false)
-			c.opts.pool.Put(ch)
+			if err := ch.Cancel(c.opts.consumerTag, false); err != nil {
+				c.opts.pool.Discard(ch)
+			} else {
+				c.opts.pool.Put(ch)
+			}
 
 			return true, ctx.Err()
 		case err := <-closeCh:

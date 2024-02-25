@@ -108,7 +108,7 @@ func (p *poolEntity) IsOpen() bool {
 }
 
 func (p *poolEntity) supervise(ctx context.Context) {
-	var ch = make(chan *amqp.Error)
+	var ch = make(chan *amqp.Error, 1)
 
 	p.NotifyClose(ch)
 	select {

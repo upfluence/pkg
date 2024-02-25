@@ -98,7 +98,7 @@ func (p *picker) Pick(ctx context.Context) (*amqp.Connection, error) {
 }
 
 func (p *picker) supervise(ctx context.Context, conn *amqp.Connection) {
-	var ch = make(chan *amqp.Error)
+	var ch = make(chan *amqp.Error, 1)
 
 	conn.NotifyClose(ch)
 
