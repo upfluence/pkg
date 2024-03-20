@@ -8,8 +8,11 @@ import (
 )
 
 func TestUnixOrNil(t *testing.T) {
-	var n *int64
+	assert.Nil(t, UnixOrNil(time.Time{}))
+	assert.Equal(t, int64(123456), *UnixOrNil(time.Unix(123456, 0)))
+}
 
-	assert.Equal(t, UnixOrNil(time.Time{}), n)
-	assert.Equal(t, *UnixOrNil(time.Unix(123456, 0)), time.Unix(123456, 0).Unix())
+func TestUnixOrZero(t *testing.T) {
+	assert.Equal(t, int64(0), UnixOrZero(time.Time{}))
+	assert.Equal(t, int64(123456), UnixOrZero(time.Unix(123456, 0)))
 }
