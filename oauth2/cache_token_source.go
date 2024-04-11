@@ -2,10 +2,12 @@ package oauth2
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 
+	"github.com/upfluence/errors"
 	"golang.org/x/oauth2"
+
+	"github.com/upfluence/pkg/log"
 )
 
 type CacheTokenSource struct {
@@ -17,44 +19,44 @@ func (cts *CacheTokenSource) Token() (*oauth2.Token, error) {
 	t, err := cts.readToken()
 
 	if err != nil || (t != nil && t.Valid()) {
-		return t, err
+		return t, errors.Wrap(err, "cant read the token")
 	}
 
 	t, err = cts.TokenSource.Token()
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "cant fetch underlying token")
 	}
 
 	if errw := cts.writeToken(t); errw != nil {
-		fmt.Fprintf(os.Stderr, "can not write token cache file: %v\n", errw)
+		log.WithError(err).Errorf("cant write token to %q", cts.Filename)
 	}
 
 	return t, nil
 }
 
 func (cts *CacheTokenSource) writeToken(t *oauth2.Token) error {
-	f, err := os.OpenFile(cts.Filename, os.O_RDWR|os.O_CREATE, 0644)
+	buf, err := json.Marshal(t)
 
 	if err != nil {
-		return err
+		return errors.Wrap(err, "cant marshal token")
 	}
 
-	return json.NewEncoder(f).Encode(t)
+	return os.WriteFile(cts.Filename, buf, 0644)
 }
 
 func (cts *CacheTokenSource) readToken() (*oauth2.Token, error) {
-	f, err := os.Open(cts.Filename)
+	buf, err := os.ReadFile(cts.Filename)
 
-	if os.IsNotExist(err) {
+	switch {
+	case err == nil:
+	case os.IsNotExist(err):
 		return nil, nil
-	}
-
-	if err != nil {
+	default:
 		return nil, err
 	}
 
 	var t oauth2.Token
 
-	return &t, json.NewDecoder(f).Decode(&t)
+	return &t, errors.Wrap(json.Unmarshal(buf, &t), "cant unmarshal token")
 }
