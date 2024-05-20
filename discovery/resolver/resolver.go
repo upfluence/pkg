@@ -9,18 +9,18 @@ import (
 	"github.com/upfluence/pkg/discovery/peer"
 )
 
-type Update struct {
-	Additions []peer.Peer
-	Deletions []peer.Peer
+type Update[T peer.Peer] struct {
+	Additions []T
+	Deletions []T
 }
 
-type Builder interface {
-	Build(string) Resolver
+type Builder[T peer.Peer] interface {
+	Build(string) Resolver[T]
 }
 
-type BuilderFunc func(string) Resolver
+type BuilderFunc[T peer.Peer] func(string) Resolver[T]
 
-func (fn BuilderFunc) Build(k string) Resolver { return fn(k) }
+func (fn BuilderFunc[T]) Build(k string) Resolver[T] { return fn(k) }
 
 var (
 	ErrNoUpdates = errors.New("discovery/resolver: No update available")
@@ -31,16 +31,16 @@ type ResolveOptions struct {
 	NoWait bool
 }
 
-type Resolver interface {
+type Resolver[T peer.Peer] interface {
 	io.Closer
 
 	Open(context.Context) error
 
-	Resolve() Watcher
+	Resolve() Watcher[T]
 }
 
-type Watcher interface {
+type Watcher[T peer.Peer] interface {
 	io.Closer
 
-	Next(context.Context, ResolveOptions) (Update, error)
+	Next(context.Context, ResolveOptions) (Update[T], error)
 }

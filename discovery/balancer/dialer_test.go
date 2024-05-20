@@ -30,10 +30,10 @@ func TestDialer(t *testing.T) {
 		[]string{s1.Listener.Addr().String(), s2.Listener.Addr().String()},
 	)
 
-	d := balancer.Dialer{
-		Builder: balancer.ResolverBuilder{
+	d := balancer.Dialer[static.Peer]{
+		Builder: balancer.ResolverBuilder[static.Peer]{
 			Builder:      r,
-			BalancerFunc: roundrobin.BalancerFunc,
+			BalancerFunc: roundrobin.BalancerFunc[static.Peer],
 		},
 	}
 

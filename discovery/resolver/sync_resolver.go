@@ -9,36 +9,36 @@ import (
 	"github.com/upfluence/pkg/discovery/peer"
 )
 
-type SyncResolver interface {
-	ResolveSync(context.Context, string) ([]peer.Peer, error)
+type SyncResolver[T peer.Peer] interface {
+	ResolveSync(context.Context, string) ([]T, error)
 	Close() error
 }
 
-func SyncResolverFromBuilder(b Builder, noWait bool) SyncResolver {
-	return &syncResolver{
+func SyncResolverFromBuilder[T peer.Peer](b Builder[T], noWait bool) SyncResolver[T] {
+	return &syncResolver[T]{
 		builder: b,
 		noWait:  noWait,
-		lrs:     make(map[string]*localResolver),
+		lrs:     make(map[string]*localResolver[T]),
 	}
 }
 
-type syncResolver struct {
-	builder Builder
+type syncResolver[T peer.Peer] struct {
+	builder Builder[T]
 	noWait  bool
 
 	mu  sync.Mutex
-	lrs map[string]*localResolver
+	lrs map[string]*localResolver[T]
 }
 
-func (sr *syncResolver) ResolveSync(ctx context.Context, n string) ([]peer.Peer, error) {
+func (sr *syncResolver[T]) ResolveSync(ctx context.Context, n string) ([]T, error) {
 	sr.mu.Lock()
 
 	lr, ok := sr.lrs[n]
 
 	if !ok {
-		lr = &localResolver{readyc: make(chan struct{})}
+		lr = &localResolver[T]{readyc: make(chan struct{})}
 
-		lr.p = &Puller{
+		lr.p = &Puller[T]{
 			Resolver:   sr.builder.Build(n),
 			UpdateFunc: lr.update,
 			NoWait:     sr.noWait,
@@ -58,7 +58,7 @@ func (sr *syncResolver) ResolveSync(ctx context.Context, n string) ([]peer.Peer,
 	return lr.resolve(ctx)
 }
 
-func (sr *syncResolver) Close() error {
+func (sr *syncResolver[T]) Close() error {
 	var errs []error
 
 	sr.mu.Lock()
@@ -75,21 +75,21 @@ func (sr *syncResolver) Close() error {
 	return errors.WrapErrors(errs)
 }
 
-type localResolver struct {
-	p *Puller
+type localResolver[T peer.Peer] struct {
+	p *Puller[T]
 
 	readyOnce sync.Once
 	readyc    chan struct{}
 
 	mu sync.RWMutex
-	ps map[string]peer.Peer
+	ps map[string]T
 }
 
-func (lr *localResolver) update(u Update) {
+func (lr *localResolver[T]) update(u Update[T]) {
 	lr.mu.Lock()
 
 	if lr.ps == nil {
-		lr.ps = make(map[string]peer.Peer)
+		lr.ps = make(map[string]T)
 	}
 
 	for _, p := range u.Deletions {
@@ -109,11 +109,11 @@ func (lr *localResolver) update(u Update) {
 	lr.readyOnce.Do(func() { close(lr.readyc) })
 }
 
-func (lr *localResolver) close() error {
+func (lr *localResolver[T]) close() error {
 	return errors.Combine(lr.p.Close())
 }
 
-func (lr *localResolver) resolve(ctx context.Context) ([]peer.Peer, error) {
+func (lr *localResolver[T]) resolve(ctx context.Context) ([]T, error) {
 	if !lr.p.IsOpen() {
 		return nil, ErrClose
 	}
@@ -126,7 +126,7 @@ func (lr *localResolver) resolve(ctx context.Context) ([]peer.Peer, error) {
 
 	lr.mu.RLock()
 
-	ps := make([]peer.Peer, 0, len(lr.ps))
+	ps := make([]T, 0, len(lr.ps))
 
 	for _, p := range lr.ps {
 		ps = append(ps, p)
