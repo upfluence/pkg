@@ -1,8 +1,6 @@
 package peer
 
-import "github.com/upfluence/pkg/metadata"
-
 type Peer interface {
+	comparable
 	Addr() string
-	Metadata() metadata.Metadata
 }

@@ -15,23 +15,23 @@ type GetOptions struct {
 	NoWait bool
 }
 
-type Builder interface {
-	Build(string) Balancer
+type Builder[T peer.Peer] interface {
+	Build(string) Balancer[T]
 }
 
-type ResolverBuilder struct {
-	Builder      resolver.Builder
-	BalancerFunc func(resolver.Resolver) Balancer
+type ResolverBuilder[T peer.Peer] struct {
+	Builder      resolver.Builder[T]
+	BalancerFunc func(resolver.Resolver[T]) Balancer[T]
 }
 
-func (rb ResolverBuilder) Build(k string) Balancer {
+func (rb ResolverBuilder[T]) Build(k string) Balancer[T] {
 	return rb.BalancerFunc(rb.Builder.Build(k))
 }
 
-type Balancer interface {
+type Balancer[T peer.Peer] interface {
 	Open(context.Context) error
 	IsOpen() bool
 	Close() error
 
-	Get(context.Context, GetOptions) (peer.Peer, error)
+	Get(context.Context, GetOptions) (T, func(error), error)
 }
