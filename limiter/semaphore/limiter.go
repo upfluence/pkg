@@ -12,10 +12,11 @@ type Limiter struct {
 	mu   sync.Mutex
 
 	remaining int
+	size      int
 }
 
 func NewLimiter(size int) *Limiter {
-	var l = Limiter{remaining: size}
+	var l = Limiter{remaining: size, size: size}
 
 	l.cond = sync.NewCond(&l.mu)
 
@@ -28,6 +29,18 @@ func (l *Limiter) release(n int) {
 
 	l.remaining += n
 	l.cond.Broadcast()
+}
+
+func (l *Limiter) Update(size int) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.remaining += size - l.size
+	l.size = size
+
+	if l.remaining > 0 {
+		l.cond.Broadcast()
+	}
 }
 
 func (l *Limiter) Allow(ctx context.Context, opts limiter.AllowOptions) (limiter.DoneFunc, error) {

@@ -17,23 +17,31 @@ type Config struct {
 	Burst    int
 }
 
+func (c Config) burst() int {
+	if c.Burst == 0 {
+		return c.Baseline
+	}
+
+	return c.Burst
+}
+
+func (c Config) limit() rate.Limit {
+	return rate.Limit(float64(c.Baseline) / float64(c.Period.Seconds()))
+}
+
 type Limiter struct {
 	l *rate.Limiter
 }
 
 func NewLimiter(c Config) *Limiter {
-	burst := c.Burst
-
-	if burst == 0 {
-		burst = c.Baseline
-	}
-
 	return &Limiter{
-		l: rate.NewLimiter(
-			rate.Limit(float64(c.Baseline)/float64(c.Period.Seconds())),
-			burst,
-		),
+		l: rate.NewLimiter(c.limit(), c.burst()),
 	}
+}
+
+func (l *Limiter) Update(c Config) {
+	l.l.SetBurst(c.burst())
+	l.l.SetLimit(c.limit())
 }
 
 func (l *Limiter) Allow(ctx context.Context, opts limiter.AllowOptions) (limiter.DoneFunc, error) {
