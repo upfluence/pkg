@@ -2,6 +2,7 @@ package semaphore
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/upfluence/pkg/limiter"
@@ -21,6 +22,10 @@ func NewLimiter(size int) *Limiter {
 	l.cond = sync.NewCond(&l.mu)
 
 	return &l
+}
+
+func (l *Limiter) String() string {
+	return fmt.Sprintf("limiter/semaphore: [size: %d, remaining: %d]", l.size, l.remaining)
 }
 
 func (l *Limiter) release(n int) {

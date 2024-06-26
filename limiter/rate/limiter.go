@@ -2,6 +2,7 @@ package rate
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"golang.org/x/time/rate"
@@ -37,6 +38,10 @@ func NewLimiter(c Config) *Limiter {
 	return &Limiter{
 		l: rate.NewLimiter(c.limit(), c.burst()),
 	}
+}
+
+func (l *Limiter) String() string {
+	return fmt.Sprintf("limiter/rate: [limit: %v, burst: %v, tokens: %d]", l.l.Limit(), l.l.Burst(), int(l.l.Tokens()))
 }
 
 func (l *Limiter) Update(c Config) {
