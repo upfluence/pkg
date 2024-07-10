@@ -97,5 +97,7 @@ func (l *Limiter) Allow(ctx context.Context, opts limiter.AllowOptions) (limiter
 	close(done)
 	wg.Wait()
 
+	l.remaining -= opts.N
+
 	return donefn, nil
 }
