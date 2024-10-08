@@ -1,6 +1,6 @@
 module github.com/upfluence/pkg
 
-go 1.21
+go 1.23
 
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
@@ -33,8 +33,9 @@ require (
 	github.com/upfluence/log v0.0.5
 	github.com/upfluence/stats v0.1.4
 	github.com/upfluence/thrift v2.4.4+incompatible
+	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
 	golang.org/x/oauth2 v0.19.0
-	golang.org/x/sync v0.4.0
+	golang.org/x/sync v0.8.0
 	golang.org/x/term v0.13.0
 	golang.org/x/text v0.13.0
 	golang.org/x/time v0.3.0
