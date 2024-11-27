@@ -260,12 +260,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Bosnia and Herzegovina",
-			Alpha2:      "BA",
-			Alpha3:      "BIH",
-			Numeric:     70,
-			DialingCode: "+387",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Bosnia and Herzegovina",
+			Alpha2:         "BA",
+			Alpha3:         "BIH",
+			Numeric:        70,
+			DialingCode:    "+387",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"Bosnia & Herzegovina"},
 		},
 
 		/**
@@ -386,12 +387,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Saint Barth\u00E9lemy",
-			Alpha2:      "BL",
-			Alpha3:      "BLM",
-			Numeric:     652,
-			DialingCode: "+590",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Saint Barth\u00E9lemy",
+			Alpha2:         "BL",
+			Alpha3:         "BLM",
+			Numeric:        652,
+			DialingCode:    "+590",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"St. Barth\u00E9lemy"},
 		},
 
 		/**
@@ -1453,12 +1455,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Hong Kong",
-			Alpha2:      "HK",
-			Alpha3:      "HKG",
-			Numeric:     344,
-			DialingCode: "+852",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Hong Kong",
+			Alpha2:         "HK",
+			Alpha3:         "HKG",
+			Numeric:        344,
+			DialingCode:    "+852",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"HongKong"},
 		},
 
 		/**
@@ -1649,12 +1652,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Iran, Islamic Republic of",
-			Alpha2:      "IR",
-			Alpha3:      "IRN",
-			Numeric:     364,
-			DialingCode: "+98",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Iran, Islamic Republic of",
+			Alpha2:         "IR",
+			Alpha3:         "IRN",
+			Numeric:        364,
+			DialingCode:    "+98",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"Iran"},
 		},
 
 		/**
@@ -1843,12 +1847,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Korea, Republic of",
-			Alpha2:      "KR",
-			Alpha3:      "KOR",
-			Numeric:     410,
-			DialingCode: "+82",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Korea, Republic of",
+			Alpha2:         "KR",
+			Alpha3:         "KOR",
+			Numeric:        410,
+			DialingCode:    "+82",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"South Korea"},
 		},
 
 		/**
@@ -2109,12 +2114,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Saint Martin (French part)",
-			Alpha2:      "MF",
-			Alpha3:      "MAF",
-			Numeric:     663,
-			DialingCode: "+590",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Saint Martin (French part)",
+			Alpha2:         "MF",
+			Alpha3:         "MAF",
+			Numeric:        663,
+			DialingCode:    "+590",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"Saint Martin"},
 		},
 
 		/**
@@ -2825,12 +2831,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Russian Federation",
-			Alpha2:      "RU",
-			Alpha3:      "RUS",
-			Numeric:     643,
-			DialingCode: "+7",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Russian Federation",
+			Alpha2:         "RU",
+			Alpha3:         "RUS",
+			Numeric:        643,
+			DialingCode:    "+7",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"Russia"},
 		},
 
 		/**
@@ -3363,12 +3370,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Turkey",
-			Alpha2:      "TR",
-			Alpha3:      "TUR",
-			Numeric:     792,
-			DialingCode: "+90",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Turkey",
+			Alpha2:         "TR",
+			Alpha3:         "TUR",
+			Numeric:        792,
+			DialingCode:    "+90",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"Türkiye"},
 		},
 
 		/**
@@ -3405,12 +3413,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Taiwan, Province of China",
-			Alpha2:      "TW",
-			Alpha3:      "TWN",
-			Numeric:     158,
-			DialingCode: "+886",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Taiwan, Province of China",
+			Alpha2:         "TW",
+			Alpha3:         "TWN",
+			Numeric:        158,
+			DialingCode:    "+886",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"Taiwan"},
 		},
 
 		/**
@@ -3419,12 +3428,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Tanzania, United Republic of",
-			Alpha2:      "TZ",
-			Alpha3:      "TZA",
-			Numeric:     834,
-			DialingCode: "+255",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Tanzania, United Republic of",
+			Alpha2:         "TZ",
+			Alpha3:         "TZA",
+			Numeric:        834,
+			DialingCode:    "+255",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"Tanzania"},
 		},
 
 		/**
@@ -3461,12 +3471,13 @@ var (
 		 * Exceptionally reserved]
 		 */
 		CountryCode{
-			Name:        "United Kingdom",
-			Alpha2:      "UK",
-			Alpha3:      "",
-			Numeric:     -1,
-			DialingCode: "+44",
-			Assignment:  ExceptionallyReserved,
+			Name:           "United Kingdom",
+			Alpha2:         "UK",
+			Alpha3:         "",
+			Numeric:        -1,
+			DialingCode:    "+44",
+			Assignment:     ExceptionallyReserved,
+			AlternateNames: []string{"Northern Ireland"},
 		},
 		/**
 		 * <a href="http://en.wikipedia.org/wiki/United_States_Minor_Outlying_Islands">United States Minor Outlying Islands</a>
@@ -3600,12 +3611,13 @@ var (
 		 * Officially assigned]
 		 */
 		CountryCode{
-			Name:        "Viet Nam",
-			Alpha2:      "VN",
-			Alpha3:      "VNM",
-			Numeric:     704,
-			DialingCode: "+84",
-			Assignment:  OfficiallyAssigned,
+			Name:           "Viet Nam",
+			Alpha2:         "VN",
+			Alpha3:         "VNM",
+			Numeric:        704,
+			DialingCode:    "+84",
+			Assignment:     OfficiallyAssigned,
+			AlternateNames: []string{"Vietnam"},
 		},
 
 		/**
@@ -3822,10 +3834,11 @@ const (
 )
 
 type CountryCode struct {
-	Name        string
-	Alpha2      string
-	Alpha3      string
-	Numeric     int
-	DialingCode string
-	Assignment  Assignment
+	Name           string
+	Alpha2         string
+	Alpha3         string
+	Numeric        int
+	DialingCode    string
+	Assignment     Assignment
+	AlternateNames []string
 }

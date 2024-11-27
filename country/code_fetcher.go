@@ -10,25 +10,33 @@ import (
 var (
 	Alpha2CodeFetcher = &IndexedCodeFetcher{
 		NormalizeKey: strings.ToLower,
-		ExtractKey:   func(cc CountryCode) string { return cc.Alpha2 },
+		ExtractKeys:  func(cc CountryCode) []string { return []string{cc.Alpha2} },
 	}
 
 	Alpha3CodeFetcher = &IndexedCodeFetcher{
 		NormalizeKey: strings.ToLower,
-		ExtractKey:   func(cc CountryCode) string { return cc.Alpha3 },
+		ExtractKeys:  func(cc CountryCode) []string { return []string{cc.Alpha3} },
 	}
 
 	NameCodeFetcher = &IndexedCodeFetcher{
 		NormalizeKey: func(k string) string {
 			return strings.ToLower(stringutil.DecodeToASCII(k))
 		},
-		ExtractKey: func(cc CountryCode) string { return cc.Name },
+		ExtractKeys: func(cc CountryCode) []string { return []string{cc.Name} },
+	}
+
+	AlternateNameCodeFetcher = &IndexedCodeFetcher{
+		NormalizeKey: func(k string) string {
+			return strings.ToLower(stringutil.DecodeToASCII(k))
+		},
+		ExtractKeys: func(cc CountryCode) []string { return cc.AlternateNames },
 	}
 
 	DefaultCodeFetcher = MultiCodeFetcher{
 		Alpha2CodeFetcher,
 		Alpha3CodeFetcher,
 		NameCodeFetcher,
+		AlternateNameCodeFetcher,
 	}
 )
 
@@ -38,7 +46,7 @@ type CodeFetcher interface {
 
 type IndexedCodeFetcher struct {
 	NormalizeKey func(string) string
-	ExtractKey   func(CountryCode) string
+	ExtractKeys  func(CountryCode) []string
 
 	// If left nil it will use DefaultCountryCodes
 	CountryCodes []CountryCode
@@ -62,7 +70,9 @@ func (icf *IndexedCodeFetcher) Fetch(key string) (CountryCode, bool) {
 		icf.indexedCountryCodes = make(map[string]CountryCode, len(ccs))
 
 		for _, cc := range ccs {
-			icf.indexedCountryCodes[icf.NormalizeKey(icf.ExtractKey(cc))] = cc
+			for _, k := range icf.ExtractKeys(cc) {
+				icf.indexedCountryCodes[icf.NormalizeKey(k)] = cc
+			}
 		}
 	})
 

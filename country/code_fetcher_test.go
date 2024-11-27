@@ -7,15 +7,19 @@ import (
 )
 
 func TestCodeFetcher(t *testing.T) {
-	mustFetch := func(k string) CountryCode {
-		cc, ok := Alpha2CodeFetcher.Fetch(k)
+	var (
+		zeroValue CountryCode
 
-		if !ok {
-			panic("not found")
+		mustFetch = func(k string) CountryCode {
+			cc, ok := Alpha2CodeFetcher.Fetch(k)
+
+			if !ok {
+				panic("not found")
+			}
+
+			return cc
 		}
-
-		return cc
-	}
+	)
 
 	for _, tt := range []struct {
 		k    string
@@ -46,11 +50,24 @@ func TestCodeFetcher(t *testing.T) {
 			k:    "cote d'ivoire",
 			want: mustFetch("CI"),
 		},
+		{
+			k:    "russia",
+			want: mustFetch("RU"),
+		},
+		{
+			k:    "Türkiye",
+			want: mustFetch("TR"),
+		},
 		{k: ""},
 	} {
 		cc, ok := DefaultCodeFetcher.Fetch(tt.k)
 
-		assert.Equal(t, tt.want != CountryCode{}, ok)
 		assert.Equal(t, tt.want, cc)
+
+		if ok {
+			assert.NotEqual(t, zeroValue, cc)
+		} else {
+			assert.Equal(t, zeroValue, cc)
+		}
 	}
 }
