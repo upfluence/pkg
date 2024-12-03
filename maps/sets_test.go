@@ -51,7 +51,6 @@ func TestSet_Add(t *testing.T) {
 
 			assert.ElementsMatch(t, tt.want, s.Keys())
 		})
-
 	}
 }
 
@@ -95,6 +94,7 @@ func TestIndexedSet_Add(t *testing.T) {
 		{"bar", 1},
 		{"foo", 4},
 	}
+
 	for _, tt := range []struct {
 		name       string
 		in         [][]fooBar
@@ -135,7 +135,6 @@ func TestIndexedSet_Add(t *testing.T) {
 			assert.ElementsMatch(t, tt.wantValues, s.Values())
 			assert.ElementsMatch(t, tt.wantKeys, s.Keys())
 		})
-
 	}
 }
 
