@@ -24,7 +24,7 @@ var (
 		log.WithSink(
 			multi.NewSink(
 				leveled.NewSink(
-					fetchLevel(),
+					FetchLevel(),
 					writer.NewStdoutSink(writer.NewDefaultFormatter(localPkg)),
 				),
 				leveled.NewSink(
@@ -49,7 +49,7 @@ func RegisterContextExtractor(ce log.ContextExtractor) {
 	Logger = log.NewLogger(loggerOpts...)
 }
 
-func fetchLevel() record.Level {
+func FetchLevel() record.Level {
 	switch strings.ToUpper(cfg.FetchString("LOGGER_LEVEL", "")) {
 	case "DEBUG":
 		return record.Debug
