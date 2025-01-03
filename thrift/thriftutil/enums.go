@@ -8,7 +8,7 @@ import (
 
 func SanitizeCamelCaseThriftEnumValue(v string) string {
 	if sks := strings.SplitN(v, "_", 2); len(sks) == 2 {
-		return stringutil.CamelToSnakeCase(sks[1])
+		return strings.ReplaceAll(stringutil.CamelToSnakeCase(sks[1]), "__", "_")
 	}
 
 	return strings.ToLower(v)
