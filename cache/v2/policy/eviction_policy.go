@@ -14,10 +14,10 @@ const (
 	Evict
 )
 
-type EvictionPolicy interface {
-	C() <-chan string
+type EvictionPolicy[K comparable] interface {
+	C() <-chan K
 
-	Op(string, OpType) error
+	Op(K, OpType) error
 
 	io.Closer
 }

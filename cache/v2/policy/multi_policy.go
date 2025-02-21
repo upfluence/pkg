@@ -7,10 +7,10 @@ import (
 	"github.com/upfluence/errors"
 )
 
-func CombinePolicies(ps ...EvictionPolicy) EvictionPolicy {
+func CombinePolicies[K comparable](ps ...EvictionPolicy[K]) EvictionPolicy[K] {
 	switch len(ps) {
 	case 0:
-		return &NopPolicy{}
+		return &NopPolicy[K]{}
 	case 1:
 		return ps[0]
 	}
@@ -24,11 +24,11 @@ func CombinePolicies(ps ...EvictionPolicy) EvictionPolicy {
 	return l
 }
 
-func newMultiPolicty(l, r EvictionPolicy) *multiPolicy {
-	mp := multiPolicy{
+func newMultiPolicty[K comparable](l, r EvictionPolicy[K]) *multiPolicy[K] {
+	mp := multiPolicy[K]{
 		l:  l,
 		r:  r,
-		ch: make(chan string),
+		ch: make(chan K),
 	}
 
 	mp.wg.Add(1)
@@ -39,16 +39,16 @@ func newMultiPolicty(l, r EvictionPolicy) *multiPolicy {
 	return &mp
 }
 
-type multiPolicy struct {
+type multiPolicy[K comparable] struct {
 	wg     sync.WaitGroup
 	ctx    context.Context
 	cancel context.CancelFunc
-	ch     chan string
+	ch     chan K
 
-	l, r EvictionPolicy
+	l, r EvictionPolicy[K]
 }
 
-func (mp *multiPolicy) pull() {
+func (mp *multiPolicy[K]) pull() {
 	defer mp.wg.Done()
 
 	for {
@@ -65,15 +65,15 @@ func (mp *multiPolicy) pull() {
 	}
 }
 
-func (mp *multiPolicy) C() <-chan string {
+func (mp *multiPolicy[K]) C() <-chan K {
 	return mp.ch
 }
 
-func (mp *multiPolicy) Op(k string, op OpType) error {
+func (mp *multiPolicy[K]) Op(k K, op OpType) error {
 	return errors.Combine(mp.l.Op(k, op), mp.r.Op(k, op))
 }
 
-func (mp *multiPolicy) Close() error {
+func (mp *multiPolicy[K]) Close() error {
 	mp.cancel()
 	mp.wg.Wait()
 	close(mp.ch)
