@@ -63,7 +63,7 @@ func TestNullableThrift_Scan(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			var (
-				s NullableThrift[fakeTStruct, *fakeTStruct]
+				s NullThrift[fakeTStruct, *fakeTStruct]
 
 				err = s.Scan(tt.data)
 			)
@@ -101,7 +101,7 @@ func TestNullableThrift_Value(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			var (
-				s = NullableThrift[fakeTStruct, *fakeTStruct]{
+				s = NullThrift[fakeTStruct, *fakeTStruct]{
 					Data: tt.haveValue,
 				}
 

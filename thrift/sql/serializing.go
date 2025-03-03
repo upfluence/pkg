@@ -24,11 +24,11 @@ type TStructPtr[T any] interface {
 	thrift.TStruct
 	*T
 }
-type NullableThrift[T any, PT TStructPtr[T]] struct {
+type NullThrift[T any, PT TStructPtr[T]] struct {
 	Data PT
 }
 
-func (t *NullableThrift[T, PT]) Scan(value any) error {
+func (t *NullThrift[T, PT]) Scan(value any) error {
 	if value == nil {
 		t.Data = nil
 
@@ -48,7 +48,7 @@ func (t *NullableThrift[T, PT]) Scan(value any) error {
 	return errors.WithStack(binaryThriftDeserializer.Read(t.Data, data))
 }
 
-func (t NullableThrift[T, PT]) Value() (driver.Value, error) {
+func (t NullThrift[T, PT]) Value() (driver.Value, error) {
 	if t.Data == nil {
 		return nil, nil // nolint:nilnil
 	}
