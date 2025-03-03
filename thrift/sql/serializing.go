@@ -10,14 +10,8 @@ import (
 	"github.com/upfluence/pkg/thrift/thriftutil"
 )
 
-var (
-	binaryThriftSerializer = serializer.NewTSerializer(
-		thriftutil.BinaryProtocolFactory,
-	)
-
-	binaryThriftDeserializer = serializer.NewTDeserializer(
-		thriftutil.BinaryProtocolFactory,
-	)
+var defaultSerializerFactory = serializer.NewTSerializerFactory(
+	thriftutil.BinaryProtocolFactory,
 )
 
 type TStructPtr[T any] interface {
@@ -26,7 +20,16 @@ type TStructPtr[T any] interface {
 }
 
 type NullThrift[T any, PT TStructPtr[T]] struct {
-	Data PT
+	Data              PT
+	SerializerFactory *serializer.TSerializerFactory
+}
+
+func (t NullThrift[T, PT]) serializerFactory() *serializer.TSerializerFactory {
+	if t.SerializerFactory == nil {
+		return defaultSerializerFactory
+	}
+
+	return t.SerializerFactory
 }
 
 func (t *NullThrift[T, PT]) Scan(value any) error {
@@ -46,7 +49,9 @@ func (t *NullThrift[T, PT]) Scan(value any) error {
 		t.Data = new(T)
 	}
 
-	return errors.WithStack(binaryThriftDeserializer.Read(t.Data, data))
+	return errors.WithStack(
+		t.serializerFactory().GetDeserializer().Read(t.Data, data),
+	)
 }
 
 func (t NullThrift[T, PT]) Value() (driver.Value, error) {
@@ -54,7 +59,7 @@ func (t NullThrift[T, PT]) Value() (driver.Value, error) {
 		return nil, nil // nolint:nilnil
 	}
 
-	data, err := binaryThriftSerializer.Write(t.Data)
+	data, err := t.serializerFactory().GetSerializer().Write(t.Data)
 
 	return data, errors.WithStack(err)
 }
