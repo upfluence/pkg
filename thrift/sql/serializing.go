@@ -31,6 +31,7 @@ type NullableThrift[T any, PT TStructPtr[T]] struct {
 func (t *NullableThrift[T, PT]) Scan(value any) error {
 	if value == nil {
 		t.Data = nil
+
 		return nil
 	}
 

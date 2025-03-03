@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/upfluence/errors"
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 
@@ -14,14 +16,14 @@ type fakeTStruct struct {
 }
 
 func (t fakeTStruct) Write(p thrift.TProtocol) error {
-	return p.WriteI64(t.value)
+	return errors.WithStack(p.WriteI64(t.value))
 }
 
 func (t *fakeTStruct) Read(p thrift.TProtocol) error {
 	val, err := p.ReadI64()
 
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	t.value = val
@@ -67,9 +69,9 @@ func TestNullableThrift_Scan(t *testing.T) {
 			)
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			assert.Equal(t, tt.wantValue, s.Data)
@@ -107,9 +109,9 @@ func TestNullableThrift_Value(t *testing.T) {
 			)
 
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 
 			assert.Equal(t, tt.wantData, data)
