@@ -24,6 +24,7 @@ type TStructPtr[T any] interface {
 	thrift.TStruct
 	*T
 }
+
 type NullThrift[T any, PT TStructPtr[T]] struct {
 	Data PT
 }
