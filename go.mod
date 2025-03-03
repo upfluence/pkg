@@ -34,7 +34,7 @@ require (
 	github.com/upfluence/errors v0.2.9
 	github.com/upfluence/log v0.0.5
 	github.com/upfluence/stats v0.1.4
-	github.com/upfluence/thrift v2.4.4+incompatible
+	github.com/upfluence/thrift v2.6.8+incompatible
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
 	golang.org/x/oauth2 v0.19.0
 	golang.org/x/sync v0.9.0
@@ -42,6 +42,8 @@ require (
 	golang.org/x/text v0.20.0
 	golang.org/x/time v0.3.0
 )
+
+require github.com/upfluence/base v0.1.138
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
