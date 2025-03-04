@@ -8,7 +8,7 @@ import (
 )
 
 func TestNopPolicy(t *testing.T) {
-	p := CombinePolicies()
+	p := CombinePolicies[string]()
 
 	select {
 	case <-p.C():

@@ -1,11 +1,16 @@
 package cache
 
-import "io"
+import (
+	"github.com/upfluence/pkg/cache/policy"
+	"github.com/upfluence/pkg/cache/v2"
+)
 
-type Cache interface {
-	Get(string) (interface{}, bool, error)
-	Set(string, interface{}) error
-	Evict(string) error
+type Cache cache.Cache[string, any]
 
-	io.Closer
+func NewCache() Cache {
+	return cache.NewCache[string, any]()
+}
+
+func WithEvictionPolicy(c Cache, ep policy.EvictionPolicy) Cache {
+	return cache.WithEvictionPolicy(c, ep)
 }

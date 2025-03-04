@@ -5,11 +5,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/upfluence/pkg/cache/policy/size"
+	"github.com/upfluence/pkg/cache/v2/policy/size"
 )
 
 func TestPolicyCache(t *testing.T) {
-	c := WithEvictionPolicy(NewCache(), size.NewLRUPolicy(1))
+	c := WithEvictionPolicy(NewCache[string, string](), size.NewLRUPolicy(1))
 
 	done := make(chan struct{})
 

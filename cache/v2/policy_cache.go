@@ -3,26 +3,26 @@ package cache
 import (
 	"sync"
 
-	"github.com/upfluence/pkg/cache/policy"
+	"github.com/upfluence/pkg/cache/v2/policy"
 )
 
 func nop() {}
 
 var testHookEviction = nop
 
-type policyCache struct {
-	c  Cache
-	ep policy.EvictionPolicy
+type policyCache[K comparable, V any] struct {
+	c  Cache[K, V]
+	ep policy.EvictionPolicy[K]
 
 	wg sync.WaitGroup
 }
 
-func WithEvictionPolicy(c Cache, ep policy.EvictionPolicy) Cache {
+func WithEvictionPolicy[K comparable, V any](c Cache[K, V], ep policy.EvictionPolicy[K]) Cache[K, V] {
 	return newPolicyCache(c, ep)
 }
 
-func newPolicyCache(c Cache, ep policy.EvictionPolicy) *policyCache {
-	pc := policyCache{c: c, ep: ep}
+func newPolicyCache[K comparable, V any](c Cache[K, V], ep policy.EvictionPolicy[K]) *policyCache[K, V] {
+	pc := policyCache[K, V]{c: c, ep: ep}
 
 	pc.wg.Add(1)
 
@@ -31,7 +31,7 @@ func newPolicyCache(c Cache, ep policy.EvictionPolicy) *policyCache {
 	return &pc
 }
 
-func (pc *policyCache) watch() {
+func (pc *policyCache[K, V]) watch() {
 	defer pc.wg.Done()
 
 	ch := pc.ep.C()
@@ -48,7 +48,7 @@ func (pc *policyCache) watch() {
 	}
 }
 
-func (pc *policyCache) Get(k string) (interface{}, bool, error) {
+func (pc *policyCache[K, V]) Get(k K) (V, bool, error) {
 	v, ok, err := pc.c.Get(k)
 
 	if err != nil {
@@ -58,7 +58,7 @@ func (pc *policyCache) Get(k string) (interface{}, bool, error) {
 	return v, ok, pc.ep.Op(k, policy.Get)
 }
 
-func (pc *policyCache) Set(k string, v interface{}) error {
+func (pc *policyCache[K, V]) Set(k K, v V) error {
 	if err := pc.c.Set(k, v); err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (pc *policyCache) Set(k string, v interface{}) error {
 	return pc.ep.Op(k, policy.Set)
 }
 
-func (pc *policyCache) Evict(k string) error {
+func (pc *policyCache[K, V]) Evict(k K) error {
 	if err := pc.c.Evict(k); err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (pc *policyCache) Evict(k string) error {
 	return pc.ep.Op(k, policy.Evict)
 }
 
-func (pc *policyCache) Close() error {
+func (pc *policyCache[K, V]) Close() error {
 	err := pc.ep.Close()
 
 	pc.wg.Wait()
