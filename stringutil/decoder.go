@@ -1,6 +1,7 @@
 package stringutil
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -75,6 +76,8 @@ func IsASCII(s string) bool {
 	return true
 }
 
+var spaceRegex = regexp.MustCompile(`\s+`)
+
 func DecodeToASCII(s string, opts ...ASCIIDecodeOption) string {
 	if IsASCII(s) {
 		return s
@@ -90,7 +93,13 @@ func DecodeToASCII(s string, opts ...ASCIIDecodeOption) string {
 		t = transform.Chain(
 			os.decomposer,
 			runes.Remove(runes.In(unicode.Mn)),
-			runes.Remove(setFunc(isAboveASCII)),
+			runes.Map(func(r rune) rune {
+				if isAboveASCII(r) {
+					return rune(' ')
+				}
+
+				return r
+			}),
 			os.composer,
 		)
 
@@ -102,5 +111,5 @@ func DecodeToASCII(s string, opts ...ASCIIDecodeOption) string {
 		return ""
 	}
 
-	return result
+	return strings.Trim(spaceRegex.ReplaceAllString(result, " "), " ")
 }
