@@ -41,11 +41,20 @@ func TestDecodeToASCII(t *testing.T) {
 		},
 		{
 			in:  "Collaboration: 𝕸𝖎𝖆𝖒𝖎 🌞 x KiwiKurve",
-			out: "Collaboration:   x KiwiKurve",
+			out: "Collaboration: x KiwiKurve",
 		},
 		{
 			in:   "Collaboration: 𝕸𝖎𝖆𝖒𝖎 🌞 x KiwiKurve",
-			out:  "Collaboration: Miami  x KiwiKurve",
+			out:  "Collaboration: Miami x KiwiKurve",
+			opts: nfkd,
+		},
+		{
+			in:  "back soon ✌🏽📍ashleyrchand@gmail.com",
+			out: "back soon ashleyrchand@gmail.com",
+		},
+		{
+			in:   "Golden Girl 🌴\n🌿Discounts/links⬇️\nPR/Collab📧spfpleaseka𝐓ie@gmail.com",
+			out:  "Golden Girl Discounts/links PR/Collab spfpleasekaTie@gmail.com",
 			opts: nfkd,
 		},
 		{
