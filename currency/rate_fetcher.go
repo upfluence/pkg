@@ -55,7 +55,7 @@ func (e *Exchanger) exchange(ctx context.Context, m Money, c Currency) (Money, e
 		fromRate, err = e.Rate(ctx, m.Currency)
 
 		if err != nil {
-			return Money{}, errors.Wrap(err, "could not get from rate")
+			return Money{}, errors.Wrap(err, "could not get source rate")
 		}
 	}
 
@@ -63,7 +63,7 @@ func (e *Exchanger) exchange(ctx context.Context, m Money, c Currency) (Money, e
 		toRate, err = e.Rate(ctx, c)
 
 		if err != nil {
-			return Money{}, errors.Wrap(err, "could not get to rate")
+			return Money{}, errors.Wrap(err, "could not get target rate")
 		}
 	}
 
