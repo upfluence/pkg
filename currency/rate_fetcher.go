@@ -33,6 +33,7 @@ func (e *Exchanger) Exchange(ctx context.Context, m Money, c Currency) (Money, e
 		"source_cents":    m.Cents,
 	})
 }
+
 func (e *Exchanger) exchange(ctx context.Context, m Money, c Currency) (Money, error) {
 	if c == m.Currency {
 		return m, nil
