@@ -54,7 +54,7 @@ func TestExchange(t *testing.T) {
 
 		res, err := e.Exchange(context.Background(), tt.in, tt.t)
 
-		assert.Equal(t, tt.wantErr, err)
+		assert.ErrorIs(t, err, tt.wantErr)
 		assert.Equal(t, tt.wantMoney, res)
 	}
 }
