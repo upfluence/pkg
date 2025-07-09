@@ -114,6 +114,7 @@ func TestSingleflightStopOnClose(t *testing.T) {
 	var (
 		sf  Singleflight
 		ctr int32
+		wg  sync.WaitGroup
 
 		ctx   = context.Background()
 		donec = make(chan struct{})
@@ -130,17 +131,23 @@ func TestSingleflightStopOnClose(t *testing.T) {
 		return nil
 	}
 
+	wg.Add(1)
+
 	go func() {
 		ok, err := sf.Do(ctx, fn)
 
 		assert.True(t, ok)
 		assert.Equal(t, context.Canceled, err)
+
+		wg.Done()
 	}()
 
 	time.Sleep(10 * time.Millisecond)
 
-	close(donec)
-	assert.Equal(t, int32(0), atomic.LoadInt32(&ctr))
-
 	sf.Close()
+	close(donec)
+
+	wg.Wait()
+
+	assert.Equal(t, int32(0), atomic.LoadInt32(&ctr))
 }
