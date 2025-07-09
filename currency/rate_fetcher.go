@@ -25,6 +25,16 @@ type Exchanger struct {
 }
 
 func (e *Exchanger) Exchange(ctx context.Context, m Money, c Currency) (Money, error) {
+	exm, err := e.exchange(ctx, m, c)
+
+	return exm, errors.WithTags(err, map[string]interface{}{
+		"target_currency": c,
+		"source_currency": m.Currency,
+		"source_cents":    m.Cents,
+	})
+}
+
+func (e *Exchanger) exchange(ctx context.Context, m Money, c Currency) (Money, error) {
 	if c == m.Currency {
 		return m, nil
 	}
@@ -34,27 +44,26 @@ func (e *Exchanger) Exchange(ctx context.Context, m Money, c Currency) (Money, e
 	}
 
 	var (
+		err error
+
 		fromRate = 1.
 		toRate   = 1.
 	)
 
 	if m.Currency != e.BaseCurrency() {
-		var err error
 
 		fromRate, err = e.Rate(ctx, m.Currency)
 
 		if err != nil {
-			return Money{}, err
+			return Money{}, errors.Wrap(err, "could not get source rate")
 		}
 	}
 
 	if c != e.BaseCurrency() {
-		var err error
-
 		toRate, err = e.Rate(ctx, c)
 
 		if err != nil {
-			return Money{}, err
+			return Money{}, errors.Wrap(err, "could not get target rate")
 		}
 	}
 
