@@ -30,6 +30,18 @@ func TestPeerParsing(t *testing.T) {
 				ProjectName:  "facade-project",
 			},
 		},
+		{
+			url: "peer://local/facade-abcd?buz=biz&buz=bar&project-name=facade-project",
+			peer: Peer{
+				Authority:    "local",
+				InstanceName: "facade-abcd",
+				AppName:      "facade-abcd",
+				ProjectName:  "facade-project",
+				Metadata: map[string][]string{
+					"buz": {"biz", "bar"},
+				},
+			},
+		},
 	} {
 		p, err := ParsePeerURL(tt.url)
 

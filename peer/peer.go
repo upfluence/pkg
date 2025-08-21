@@ -39,6 +39,8 @@ type Peer struct {
 	Environment  string
 
 	Version version.Version
+
+	Metadata map[string][]string
 }
 
 func ParsePeerURL(u string) (*Peer, error) {
@@ -67,21 +69,33 @@ func ParsePeerURL(u string) (*Peer, error) {
 
 	vs := uu.Query()
 
-	if v := vs.Get("app-name"); v != "" {
-		p.AppName = v
-		p.ProjectName = v
-	}
+	for k, vs := range vs {
+		if len(vs) == 0 || vs[0] == "" {
+			continue
+		}
 
-	if v := vs.Get("project-name"); v != "" {
-		p.ProjectName = v
-	}
+		v := vs[0]
 
-	if v := vs.Get("semantic-version"); v != "" {
-		p.Version.Semantic = version.ParseSemanticVersion(v)
-	}
+		switch k {
+		case "app-name":
+			p.AppName = v
 
-	if v := vs.Get("git-version"); v != "" {
-		p.Version.Git.Commit = v
+			if p.ProjectName == unitName {
+				p.ProjectName = v
+			}
+		case "project-name":
+			p.ProjectName = v
+		case "semantic-version":
+			p.Version.Semantic = version.ParseSemanticVersion(v)
+		case "git-version":
+			p.Version.Git.Commit = v
+		default:
+			if p.Metadata == nil {
+				p.Metadata = make(map[string][]string, 1)
+			}
+
+			p.Metadata[k] = vs
+		}
 	}
 
 	return &p, nil
@@ -89,6 +103,10 @@ func ParsePeerURL(u string) (*Peer, error) {
 
 func (p *Peer) URL() *url.URL {
 	vs := url.Values{}
+
+	for k, v := range p.Metadata {
+		vs[k] = v
+	}
 
 	if p.InstanceName != p.AppName {
 		vs.Add("app-name", p.AppName)
