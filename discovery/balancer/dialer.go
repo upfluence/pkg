@@ -57,7 +57,7 @@ func (d *Dialer[T]) Close() error {
 
 	for _, ld := range d.lds {
 		if err := ld.close(); err != nil {
-			errs = append(errs)
+			errs = append(errs, err)
 		}
 	}
 
@@ -103,6 +103,8 @@ func (ld *localDialer[T]) dial(ctx context.Context, network string) (net.Conn, e
 	conn, err := ld.d.dialer().DialContext(ctx, network, p.Addr())
 
 	if err != nil {
+		done(err)
+
 		return nil, err
 	}
 
