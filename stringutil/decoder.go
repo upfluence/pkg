@@ -14,7 +14,6 @@ import (
 	"github.com/upfluence/pkg/log"
 )
 
-var cmap = charmap.ISO8859_1
 var defaultDecoder = charmap.ISO8859_1.NewDecoder()
 
 type ASCIIDecodeOption func(*asciiDecodeOptions)

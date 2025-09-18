@@ -12,7 +12,7 @@ import (
 
 func TestSingleflightDedup(t *testing.T) {
 	var (
-		sf  Singleflight
+		sf  Singleflight[int32]
 		ctr int32
 		wg  sync.WaitGroup
 
@@ -20,17 +20,18 @@ func TestSingleflightDedup(t *testing.T) {
 		donec = make(chan struct{})
 	)
 
-	fn := func(context.Context) error {
-		atomic.AddInt32(&ctr, 1)
+	fn := func(context.Context) (int32, error) {
+		res := atomic.AddInt32(&ctr, 1)
 		<-donec
-		return nil
+		return res, nil
 	}
 
 	wg.Add(2)
 
 	go func() {
-		ok, err := sf.Do(ctx, fn)
+		ok, res, err := sf.Do(ctx, fn)
 
+		assert.Equal(t, res, int32(1))
 		assert.True(t, ok)
 		assert.Nil(t, err)
 
@@ -40,8 +41,9 @@ func TestSingleflightDedup(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 
 	go func() {
-		ok, err := sf.Do(ctx, fn)
+		ok, res, err := sf.Do(ctx, fn)
 
+		assert.Equal(t, res, int32(1))
 		assert.False(t, ok)
 		assert.Nil(t, err)
 
@@ -61,7 +63,7 @@ func TestSingleflightDedup(t *testing.T) {
 
 func TestSingleflightDedupEarlyCancel(t *testing.T) {
 	var (
-		sf  Singleflight
+		sf  Singleflight[int32]
 		ctr int32
 		wg  sync.WaitGroup
 
@@ -69,10 +71,10 @@ func TestSingleflightDedupEarlyCancel(t *testing.T) {
 		donec = make(chan struct{})
 	)
 
-	fn := func(context.Context) error {
-		atomic.AddInt32(&ctr, 1)
+	fn := func(context.Context) (int32, error) {
+		res := atomic.AddInt32(&ctr, 1)
 		<-donec
-		return nil
+		return res, nil
 	}
 
 	wg.Add(2)
@@ -81,7 +83,7 @@ func TestSingleflightDedupEarlyCancel(t *testing.T) {
 		cctx, cancel := context.WithCancel(ctx)
 		cancel()
 
-		ok, err := sf.Do(cctx, fn)
+		ok, _, err := sf.Do(cctx, fn)
 
 		assert.True(t, ok)
 		assert.Equal(t, context.Canceled, err)
@@ -92,8 +94,9 @@ func TestSingleflightDedupEarlyCancel(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 
 	go func() {
-		ok, err := sf.Do(ctx, fn)
+		ok, res, err := sf.Do(ctx, fn)
 
+		assert.Equal(t, res, int32(1))
 		assert.False(t, ok)
 		assert.Nil(t, err)
 
@@ -112,7 +115,7 @@ func TestSingleflightDedupEarlyCancel(t *testing.T) {
 
 func TestSingleflightStopOnClose(t *testing.T) {
 	var (
-		sf  Singleflight
+		sf  Singleflight[int32]
 		ctr int32
 		wg  sync.WaitGroup
 
@@ -120,21 +123,21 @@ func TestSingleflightStopOnClose(t *testing.T) {
 		donec = make(chan struct{})
 	)
 
-	fn := func(ctx context.Context) error {
+	fn := func(ctx context.Context) (int32, error) {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return 0, ctx.Err()
 		case <-donec:
 		}
 
-		atomic.AddInt32(&ctr, 1)
-		return nil
+		res := atomic.AddInt32(&ctr, 1)
+		return res, nil
 	}
 
 	wg.Add(1)
 
 	go func() {
-		ok, err := sf.Do(ctx, fn)
+		ok, _, err := sf.Do(ctx, fn)
 
 		assert.True(t, ok)
 		assert.Equal(t, context.Canceled, err)

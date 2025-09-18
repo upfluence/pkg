@@ -5,26 +5,31 @@ import (
 	"sync"
 )
 
-type Singleflight struct {
+type result[T any] struct {
+	res T
+	err error
+}
+
+type Singleflight[T any] struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	once   sync.Once
 	wg     sync.WaitGroup
 
 	mu  sync.Mutex
-	chs []chan<- error
+	chs []chan<- result[T]
 }
 
-func (sf *Singleflight) init() {
+func (sf *Singleflight[T]) init() {
 	sf.once.Do(func() {
 		sf.ctx, sf.cancel = context.WithCancel(context.Background())
 	})
 }
 
-func (sf *Singleflight) Do(ctx context.Context, fn func(context.Context) error) (bool, error) {
+func (sf *Singleflight[T]) Do(ctx context.Context, fn func(context.Context) (T, error)) (bool, T, error) {
 	sf.init()
 
-	ch := make(chan error, 1)
+	ch := make(chan result[T], 1)
 	executor := false
 
 	sf.mu.Lock()
@@ -35,12 +40,13 @@ func (sf *Singleflight) Do(ctx context.Context, fn func(context.Context) error) 
 		sf.wg.Add(1)
 
 		go func() {
-			err := fn(sf.ctx)
+			val, err := fn(sf.ctx)
+			res := result[T]{res: val, err: err}
 
 			sf.mu.Lock()
 
 			for _, ch := range sf.chs {
-				ch <- err
+				ch <- res
 				close(ch)
 			}
 
@@ -56,13 +62,14 @@ func (sf *Singleflight) Do(ctx context.Context, fn func(context.Context) error) 
 
 	select {
 	case <-ctx.Done():
-		return executor, ctx.Err()
-	case err := <-ch:
-		return executor, err
+		var zero T
+		return executor, zero, ctx.Err()
+	case res := <-ch:
+		return executor, res.res, res.err
 	}
 }
 
-func (sf *Singleflight) Close() error {
+func (sf *Singleflight[T]) Close() error {
 	sf.init()
 	sf.cancel()
 	sf.wg.Wait()

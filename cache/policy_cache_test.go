@@ -9,7 +9,7 @@ import (
 )
 
 func TestPolicyCache(t *testing.T) {
-	c := WithEvictionPolicy(NewCache(), size.NewLRUPolicy(1))
+	c := WithEvictionPolicy[string](NewStringCache[string](), size.NewLRUPolicy[string](1))
 
 	done := make(chan struct{})
 

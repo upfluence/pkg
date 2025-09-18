@@ -3,6 +3,7 @@ package syncutil
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -11,8 +12,9 @@ import (
 
 func TestKeyedSingleflight(t *testing.T) {
 	var (
-		ksf KeyedSingleflight
+		ksf KeyedSingleflight[string, int32]
 		wg  sync.WaitGroup
+		ctr int32
 
 		ctx   = context.Background()
 		donec = make(chan struct{})
@@ -21,36 +23,45 @@ func TestKeyedSingleflight(t *testing.T) {
 	wg.Add(3)
 
 	go func() {
-		ok, _ := ksf.Do(ctx, "foo", func(context.Context) error {
+		ok, res, err := DoOne(ctx, &ksf, "foo", func(context.Context) (int32, error) {
+			res := atomic.AddInt32(&ctr, 1)
 			<-donec
-			return nil
+			return res, nil
 		})
 
+		assert.Equal(t, res, int32(1))
 		assert.True(t, ok)
+		assert.NoError(t, err)
 		wg.Done()
 	}()
 
 	time.Sleep(10 * time.Millisecond)
 
 	go func() {
-		ok, _ := ksf.Do(ctx, "bar", func(context.Context) error {
+		ok, res, err := DoOne(ctx, &ksf, "bar", func(context.Context) (int32, error) {
+			res := atomic.AddInt32(&ctr, 1)
 			<-donec
-			return nil
+			return res, nil
 		})
 
+		assert.Equal(t, res, int32(2))
 		assert.True(t, ok)
+		assert.NoError(t, err)
 		wg.Done()
 	}()
 
 	time.Sleep(10 * time.Millisecond)
 
 	go func() {
-		ok, _ := ksf.Do(ctx, "foo", func(context.Context) error {
+		ok, res, err := DoOne(ctx, &ksf, "foo", func(context.Context) (int32, error) {
+			res := atomic.AddInt32(&ctr, 1)
 			<-donec
-			return nil
+			return res, nil
 		})
 
+		assert.Equal(t, res, int32(1))
 		assert.False(t, ok)
+		assert.NoError(t, err)
 		wg.Done()
 	}()
 

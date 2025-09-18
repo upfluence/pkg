@@ -11,8 +11,8 @@ import (
 	"github.com/upfluence/pkg/discovery/resolver"
 )
 
-type Balancer struct {
-	resolver.Puller
+type Balancer[T peer.Peer] struct {
+	resolver.Puller[T]
 
 	addrs  map[string]*ring.Ring
 	ring   *ring.Ring
@@ -21,26 +21,26 @@ type Balancer struct {
 	notifier chan struct{}
 }
 
-func BalancerFunc(r resolver.Resolver) balancer.Balancer {
-	return NewBalancer(r)
+func BalancerFunc[T peer.Peer](r resolver.Resolver[T]) balancer.Balancer[T] {
+	return NewBalancer[T](r)
 }
 
-func NewBalancer(r resolver.Resolver) *Balancer {
-	var b = Balancer{
+func NewBalancer[T peer.Peer](r resolver.Resolver[T]) *Balancer[T] {
+	var b = Balancer[T]{
 		addrs:    make(map[string]*ring.Ring),
 		notifier: make(chan struct{}),
 	}
 
-	b.Puller = resolver.Puller{Resolver: r, UpdateFunc: b.updateRing}
+	b.Puller = resolver.Puller[T]{Resolver: r, UpdateFunc: b.updateRing}
 
 	return &b
 }
 
-func (b *Balancer) String() string {
+func (b *Balancer[T]) String() string {
 	return fmt.Sprintf("loadbalancer/roundrobin [resolver: %v]", &b.Puller)
 }
 
-func (b *Balancer) updateRing(update resolver.Update) {
+func (b *Balancer[T]) updateRing(update resolver.Update[T]) {
 	b.ringMu.Lock()
 	defer b.ringMu.Unlock()
 
@@ -85,7 +85,9 @@ func (b *Balancer) updateRing(update resolver.Update) {
 	}
 }
 
-func (b *Balancer) Get(ctx context.Context, opts balancer.GetOptions) (peer.Peer, error) {
+func (b *Balancer[T]) Get(ctx context.Context, opts balancer.GetOptions) (T, func(error), error) {
+	var zero T
+
 	b.ringMu.RLock()
 	r := b.ring
 	n := b.notifier
@@ -93,7 +95,7 @@ func (b *Balancer) Get(ctx context.Context, opts balancer.GetOptions) (peer.Peer
 
 	if r == nil {
 		if opts.NoWait {
-			return nil, balancer.ErrNoPeerAvailable
+			return zero, nil, balancer.ErrNoPeerAvailable
 		}
 
 		pctx := b.Puller.Monitor.Context()
@@ -101,9 +103,9 @@ func (b *Balancer) Get(ctx context.Context, opts balancer.GetOptions) (peer.Peer
 		select {
 		case <-n:
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return zero, nil, ctx.Err()
 		case <-pctx.Done():
-			return nil, pctx.Err()
+			return zero, nil, pctx.Err()
 		}
 	}
 
@@ -113,9 +115,8 @@ func (b *Balancer) Get(ctx context.Context, opts balancer.GetOptions) (peer.Peer
 	if v := b.ring.Value; v != nil {
 		b.ring = b.ring.Next()
 
-		p := v.(peer.Peer)
-		return p, nil
+		return v.(T), func(error) {}, nil
 	}
 
-	return nil, balancer.ErrNoPeerAvailable
+	return zero, nil, balancer.ErrNoPeerAvailable
 }

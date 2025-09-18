@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"os"
 	"strings"
 	"sync"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/upfluence/log/sink/multi"
 	"github.com/upfluence/log/sink/writer"
 
-	"github.com/upfluence/pkg/cfg"
 	"github.com/upfluence/pkg/error_logger"
 )
 
@@ -50,7 +50,7 @@ func RegisterContextExtractor(ce log.ContextExtractor) {
 }
 
 func FetchLevel() record.Level {
-	switch strings.ToUpper(cfg.FetchString("LOGGER_LEVEL", "")) {
+	switch strings.ToUpper(os.Getenv("LOGGER_LEVEL")) {
 	case "DEBUG":
 		return record.Debug
 	case "INFO":
