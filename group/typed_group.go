@@ -14,9 +14,9 @@ type TypedGroup[T any] struct {
 	mu sync.Mutex
 }
 
-func (tg *TypedGroup[T]) Do(fn TypedRunner[T]) {
+func (tg *TypedGroup[T]) Do(runner TypedRunner[T]) {
 	tg.Group.Do(func(ctx context.Context) error {
-		fn, err := fn(ctx)
+		fn, err := runner(ctx)
 
 		if err != nil {
 			return err

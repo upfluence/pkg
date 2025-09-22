@@ -145,8 +145,6 @@ func (es executors[K, V]) execute(ctx context.Context, fn func(context.Context, 
 	}
 
 	for _, e := range es {
-		e := e
-
 		tg.Do(func(ctx context.Context) (func(*map[K]V), error) {
 			_, vs, err := e.execute(ctx, fn)
 

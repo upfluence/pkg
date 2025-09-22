@@ -21,7 +21,7 @@ func TestTypedGroup(t *testing.T) {
 	res, err := g.Wait()
 
 	if res != 5 {
-		t.Errorf("Wait() = (%v, _), wanted 4", res)
+		t.Errorf("Wait() = (%v, _), wanted 5", res)
 	}
 
 	if err != nil {
