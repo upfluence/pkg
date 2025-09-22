@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/upfluence/pkg/cache/policy"
+	"github.com/upfluence/pkg/v2/cache/policy"
 )
 
 type Policy[K comparable] struct {

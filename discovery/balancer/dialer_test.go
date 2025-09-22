@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/upfluence/pkg/discovery/balancer"
-	"github.com/upfluence/pkg/discovery/balancer/roundrobin"
-	"github.com/upfluence/pkg/discovery/resolver/static"
+	"github.com/upfluence/pkg/v2/discovery/balancer"
+	"github.com/upfluence/pkg/v2/discovery/balancer/roundrobin"
+	"github.com/upfluence/pkg/v2/discovery/resolver/static"
 )
 
 func TestDialer(t *testing.T) {

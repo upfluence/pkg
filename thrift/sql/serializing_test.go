@@ -9,8 +9,8 @@ import (
 	"github.com/upfluence/errors"
 	"github.com/upfluence/thrift/lib/go/thrift"
 
-	"github.com/upfluence/pkg/thrift/serializer"
-	"github.com/upfluence/pkg/thrift/thriftutil"
+	"github.com/upfluence/pkg/v2/thrift/serializer"
+	"github.com/upfluence/pkg/v2/thrift/thriftutil"
 )
 
 type fakeTStruct struct {

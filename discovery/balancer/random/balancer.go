@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/upfluence/pkg/discovery/balancer"
-	"github.com/upfluence/pkg/discovery/peer"
-	"github.com/upfluence/pkg/discovery/resolver"
+	"github.com/upfluence/pkg/v2/discovery/balancer"
+	"github.com/upfluence/pkg/v2/discovery/peer"
+	"github.com/upfluence/pkg/v2/discovery/resolver"
 )
 
 type Rand interface {

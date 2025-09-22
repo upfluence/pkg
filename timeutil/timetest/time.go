@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/upfluence/pkg/timeutil"
+	"github.com/upfluence/pkg/v2/timeutil"
 )
 
 type Clock struct {

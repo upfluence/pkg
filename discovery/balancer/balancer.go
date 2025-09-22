@@ -5,8 +5,8 @@ import (
 
 	"github.com/upfluence/errors"
 
-	"github.com/upfluence/pkg/discovery/peer"
-	"github.com/upfluence/pkg/discovery/resolver"
+	"github.com/upfluence/pkg/v2/discovery/peer"
+	"github.com/upfluence/pkg/v2/discovery/resolver"
 )
 
 var ErrNoPeerAvailable = errors.New("balancer: No peer available")

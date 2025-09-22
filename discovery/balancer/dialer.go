@@ -7,8 +7,8 @@ import (
 
 	"github.com/upfluence/errors"
 
-	"github.com/upfluence/pkg/discovery/peer"
-	"github.com/upfluence/pkg/syncutil"
+	"github.com/upfluence/pkg/v2/discovery/peer"
+	"github.com/upfluence/pkg/v2/syncutil"
 )
 
 type Dialer[T peer.Peer] struct {

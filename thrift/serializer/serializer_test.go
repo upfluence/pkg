@@ -7,7 +7,7 @@ import (
 	"github.com/upfluence/thrift/lib/go/thrift"
 
 	"github.com/upfluence/errors/errtest"
-	"github.com/upfluence/pkg/encoding"
+	"github.com/upfluence/pkg/v2/encoding"
 )
 
 func TestContentType(t *testing.T) {

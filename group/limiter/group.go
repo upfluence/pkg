@@ -3,8 +3,8 @@ package limiter
 import (
 	"context"
 
-	"github.com/upfluence/pkg/group"
-	"github.com/upfluence/pkg/limiter"
+	"github.com/upfluence/pkg/v2/group"
+	"github.com/upfluence/pkg/v2/limiter"
 )
 
 type Group struct {

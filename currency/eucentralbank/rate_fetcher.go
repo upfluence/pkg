@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/upfluence/pkg/currency"
-	"github.com/upfluence/pkg/syncutil"
+	"github.com/upfluence/pkg/v2/currency"
+	"github.com/upfluence/pkg/v2/syncutil"
 )
 
 const apiURL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml"

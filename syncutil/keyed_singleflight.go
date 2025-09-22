@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/upfluence/pkg/group"
+	"github.com/upfluence/pkg/v2/group"
 )
 
 type KeyedSingleflight[K comparable, V any] struct {

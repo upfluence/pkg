@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/upfluence/pkg/currency"
-	"github.com/upfluence/pkg/currency/currencytest"
+	"github.com/upfluence/pkg/v2/currency"
+	"github.com/upfluence/pkg/v2/currency/currencytest"
 )
 
 func TestExchange(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/upfluence/pkg/lock/local"
+	"github.com/upfluence/pkg/v2/lock/local"
 )
 
 func TestExecute(t *testing.T) {

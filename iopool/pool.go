@@ -9,8 +9,8 @@ import (
 
 	"github.com/upfluence/errors"
 
-	"github.com/upfluence/pkg/cache/policy"
-	"github.com/upfluence/pkg/closer"
+	"github.com/upfluence/pkg/v2/cache/policy"
+	"github.com/upfluence/pkg/v2/closer"
 )
 
 var (

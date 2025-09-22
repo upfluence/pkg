@@ -11,7 +11,7 @@ import (
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 
-	"github.com/upfluence/pkg/log"
+	"github.com/upfluence/pkg/v2/log"
 )
 
 var defaultDecoder = charmap.ISO8859_1.NewDecoder()

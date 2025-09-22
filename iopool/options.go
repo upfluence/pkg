@@ -3,8 +3,8 @@ package iopool
 import (
 	"time"
 
-	"github.com/upfluence/pkg/cache/policy"
-	ptime "github.com/upfluence/pkg/cache/policy/time"
+	"github.com/upfluence/pkg/v2/cache/policy"
+	ptime "github.com/upfluence/pkg/v2/cache/policy/time"
 	"github.com/upfluence/stats"
 )
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/upfluence/pkg/lock"
-	"github.com/upfluence/pkg/timeutil"
+	"github.com/upfluence/pkg/v2/lock"
+	"github.com/upfluence/pkg/v2/timeutil"
 )
 
 var defaultExecutorOptions = executorOptions{

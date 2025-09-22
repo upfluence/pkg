@@ -3,7 +3,7 @@ package static
 import (
 	"time"
 
-	"github.com/upfluence/pkg/backoff"
+	"github.com/upfluence/pkg/v2/backoff"
 )
 
 func NewBackoff(ts int, delay time.Duration) backoff.Strategy {

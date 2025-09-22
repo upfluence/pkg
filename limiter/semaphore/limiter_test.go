@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/upfluence/pkg/limiter"
+	"github.com/upfluence/pkg/v2/limiter"
 )
 
 func TestLimiterNoWait(t *testing.T) {

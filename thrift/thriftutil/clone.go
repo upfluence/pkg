@@ -1,7 +1,7 @@
 package thriftutil
 
 import (
-	"github.com/upfluence/pkg/bytesutil"
+	"github.com/upfluence/pkg/v2/bytesutil"
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 

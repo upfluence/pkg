@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/upfluence/pkg/cache/policy/size"
+	"github.com/upfluence/pkg/v2/cache/policy/size"
 )
 
 func TestPolicyCache(t *testing.T) {

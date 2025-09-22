@@ -3,8 +3,8 @@ package serializer
 import (
 	"github.com/upfluence/thrift/lib/go/thrift"
 
-	"github.com/upfluence/pkg/encoding"
-	"github.com/upfluence/pkg/thrift/thriftutil"
+	"github.com/upfluence/pkg/v2/encoding"
+	"github.com/upfluence/pkg/v2/thrift/thriftutil"
 )
 
 type TSerializerFactory struct {

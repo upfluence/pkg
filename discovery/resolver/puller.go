@@ -7,9 +7,9 @@ import (
 
 	"github.com/upfluence/errors"
 
-	"github.com/upfluence/pkg/closer"
-	"github.com/upfluence/pkg/discovery/peer"
-	"github.com/upfluence/pkg/log"
+	"github.com/upfluence/pkg/v2/closer"
+	"github.com/upfluence/pkg/v2/discovery/peer"
+	"github.com/upfluence/pkg/v2/log"
 )
 
 type Puller[T peer.Peer] struct {

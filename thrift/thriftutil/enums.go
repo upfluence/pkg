@@ -3,7 +3,7 @@ package thriftutil
 import (
 	"strings"
 
-	"github.com/upfluence/pkg/stringutil"
+	"github.com/upfluence/pkg/v2/stringutil"
 )
 
 func SanitizeCamelCaseThriftEnumValue(v string) string {

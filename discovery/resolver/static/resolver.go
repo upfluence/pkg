@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/upfluence/pkg/closer"
-	"github.com/upfluence/pkg/discovery/peer"
-	"github.com/upfluence/pkg/discovery/resolver"
-	"github.com/upfluence/pkg/metadata"
+	"github.com/upfluence/pkg/v2/closer"
+	"github.com/upfluence/pkg/v2/discovery/peer"
+	"github.com/upfluence/pkg/v2/discovery/resolver"
+	"github.com/upfluence/pkg/v2/metadata"
 )
 
 type Builder[T peer.Peer] map[string][]T

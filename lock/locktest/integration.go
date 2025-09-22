@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/upfluence/pkg/lock"
+	"github.com/upfluence/pkg/v2/lock"
 )
 
 type TestCase interface {

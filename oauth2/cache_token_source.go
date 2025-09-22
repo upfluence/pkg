@@ -7,7 +7,7 @@ import (
 	"github.com/upfluence/errors"
 	"golang.org/x/oauth2"
 
-	"github.com/upfluence/pkg/log"
+	"github.com/upfluence/pkg/v2/log"
 )
 
 type CacheTokenSource struct {

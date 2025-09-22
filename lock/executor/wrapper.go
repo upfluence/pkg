@@ -5,8 +5,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/upfluence/pkg/lock"
-	"github.com/upfluence/pkg/log"
+	"github.com/upfluence/pkg/v2/lock"
+	"github.com/upfluence/pkg/v2/log"
 )
 
 type TaskWrapper struct {

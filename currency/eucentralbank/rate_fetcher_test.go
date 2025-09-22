@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/upfluence/pkg/currency"
+	"github.com/upfluence/pkg/v2/currency"
 )
 
 const bodyStub = `

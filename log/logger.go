@@ -13,10 +13,10 @@ import (
 	"github.com/upfluence/log/sink/multi"
 	"github.com/upfluence/log/sink/writer"
 
-	"github.com/upfluence/pkg/error_logger"
+	"github.com/upfluence/pkg/v2/error_logger"
 )
 
-const localPkg = "github.com/upfluence/pkg/log"
+const localPkg = "github.com/upfluence/pkg/v2/log"
 
 var (
 	loggerMu   sync.Mutex

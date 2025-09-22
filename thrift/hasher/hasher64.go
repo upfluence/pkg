@@ -5,7 +5,7 @@ import (
 	"hash/fnv"
 	"sync"
 
-	"github.com/upfluence/pkg/thrift/serializer"
+	"github.com/upfluence/pkg/v2/thrift/serializer"
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 

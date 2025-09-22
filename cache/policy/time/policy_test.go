@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/upfluence/pkg/cache/policy"
+	"github.com/upfluence/pkg/v2/cache/policy"
 )
 
 func TestIdlePolicy(t *testing.T) {

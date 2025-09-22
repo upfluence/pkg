@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/upfluence/pkg/stringutil"
+	"github.com/upfluence/pkg/v2/stringutil"
 )
 
 var (

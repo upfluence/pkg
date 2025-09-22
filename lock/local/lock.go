@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/upfluence/pkg/lock"
+	"github.com/upfluence/pkg/v2/lock"
 )
 
 type LockManager struct {

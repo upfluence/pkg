@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/upfluence/pkg/thrift/serializer"
+	"github.com/upfluence/pkg/v2/thrift/serializer"
 	"github.com/upfluence/thrift/lib/go/thrift"
 )
 

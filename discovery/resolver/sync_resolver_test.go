@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/upfluence/pkg/discovery/resolver"
-	"github.com/upfluence/pkg/discovery/resolver/static"
+	"github.com/upfluence/pkg/v2/discovery/resolver"
+	"github.com/upfluence/pkg/v2/discovery/resolver/static"
 )
 
 func TestNameResolverWithPeers(t *testing.T) {

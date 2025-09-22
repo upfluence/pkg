@@ -1,9 +1,9 @@
 package peerutil
 
 import (
-	"github.com/upfluence/pkg/log"
-	"github.com/upfluence/pkg/peer"
-	"github.com/upfluence/pkg/peer/version"
+	"github.com/upfluence/pkg/v2/log"
+	"github.com/upfluence/pkg/v2/peer"
+	"github.com/upfluence/pkg/v2/peer/version"
 )
 
 func Introspect(p *peer.Peer, ifaces map[string]version.Version) {

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/upfluence/pkg/cache/policy"
+	"github.com/upfluence/pkg/v2/cache/policy"
 )
 
 type element[K comparable] struct {

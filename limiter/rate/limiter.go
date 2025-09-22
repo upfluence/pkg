@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"github.com/upfluence/pkg/limiter"
+	"github.com/upfluence/pkg/v2/limiter"
 )
 
 var noopDone = func() {}

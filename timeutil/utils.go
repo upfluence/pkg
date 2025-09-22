@@ -3,7 +3,7 @@ package timeutil
 import (
 	"time"
 
-	"github.com/upfluence/pkg/pointers"
+	"github.com/upfluence/pkg/v2/pointers"
 )
 
 // UnixOrrNil returns the unix timestamp or nil if time is zero.

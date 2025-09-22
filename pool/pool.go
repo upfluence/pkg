@@ -3,7 +3,7 @@ package pool
 import (
 	"context"
 
-	"github.com/upfluence/pkg/iopool"
+	"github.com/upfluence/pkg/v2/iopool"
 )
 
 type entity[T comparable] struct {

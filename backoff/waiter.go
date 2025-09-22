@@ -6,7 +6,7 @@ import (
 
 	"github.com/upfluence/errors"
 
-	"github.com/upfluence/pkg/timeutil"
+	"github.com/upfluence/pkg/v2/timeutil"
 )
 
 var ErrCanceled = errors.New("backoff: strategy canceled")

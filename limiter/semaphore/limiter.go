@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/upfluence/pkg/limiter"
+	"github.com/upfluence/pkg/v2/limiter"
 )
 
 type Limiter struct {

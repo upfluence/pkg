@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/upfluence/pkg/limiter"
+	"github.com/upfluence/pkg/v2/limiter"
 )
 
 func TestString(t *testing.T) {

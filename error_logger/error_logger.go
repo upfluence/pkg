@@ -9,8 +9,8 @@ import (
 	"github.com/upfluence/errors/reporter/inhibit"
 	"github.com/upfluence/errors/reporter/sentry"
 
-	"github.com/upfluence/pkg/peer"
-	"github.com/upfluence/pkg/peer/version"
+	"github.com/upfluence/pkg/v2/peer"
+	"github.com/upfluence/pkg/v2/peer/version"
 )
 
 var (

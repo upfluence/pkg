@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/upfluence/pkg/envutil"
-	"github.com/upfluence/pkg/peer/version"
+	"github.com/upfluence/pkg/v2/envutil"
+	"github.com/upfluence/pkg/v2/peer/version"
 )
 
 var (

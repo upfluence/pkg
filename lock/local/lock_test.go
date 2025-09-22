@@ -3,8 +3,8 @@ package local
 import (
 	"testing"
 
-	"github.com/upfluence/pkg/lock"
-	"github.com/upfluence/pkg/lock/locktest"
+	"github.com/upfluence/pkg/v2/lock"
+	"github.com/upfluence/pkg/v2/lock/locktest"
 )
 
 func TestIntegration(t *testing.T) {

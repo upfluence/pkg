@@ -3,7 +3,7 @@ package exponential
 import (
 	"time"
 
-	"github.com/upfluence/pkg/backoff"
+	"github.com/upfluence/pkg/v2/backoff"
 )
 
 func NewDefaultBackoff(min, max time.Duration) backoff.Strategy {

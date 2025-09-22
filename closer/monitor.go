@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/upfluence/pkg/syncutil"
+	"github.com/upfluence/pkg/v2/syncutil"
 )
 
 type State uint8

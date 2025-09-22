@@ -3,7 +3,7 @@ package currencytest
 import (
 	"context"
 
-	"github.com/upfluence/pkg/currency"
+	"github.com/upfluence/pkg/v2/currency"
 )
 
 type FakeRateFetcher struct {

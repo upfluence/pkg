@@ -6,7 +6,7 @@ import (
 
 	"github.com/upfluence/errors"
 
-	"github.com/upfluence/pkg/discovery/peer"
+	"github.com/upfluence/pkg/v2/discovery/peer"
 )
 
 type Update[T peer.Peer] struct {
