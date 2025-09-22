@@ -16,10 +16,10 @@ type Rand interface {
 	Intn(int) int
 }
 
-type Balancer struct {
-	*resolver.Puller
+type Balancer[T peer.Peer] struct {
+	*resolver.Puller[T]
 
-	peers   []peer.Peer
+	peers   []T
 	peersMu *sync.RWMutex
 	rand    Rand
 
@@ -27,8 +27,8 @@ type Balancer struct {
 	closeFn  func()
 }
 
-func NewBalancer(r resolver.Resolver) *Balancer {
-	var b = &Balancer{
+func NewBalancer[T peer.Peer](r resolver.Resolver[T]) *Balancer[T] {
+	var b = &Balancer[T]{
 		rand:     rand.New(rand.NewSource(time.Now().UnixNano())),
 		peersMu:  &sync.RWMutex{},
 		notifier: make(chan interface{}),
@@ -39,15 +39,15 @@ func NewBalancer(r resolver.Resolver) *Balancer {
 	return b
 }
 
-func (b *Balancer) String() string {
+func (b *Balancer[T]) String() string {
 	return fmt.Sprintf("loadbalancer/random [resolver: %v]", b.Puller)
 }
 
-func (b *Balancer) updatePeers(u resolver.Update) {
+func (b *Balancer[T]) updatePeers(u resolver.Update[T]) {
 	b.peersMu.Lock()
 	defer b.peersMu.Unlock()
 
-	var newPeers = make(map[peer.Peer]interface{})
+	var newPeers = make(map[T]interface{})
 
 	for _, p := range b.peers {
 		var found bool
@@ -82,7 +82,7 @@ func (b *Balancer) updatePeers(u resolver.Update) {
 		empty = len(b.peers) == 0
 	)
 
-	b.peers = make([]peer.Peer, len(newPeers))
+	b.peers = make([]T, len(newPeers))
 
 	for p, _ := range newPeers {
 		b.peers[i] = p
@@ -100,32 +100,34 @@ func (b *Balancer) updatePeers(u resolver.Update) {
 	}
 }
 
-func (b *Balancer) hasPeers() bool {
+func (b *Balancer[T]) hasPeers() bool {
 	b.peersMu.RLock()
 	defer b.peersMu.RUnlock()
 
 	return len(b.peers) > 0
 }
 
-func (b *Balancer) Get(ctx context.Context, opts balancer.GetOptions) (peer.Peer, error) {
+func (b *Balancer[T]) Get(ctx context.Context, opts balancer.GetOptions) (T, func(error), error) {
+	var zero T
+
 	if !b.hasPeers() {
 		if opts.NoWait {
-			return nil, balancer.ErrNoPeerAvailable
+			return zero, nil, balancer.ErrNoPeerAvailable
 		}
 
 		select {
 		case b.notifier <- true:
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return zero, nil, ctx.Err()
 		}
 	}
 
 	b.peersMu.RLock()
 	defer b.peersMu.RUnlock()
-	return b.peers[b.rand.Intn(len(b.peers))], nil
+	return b.peers[b.rand.Intn(len(b.peers))], func(error) {}, nil
 }
 
-func (b *Balancer) Close() error {
+func (b *Balancer[T]) Close() error {
 	b.closeFn()
 	return nil
 }

@@ -3,7 +3,6 @@ package iopool
 import (
 	"context"
 	"io"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -17,25 +16,28 @@ import (
 var (
 	ErrNotCheckout = errors.New("iopool: the entity does not belong to the pool")
 	ErrClosed      = errors.New("iopool: the pool is closed")
+
+	errEmpty = errors.New("pool empty")
 )
 
-type Factory func(context.Context) (Entity, error)
+type Factory[E Entity] func(context.Context) (E, error)
 
 type Entity interface {
+	comparable
 	io.Closer
 
 	Open(context.Context) error
 	IsOpen() bool
 }
 
-type entityWrapper struct {
-	e Entity
-	n string
+type entityWrapper[E Entity] struct {
+	e E
+	n uint64
 
 	closed bool
 }
 
-type Pool struct {
+type Pool[E Entity] struct {
 	*closer.Monitor
 
 	size     int
@@ -43,33 +45,33 @@ type Pool struct {
 
 	closeOnce sync.Once
 
-	factory Factory
+	factory Factory[E]
 	createc chan struct{}
-	poolc   chan *entityWrapper
+	poolc   chan *entityWrapper[E]
 
 	mu         sync.Mutex
-	checkedout map[Entity]*entityWrapper
+	checkedout map[E]*entityWrapper[E]
 
-	checkout map[string]*entityWrapper
-	checkin  map[string]*entityWrapper
+	checkout map[uint64]*entityWrapper[E]
+	checkin  map[uint64]*entityWrapper[E]
 
-	ep      policy.EvictionPolicy
+	ep      policy.EvictionPolicy[uint64]
 	cnt     uint64
 	metrics metrics
 }
 
-func NewPool(f Factory, opts ...Option) *Pool {
+func NewPool[E Entity](f Factory[E], opts ...Option) *Pool[E] {
 	o := newOptions(opts...)
-	p := Pool{
+	p := Pool[E]{
 		size:       o.size,
 		idleSize:   o.idleSize,
 		Monitor:    closer.NewMonitor(),
 		factory:    f,
 		createc:    make(chan struct{}, o.size),
-		poolc:      make(chan *entityWrapper, o.idleSize),
-		checkedout: make(map[Entity]*entityWrapper),
-		checkout:   make(map[string]*entityWrapper),
-		checkin:    make(map[string]*entityWrapper),
+		poolc:      make(chan *entityWrapper[E], o.idleSize),
+		checkedout: make(map[E]*entityWrapper[E]),
+		checkout:   make(map[uint64]*entityWrapper[E]),
+		checkin:    make(map[uint64]*entityWrapper[E]),
 		ep:         o.evictionPolicy(),
 	}
 
@@ -85,7 +87,7 @@ func NewPool(f Factory, opts ...Option) *Pool {
 	return &p
 }
 
-func (p *Pool) closer(ctx context.Context) {
+func (p *Pool[E]) closer(ctx context.Context) {
 	for {
 		ch := p.ep.C()
 
@@ -113,13 +115,15 @@ func (p *Pool) closer(ctx context.Context) {
 				delete(p.checkin, ew.n)
 				p.mu.Unlock()
 				ew.e.Close()
-				ew.e = nil
+
+				var zero E
+				ew.e = zero
 			}
 		}
 	}
 }
 
-func (p *Pool) markOut(ew *entityWrapper) {
+func (p *Pool[E]) markOut(ew *entityWrapper[E]) {
 	p.mu.Lock()
 	p.checkedout[ew.e] = ew
 	p.checkout[ew.n] = ew
@@ -127,33 +131,37 @@ func (p *Pool) markOut(ew *entityWrapper) {
 	p.mu.Unlock()
 }
 
-func (p *Pool) getNoWait() (Entity, error) {
+func (p *Pool[E]) getNoWait() (E, error) {
+	var zero E
+
 	for {
 		select {
 		case ew, ok := <-p.poolc:
 			if !ok {
-				return nil, ErrClosed
+				return zero, ErrClosed
 			}
 
 			if p.checkoutWrapper(ew) {
 				return ew.e, nil
 			}
 		default:
-			return nil, nil
+			return zero, errEmpty
 		}
 	}
 }
 
-func (p *Pool) Get(ctx context.Context) (Entity, error) {
+func (p *Pool[E]) Get(ctx context.Context) (E, error) {
+	var zero E
+
 	p.metrics.get.Inc()
 
 	if !p.IsOpen() {
-		return nil, ErrClosed
+		return zero, ErrClosed
 	}
 
 	e, err := p.getNoWait()
 
-	if err != nil || e != nil {
+	if err != errEmpty {
 		return e, err
 	}
 
@@ -166,12 +174,12 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 	for {
 		select {
 		case <-p.Context().Done():
-			return nil, ErrClosed
+			return zero, ErrClosed
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return zero, ctx.Err()
 		case ew, ok := <-p.poolc:
 			if !ok {
-				return nil, ErrClosed
+				return zero, ErrClosed
 			}
 
 			if p.checkoutWrapper(ew) {
@@ -180,7 +188,7 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 			}
 		case _, ok := <-p.createc:
 			if !ok {
-				return nil, ErrClosed
+				return zero, ErrClosed
 			}
 
 			ew, err := p.dial(ctx)
@@ -191,7 +199,7 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 				default:
 				}
 
-				return nil, err
+				return zero, err
 			}
 
 			p.markOut(ew)
@@ -202,14 +210,16 @@ func (p *Pool) Get(ctx context.Context) (Entity, error) {
 	}
 }
 
-func (p *Pool) checkoutWrapper(ew *entityWrapper) bool {
-	if ew.closed || ew.e == nil || !ew.e.IsOpen() {
-		if ew.e != nil {
+func (p *Pool[E]) checkoutWrapper(ew *entityWrapper[E]) bool {
+	var zero E
+
+	if ew.closed || ew.e == zero || !ew.e.IsOpen() {
+		if ew.e != zero {
 			ew.e.Close()
 		}
 		p.mu.Lock()
 
-		if ew.e != nil {
+		if ew.e != zero {
 			delete(p.checkedout, ew.e)
 		}
 
@@ -235,7 +245,7 @@ func (p *Pool) checkoutWrapper(ew *entityWrapper) bool {
 	return true
 }
 
-func (p *Pool) dial(ctx context.Context) (*entityWrapper, error) {
+func (p *Pool[E]) dial(ctx context.Context) (*entityWrapper[E], error) {
 	e, err := p.factory(ctx)
 
 	if err != nil {
@@ -246,13 +256,13 @@ func (p *Pool) dial(ctx context.Context) (*entityWrapper, error) {
 		return nil, err
 	}
 
-	return &entityWrapper{
+	return &entityWrapper[E]{
 		e: e,
-		n: strconv.Itoa(int(atomic.AddUint64(&p.cnt, 1))),
+		n: atomic.AddUint64(&p.cnt, 1),
 	}, nil
 }
 
-func (p *Pool) requeue(ew *entityWrapper) error {
+func (p *Pool[E]) requeue(ew *entityWrapper[E]) error {
 	select {
 	case p.poolc <- ew:
 		p.metrics.idle.Update(int64(len(p.poolc)))
@@ -272,7 +282,7 @@ func (p *Pool) requeue(ew *entityWrapper) error {
 	return nil
 }
 
-func (p *Pool) Put(e Entity) error {
+func (p *Pool[E]) Put(e E) error {
 	if !e.IsOpen() {
 		return p.Discard(e)
 	}
@@ -303,7 +313,7 @@ func (p *Pool) Put(e Entity) error {
 	return p.requeue(ew)
 }
 
-func (p *Pool) Discard(e Entity) error {
+func (p *Pool[E]) Discard(e E) error {
 	p.metrics.discard.Inc()
 	p.mu.Lock()
 	ew, ok := p.checkedout[e]
@@ -330,7 +340,7 @@ func (p *Pool) Discard(e Entity) error {
 	return err
 }
 
-func (p *Pool) drainPoolChannel() []error {
+func (p *Pool[E]) drainPoolChannel() []error {
 	var errs []error
 
 	for {
@@ -348,7 +358,7 @@ func (p *Pool) drainPoolChannel() []error {
 	}
 }
 
-func (p *Pool) Shutdown(ctx context.Context) error {
+func (p *Pool[E]) Shutdown(ctx context.Context) error {
 	if err := p.Monitor.Shutdown(ctx); err != nil {
 		return err
 	}
@@ -372,8 +382,11 @@ func (p *Pool) Shutdown(ctx context.Context) error {
 	return errors.WrapErrors(errs)
 }
 
-func (p *Pool) Close() error {
-	var err error
+func (p *Pool[E]) Close() error {
+	var (
+		err  error
+		zero E
+	)
 
 	p.closeOnce.Do(func() {
 		p.Monitor.Close()
@@ -391,7 +404,7 @@ func (p *Pool) Close() error {
 			case ew := <-p.poolc:
 				p.metrics.idle.Update(int64(len(p.poolc)))
 
-				if !ew.closed && ew.e != nil {
+				if !ew.closed && ew.e != zero {
 					if err := ew.e.Close(); err != nil {
 						errs = append(errs, err)
 					}

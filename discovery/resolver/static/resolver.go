@@ -11,42 +11,42 @@ import (
 	"github.com/upfluence/pkg/metadata"
 )
 
-type Builder map[string][]peer.Peer
+type Builder[T peer.Peer] map[string][]T
 
-func (b Builder) Build(n string) resolver.Resolver {
-	return &Resolver{Peers: b[n]}
+func (b Builder[T]) Build(n string) resolver.Resolver[T] {
+	return &Resolver[T]{Peers: b[n]}
 }
 
-func PeersFromStrings(addrs ...string) []peer.Peer {
-	var peers = make([]peer.Peer, len(addrs))
+func PeersFromStrings(addrs ...string) []Peer {
+	var peers = make([]Peer, len(addrs))
 
 	for i, addr := range addrs {
-		peers[i] = staticPeer(addr)
+		peers[i] = Peer(addr)
 	}
 
 	return peers
 }
 
-type Resolver struct {
+type Resolver[T peer.Peer] struct {
 	closer.Monitor
 
-	Peers []peer.Peer
+	Peers []T
 }
 
-type staticPeer string
+type Peer string
 
-func (sp staticPeer) Addr() string                { return string(sp) }
-func (sp staticPeer) Metadata() metadata.Metadata { return nil }
+func (sp Peer) Addr() string                { return string(sp) }
+func (sp Peer) Metadata() metadata.Metadata { return nil }
 
-func NewResolverFromStrings(addrs []string) *Resolver {
+func NewResolverFromStrings(addrs []string) *Resolver[Peer] {
 	return NewResolver(PeersFromStrings(addrs...))
 }
 
-func NewResolver(peers []peer.Peer) *Resolver {
-	return &Resolver{Peers: peers}
+func NewResolver[T peer.Peer](peers []T) *Resolver[T] {
+	return &Resolver[T]{Peers: peers}
 }
 
-func (r *Resolver) String() string {
+func (r *Resolver[T]) String() string {
 	var addrs = make([]string, len(r.Peers))
 
 	for i, peer := range r.Peers {
@@ -56,30 +56,30 @@ func (r *Resolver) String() string {
 	return fmt.Sprintf("resolver/static: [seeds: %v]", addrs)
 }
 
-func (r *Resolver) Build(string) resolver.Resolver { return r }
+func (r *Resolver[T]) Build(string) resolver.Resolver[T] { return r }
 
-func (r *Resolver) Open(_ context.Context) error { return nil }
+func (r *Resolver[T]) Open(_ context.Context) error { return nil }
 
-func (r *Resolver) Resolve() resolver.Watcher {
-	return &watcher{r: r}
+func (r *Resolver[T]) Resolve() resolver.Watcher[T] {
+	return &watcher[T]{r: r}
 }
 
-type watcher struct {
+type watcher[T peer.Peer] struct {
 	closer.Monitor
 
-	r       *Resolver
+	r       *Resolver[T]
 	initial int32
 }
 
-func (w *watcher) Next(ctx context.Context, opts resolver.ResolveOptions) (resolver.Update, error) {
+func (w *watcher[T]) Next(ctx context.Context, opts resolver.ResolveOptions) (resolver.Update[T], error) {
 	ok := atomic.CompareAndSwapInt32(&w.initial, 0, 1)
 
 	if opts.NoWait && (!ok || len(w.r.Peers) == 0) {
-		return resolver.Update{}, resolver.ErrNoUpdates
+		return resolver.Update[T]{}, resolver.ErrNoUpdates
 	}
 
 	if ok && len(w.r.Peers) > 0 {
-		return resolver.Update{Additions: w.r.Peers}, nil
+		return resolver.Update[T]{Additions: w.r.Peers}, nil
 	}
 
 	wctx := w.Context()
@@ -87,11 +87,11 @@ func (w *watcher) Next(ctx context.Context, opts resolver.ResolveOptions) (resol
 
 	select {
 	case <-ctx.Done():
-		return resolver.Update{}, ctx.Err()
+		return resolver.Update[T]{}, ctx.Err()
 	case <-wctx.Done():
-		return resolver.Update{}, wctx.Err()
+		return resolver.Update[T]{}, wctx.Err()
 	case <-rctx.Done():
 		w.Close()
-		return resolver.Update{}, wctx.Err()
+		return resolver.Update[T]{}, wctx.Err()
 	}
 }

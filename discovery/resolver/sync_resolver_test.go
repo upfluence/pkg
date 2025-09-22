@@ -14,7 +14,7 @@ import (
 func TestNameResolverWithPeers(t *testing.T) {
 	ctx := context.Background()
 	nr := resolver.SyncResolverFromBuilder(
-		static.Builder{
+		static.Builder[static.Peer]{
 			"n1": static.PeersFromStrings("foo", "bar"),
 			"n2": static.PeersFromStrings("biz", "buz"),
 		},
@@ -37,7 +37,7 @@ func TestNameResolverWithPeers(t *testing.T) {
 
 func TestNameResolverNoPeerNoWait(t *testing.T) {
 	ctx := context.Background()
-	nr := resolver.SyncResolverFromBuilder(static.Builder{}, true)
+	nr := resolver.SyncResolverFromBuilder(static.Builder[static.Peer]{}, true)
 
 	ps, err := nr.ResolveSync(ctx, "n1")
 
@@ -50,7 +50,7 @@ func TestNameResolverNoPeerNoWait(t *testing.T) {
 
 func TestNameResolverNoPeerWait(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
-	nr := resolver.SyncResolverFromBuilder(static.Builder{}, false)
+	nr := resolver.SyncResolverFromBuilder(static.Builder[static.Peer]{}, false)
 
 	defer cancel()
 

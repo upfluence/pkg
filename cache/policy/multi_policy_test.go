@@ -8,7 +8,7 @@ import (
 )
 
 func TestNopPolicy(t *testing.T) {
-	p := CombinePolicies()
+	p := CombinePolicies[string]()
 
 	select {
 	case <-p.C():
@@ -46,7 +46,7 @@ func (mp *mockPolicy) C() <-chan string {
 
 func (mp *mockPolicy) Op(k string, ot OpType) error {
 	mp.Lock()
-	mp.ops = append(mp.ops, op{k, ot})
+	mp.ops = append(mp.ops, op{k: k, op: ot})
 	mp.Unlock()
 
 	return mp.oerr
@@ -67,7 +67,7 @@ func TestMultiPolicy(t *testing.T) {
 		wg sync.WaitGroup
 	)
 
-	p := CombinePolicies(m1, m2, m3)
+	p := CombinePolicies[string](m1, m2, m3)
 
 	wg.Add(1)
 

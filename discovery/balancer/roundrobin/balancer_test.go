@@ -12,27 +12,30 @@ import (
 
 func TestBalanceEmpty(t *testing.T) {
 	ctx := context.Background()
-	b := NewBalancer(&static.Resolver{})
+	b := NewBalancer(&static.Resolver[static.Peer]{})
 
-	p, err := b.Get(ctx, balancer.GetOptions{NoWait: true})
+	p, done, err := b.Get(ctx, balancer.GetOptions{NoWait: true})
 
-	assert.Nil(t, p)
+	assert.Empty(t, p.Addr())
+	assert.Nil(t, done)
 	assert.Equal(t, balancer.ErrNoPeerAvailable, err)
 
 	cctx, cancel := context.WithCancel(ctx)
 	cancel()
 
-	p, err = b.Get(cctx, balancer.GetOptions{})
+	p, done, err = b.Get(cctx, balancer.GetOptions{})
 
-	assert.Nil(t, p)
+	assert.Empty(t, p.Addr())
+	assert.Nil(t, done)
 	assert.Equal(t, err, context.Canceled)
 
 	err = b.Close()
-	assert.Nil(t, p)
+	assert.NoError(t, err)
 
-	p, err = b.Get(ctx, balancer.GetOptions{})
+	p, done, err = b.Get(ctx, balancer.GetOptions{})
 
-	assert.Nil(t, p)
+	assert.Empty(t, p.Addr())
+	assert.Nil(t, done)
 	assert.Equal(t, err, context.Canceled)
 }
 
@@ -45,17 +48,20 @@ func TestBalanceWithPerrs(t *testing.T) {
 	err := b.Open(ctx)
 	assert.Nil(t, err)
 
-	p, err := b.Get(ctx, balancer.GetOptions{})
+	p, done, err := b.Get(ctx, balancer.GetOptions{})
+	done(nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "localhost:0", p.Addr())
 
-	p, err = b.Get(ctx, balancer.GetOptions{})
+	p, done, err = b.Get(ctx, balancer.GetOptions{})
+	done(nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "localhost:1", p.Addr())
 
-	p, err = b.Get(ctx, balancer.GetOptions{})
+	p, done, err = b.Get(ctx, balancer.GetOptions{})
+	done(nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "localhost:0", p.Addr())
