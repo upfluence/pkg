@@ -4,7 +4,7 @@ package slices
 
 // References returns slice with the value of the slice in params as
 // pointers.
-func References[T comparable](s []T) []*T {
+func References[T any](s []T) []*T {
 	var r = make([]*T, len(s))
 
 	for i, v := range s {
@@ -15,7 +15,7 @@ func References[T comparable](s []T) []*T {
 	return r
 }
 
-func Indirect[T comparable](s []*T) []T {
+func Indirect[T any](s []*T) []T {
 	var r = make([]T, len(s))
 
 	for i, v := range s {
