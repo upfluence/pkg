@@ -15,10 +15,22 @@ type errGroup struct {
 	once sync.Once
 }
 
+// ExitGroup creates a Group that cancels all goroutines as soon as any
+// goroutine completes (with or without error). This is useful when you want
+// the first completion to trigger cancellation of all other work.
+//
+// The returned error from Wait will be the error from the first goroutine
+// that completed, or nil if it completed successfully.
 func ExitGroup(ctx context.Context) Group {
 	return newErrGroup(ctx, func(err error) bool { return true })
 }
 
+// ErrorGroup creates a Group that cancels all goroutines as soon as any
+// goroutine returns an error. If all goroutines complete successfully,
+// Wait returns nil.
+//
+// This is the most commonly used error handling strategy - fail fast on
+// the first error encountered.
 func ErrorGroup(ctx context.Context) Group {
 	return newErrGroup(ctx, func(err error) bool { return err != nil })
 }
