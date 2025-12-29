@@ -2,6 +2,7 @@ package pointers
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -70,4 +71,9 @@ func TestEq(t *testing.T) {
 		number: 1,
 		string: "world",
 	}))
+
+	t0 := time.Now()
+	assert.True(t, Equal(Ptr(t0), Ptr(t0)))
+	assert.False(t, Equal(Ptr(t0), Ptr(t0.Add(time.Hour))))
+	assert.True(t, Equal(Ptr(t0.Add(time.Hour)), Ptr(t0.Add(time.Hour))))
 }
