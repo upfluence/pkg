@@ -73,7 +73,7 @@ func TestEq(t *testing.T) {
 	}))
 
 	d1 := Ptr(time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC))
-	d2 := Ptr(time.Date(2000, 2, 1, 20, 30, 0, 0, time.FixedZone("z2", int(8*time.Hour))))
+	d2 := Ptr(time.Date(2000, 2, 1, 20, 30, 0, 0, time.FixedZone("z2", int((8*time.Hour).Seconds()))))
 	assert.False(t, *d1 == *d2) // nolint
 	assert.True(t, Equal(d1, d2))
 	assert.False(t, Equal(d1, Ptr(d2.Add(time.Hour))))
