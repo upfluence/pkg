@@ -32,5 +32,9 @@ func Equal[T comparable](a, b *T) bool {
 		return false
 	}
 
+	if aa, ok := any(a).(interface{ Equal(b T) bool }); ok {
+		return aa.Equal(*b)
+	}
+
 	return *a == *b
 }
