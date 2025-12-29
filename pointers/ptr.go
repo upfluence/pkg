@@ -23,7 +23,7 @@ func NullIsZero[T comparable](v *T) T {
 	return *v
 }
 
-func Eq[T comparable](a, b *T) bool {
+func Equal[T comparable](a, b *T) bool {
 	if a == b {
 		return true
 	}
