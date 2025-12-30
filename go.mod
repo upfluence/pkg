@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/stretchr/testify v1.11.1
 	github.com/upfluence/cfg v0.3.6
-	github.com/upfluence/errors v0.2.15
+	github.com/upfluence/errors v0.2.18
 	github.com/upfluence/log v0.0.6
 	github.com/upfluence/stats v0.1.9
 	github.com/upfluence/thrift v2.6.10+incompatible

@@ -26,8 +26,8 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/upfluence/cfg v0.3.6 h1:CL5ph7Avn8B5oR6vCoOcQdOMGImNqeXQifmtcQJdUPA=
 github.com/upfluence/cfg v0.3.6/go.mod h1:0TzWsboPheOr4WtyZ370j6KuFAkXAS2IqpdVnTYSBSc=
-github.com/upfluence/errors v0.2.15 h1:RtX6cPPB/DRRF2/lWIkjht3qA7fPj+9XfDusCQPMvc0=
-github.com/upfluence/errors v0.2.15/go.mod h1:F20G28/uHKxrcXwrufkVl7iy/SVozr+6w9Xyg5BEx0k=
+github.com/upfluence/errors v0.2.18 h1:POMbjrSD55D2IM6kDKkMQNdYft0RJwkwmhurBlD+eTE=
+github.com/upfluence/errors v0.2.18/go.mod h1:F20G28/uHKxrcXwrufkVl7iy/SVozr+6w9Xyg5BEx0k=
 github.com/upfluence/log v0.0.6 h1:cG+dq0CXTZTXGknzwZbQEW2QQH6KRjUu9rysdhmhBcA=
 github.com/upfluence/log v0.0.6/go.mod h1:pCbKPbgnoF5zqR9JsTgParTIEBvqXsIuaa8eoEVhdPA=
 github.com/upfluence/stats v0.1.9 h1:lCALzQXll2oMSj04hWCZu15vGVj140yR1V9tN/SclWU=
