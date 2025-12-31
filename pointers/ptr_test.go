@@ -2,6 +2,7 @@ package pointers
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -42,32 +43,38 @@ type testStruct struct {
 
 func TestEq(t *testing.T) {
 	n := 5
-	assert.True(t, Eq(&n, &n))
-	assert.True(t, Eq(Ptr(5), &n))
-	assert.True(t, Eq(Ptr(5), Ptr(5)))
-	assert.False(t, Eq(&n, Ptr(6)))
-	assert.False(t, Eq(Ptr(5), Ptr(6)))
+	assert.True(t, Equal(&n, &n))
+	assert.True(t, Equal(Ptr(5), &n))
+	assert.True(t, Equal(Ptr(5), Ptr(5)))
+	assert.False(t, Equal(&n, Ptr(6)))
+	assert.False(t, Equal(Ptr(5), Ptr(6)))
 
 	str := "foo"
-	assert.True(t, Eq(&str, &str))
-	assert.True(t, Eq(&str, Ptr("foo")))
-	assert.False(t, Eq(&str, Ptr("bar")))
+	assert.True(t, Equal(&str, &str))
+	assert.True(t, Equal(&str, Ptr("foo")))
+	assert.False(t, Equal(&str, Ptr("bar")))
 
 	s := testStruct{
 		number: 1,
 		string: "hello",
 	}
-	assert.True(t, Eq(&s, &s))
-	assert.True(t, Eq(&s, &testStruct{
+	assert.True(t, Equal(&s, &s))
+	assert.True(t, Equal(&s, &testStruct{
 		number: 1,
 		string: "hello",
 	}))
-	assert.False(t, Eq(&s, &testStruct{
+	assert.False(t, Equal(&s, &testStruct{
 		number: 2,
 		string: "hello",
 	}))
-	assert.False(t, Eq(&s, &testStruct{
+	assert.False(t, Equal(&s, &testStruct{
 		number: 1,
 		string: "world",
 	}))
+
+	d1 := Ptr(time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC))
+	d2 := Ptr(time.Date(2000, 2, 1, 20, 30, 0, 0, time.FixedZone("z2", int((8*time.Hour).Seconds()))))
+	assert.False(t, *d1 == *d2) // nolint
+	assert.True(t, Equal(d1, d2))
+	assert.False(t, Equal(d1, Ptr(d2.Add(time.Hour))))
 }
