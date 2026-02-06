@@ -15,12 +15,12 @@ func (e entity[T]) Open(context.Context) error { return nil }
 func (e entity[T]) IsOpen() bool               { return true }
 
 type Pool[T comparable] struct {
-	p *iopool.Pool[entity[T]]
+	*iopool.Pool[entity[T]]
 }
 
 func NewPool[T comparable](newfn func() T, opts ...iopool.Option) *Pool[T] {
 	return &Pool[T]{
-		p: iopool.NewPool[entity[T]](
+		Pool: iopool.NewPool(
 			func(context.Context) (entity[T], error) {
 				return entity[T]{Value: newfn()}, nil
 			},
@@ -30,10 +30,10 @@ func NewPool[T comparable](newfn func() T, opts ...iopool.Option) *Pool[T] {
 }
 
 func (p *Pool[T]) Get(ctx context.Context) (T, error) {
-	var v, err = p.p.Get(ctx)
+	var v, err = p.Pool.Get(ctx)
 
 	return v.Value, err
 }
 
-func (p *Pool[T]) Put(v T) error     { return p.p.Put(entity[T]{Value: v}) }
-func (p *Pool[T]) Discard(v T) error { return p.p.Discard(entity[T]{Value: v}) }
+func (p *Pool[T]) Put(v T) error     { return p.Pool.Put(entity[T]{Value: v}) }
+func (p *Pool[T]) Discard(v T) error { return p.Pool.Discard(entity[T]{Value: v}) }

@@ -30,3 +30,18 @@ func newMetrics(s stats.Scope) metrics {
 		size:            s.Gauge("size"),
 	}
 }
+
+func (m *metrics) stats() Stats {
+	return Stats{
+		Size:  m.size.Get(),
+		Idle:  m.idle.Get(),
+		InUse: m.checkout.Get(),
+	}
+}
+
+type Stats struct {
+	Size int64
+
+	Idle  int64
+	InUse int64
+}

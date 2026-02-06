@@ -87,12 +87,20 @@ func NewPool[E Entity](f Factory[E], opts ...Option) *Pool[E] {
 	return &p
 }
 
+func (p *Pool[E]) Stats() Stats {
+	return p.metrics.stats()
+}
+
 func (p *Pool[E]) closer(ctx context.Context) {
 	for {
 		ch := p.ep.C()
 
 		select {
+		case <-p.ShutdownChan():
+			return
 		case <-p.Context().Done():
+			return
+		case <-ctx.Done():
 			return
 		case ewn, ok := <-ch:
 			if !ok {
