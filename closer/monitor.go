@@ -31,12 +31,15 @@ func WithClosingPolicy(cp ClosingPolicy) MonitorOption {
 type Monitor struct {
 	ClosingPolicy ClosingPolicy
 
+	shutdownChan  chan struct{}
+	shutodownOnce sync.Once
+
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	once sync.Once
-	mu   sync.Mutex
-	cond *syncutil.Cond
+	initOnce sync.Once
+	mu       sync.Mutex
+	cond     *syncutil.Cond
 
 	s     State
 	count int
@@ -58,10 +61,16 @@ func (m *Monitor) Context() context.Context {
 }
 
 func (m *Monitor) init() {
-	m.once.Do(func() {
+	m.initOnce.Do(func() {
 		m.cond = &syncutil.Cond{Locker: &m.mu}
 		m.ctx, m.cancel = context.WithCancel(context.Background())
+		m.shutdownChan = make(chan struct{})
 	})
+}
+
+func (m *Monitor) ShutdownChan() <-chan struct{} {
+	m.init()
+	return m.shutdownChan
 }
 
 func (m *Monitor) Run(fn func(context.Context)) {
@@ -104,9 +113,15 @@ func (m *Monitor) Shutdown(ctx context.Context) error {
 	m.s = Closing
 	m.mu.Unlock()
 
+	m.shutodownOnce.Do(func() {
+		close(m.shutdownChan)
+	})
+
 	if err := m.cond.Wait(ctx, func() bool { return m.count == 0 }); err != nil {
 		return err
 	}
+
+	m.cancel()
 
 	m.mu.Lock()
 	m.s = Closed
@@ -117,6 +132,11 @@ func (m *Monitor) Shutdown(ctx context.Context) error {
 
 func (m *Monitor) Close() error {
 	m.init()
+
+	m.shutodownOnce.Do(func() {
+		close(m.shutdownChan)
+	})
+
 	m.cancel()
 
 	m.mu.Lock()
