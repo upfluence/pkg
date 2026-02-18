@@ -126,7 +126,7 @@ func (da *deterministicAccumulator) endUnordered() error {
 
 	for _, h := range ctx.hashers {
 		for i, b := range h.Sum(nil) {
-			buf[i] |= b
+			buf[i] ^= b
 		}
 	}
 

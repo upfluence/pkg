@@ -96,7 +96,7 @@ func TestHash(t *testing.T) {
 				"bar": &stringTStruct{s: "foo"},
 				"buz": &stringTStruct{s: "biz"},
 			},
-			out: 0xddac4f971fc7c18,
+			out: 0xb9593edcd15b2564,
 		},
 		{
 			name: "set string",
@@ -105,7 +105,7 @@ func TestHash(t *testing.T) {
 				&stringTStruct{s: "bar"},
 				&stringTStruct{s: "buz"},
 			},
-			out: 0xedca83a4cdd7df21,
+			out: 0x7960213970a9478a,
 		},
 		{
 			name: "set string",
@@ -114,7 +114,7 @@ func TestHash(t *testing.T) {
 				&stringTStruct{s: "bar"},
 				&stringTStruct{s: "foo"},
 			},
-			out: 0xedca83a4cdd7df21,
+			out: 0x7960213970a9478a,
 		},
 		{
 			name: "set string with missing element",
@@ -122,7 +122,7 @@ func TestHash(t *testing.T) {
 				&stringTStruct{s: "buz"},
 				&stringTStruct{s: "bar"},
 			},
-			out: 0x7eada37398e53b95,
+			out: 0xb0a2aa3a3f1af885,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
