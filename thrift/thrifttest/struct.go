@@ -1,4 +1,4 @@
-package serializer
+package thrifttest
 
 import (
 	"github.com/upfluence/errors"
@@ -11,15 +11,28 @@ var (
 	ErrInvalidType    = errors.New("thrift/serializer: invalid type")
 )
 
-type TStruct interface {
-	Write(thrift.TProtocol) error
-	Read(thrift.TProtocol) error
+func stringifyList(vs []thrift.TStruct) string {
+	var s string
+
+	for i, t := range vs {
+		if i > 0 {
+			s += ","
+		}
+
+		s += t.String()
+	}
+
+	return "[" + s + "]"
 }
 
-type SliceWriter []TStruct
+type SliceWriter []thrift.TStruct
 
 func (sw SliceWriter) Read(p thrift.TProtocol) error {
 	return ErrNotImplemented
+}
+
+func (sw SliceWriter) String() string {
+	return stringifyList(sw)
 }
 
 func (sw SliceWriter) Write(p thrift.TProtocol) error {
@@ -62,7 +75,9 @@ func (sr SliceReader) Write(thrift.TProtocol) error {
 	return ErrNotImplemented
 }
 
-type MapWriter map[string]TStruct
+func (sr SliceReader) String() string { return "slice_reader" }
+
+type MapWriter map[string]thrift.TStruct
 
 func (mw MapWriter) Read(p thrift.TProtocol) error {
 	return ErrNotImplemented
@@ -84,6 +99,20 @@ func (mw MapWriter) Write(p thrift.TProtocol) error {
 	}
 
 	return p.WriteMapEnd()
+}
+
+func (mw MapWriter) String() string {
+	var s string
+
+	for k, v := range mw {
+		if s != "" {
+			s += ","
+		}
+
+		s += k + ":" + v.String()
+	}
+
+	return "{" + s + "}"
 }
 
 type MapReader func(string, thrift.TProtocol) error
@@ -116,4 +145,30 @@ func (mr MapReader) Read(p thrift.TProtocol) error {
 
 func (mr MapReader) Write(thrift.TProtocol) error {
 	return ErrNotImplemented
+}
+
+func (mr MapReader) String() string { return "map_reader" }
+
+type SetWriter []thrift.TStruct
+
+func (sw SetWriter) String() string {
+	return stringifyList(sw)
+}
+
+func (sw SetWriter) Read(p thrift.TProtocol) error {
+	return ErrNotImplemented
+}
+
+func (sw SetWriter) Write(p thrift.TProtocol) error {
+	if err := p.WriteSetBegin(thrift.STRUCT, len(sw)); err != nil {
+		return err
+	}
+
+	for _, s := range sw {
+		if err := s.Write(p); err != nil {
+			return err
+		}
+	}
+
+	return p.WriteSetEnd()
 }

@@ -16,15 +16,15 @@ func TestDeserializerReadString(t *testing.T) {
 		pf    thrift.TProtocolFactory
 		es    []encoding.Encoding
 		in    string
-		msgfn func() TStruct
-		out   TStruct
+		msgfn func() thrift.TStruct
+		out   thrift.TStruct
 		errfn errtest.ErrorAssertion
 	}{
 		{
 			name:  "regular encoding",
 			pf:    thrift.NewTJSONProtocolFactory(),
 			in:    "\"foobar\"",
-			msgfn: func() TStruct { return &stringTStruct{} },
+			msgfn: func() thrift.TStruct { return &stringTStruct{} },
 			out:   &stringTStruct{"foobar"},
 			errfn: errtest.NoError(),
 		},
@@ -33,7 +33,7 @@ func TestDeserializerReadString(t *testing.T) {
 			pf:    thrift.NewTJSONProtocolFactory(),
 			es:    []encoding.Encoding{encoding.Base64Encoding},
 			in:    "ImZvb2JhciI=",
-			msgfn: func() TStruct { return &stringTStruct{} },
+			msgfn: func() thrift.TStruct { return &stringTStruct{} },
 			out:   &stringTStruct{"foobar"},
 			errfn: errtest.NoError(),
 		},
@@ -45,7 +45,7 @@ func TestDeserializerReadString(t *testing.T) {
 				encoding.Base64Encoding,
 			},
 			in:    "H4sIAAAAAAAA/2JgYGBLy89PSiwCAAAA//8AAAD//wEAAP//euNurwoA",
-			msgfn: func() TStruct { return &stringTStruct{} },
+			msgfn: func() thrift.TStruct { return &stringTStruct{} },
 			out:   &stringTStruct{"foobar"},
 			errfn: errtest.NoError(),
 		},

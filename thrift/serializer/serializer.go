@@ -12,7 +12,7 @@ import (
 
 type Serializer interface {
 	ContentType() string
-	WriteTo(TStruct, io.Writer) error
+	WriteTo(thrift.TStruct, io.Writer) error
 	WrapEncoding(encoding.Encoding) Serializer
 }
 
@@ -50,7 +50,7 @@ func (ts *tSerializer) WrapEncoding(e encoding.Encoding) Serializer {
 	}
 }
 
-func (ts *tSerializer) WriteTo(msg TStruct, w io.Writer) error {
+func (ts *tSerializer) WriteTo(msg thrift.TStruct, w io.Writer) error {
 	var t, err = ts.wfn(w)
 
 	if err != nil {
@@ -99,7 +99,7 @@ func NewDefaultTSerializer() *TSerializer {
 	return NewTSerializer(thriftutil.JSONProtocolFactory)
 }
 
-func (s *TSerializer) Write(msg TStruct) ([]byte, error) {
+func (s *TSerializer) Write(msg thrift.TStruct) ([]byte, error) {
 	buf := s.bp.Get()
 
 	err := s.WriteTo(msg, buf)
@@ -111,7 +111,7 @@ func (s *TSerializer) Write(msg TStruct) ([]byte, error) {
 	return res, err
 }
 
-func (s *TSerializer) WriteString(msg TStruct) (string, error) {
+func (s *TSerializer) WriteString(msg thrift.TStruct) (string, error) {
 	buf := s.bp.Get()
 
 	err := s.WriteTo(msg, buf)

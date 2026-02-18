@@ -62,12 +62,16 @@ func (sts *stringTStruct) Read(p thrift.TProtocol) error {
 	return nil
 }
 
+func (sts *stringTStruct) String() string {
+	return sts.string
+}
+
 func TestSerializerWriteString(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
 		pf    thrift.TProtocolFactory
 		es    []encoding.Encoding
-		in    TStruct
+		in    thrift.TStruct
 		out   string
 		errfn errtest.ErrorAssertion
 	}{

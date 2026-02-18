@@ -13,7 +13,7 @@ import (
 
 type Deserializer interface {
 	ContentType() string
-	ReadFrom(msg TStruct, r io.Reader) error
+	ReadFrom(msg thrift.TStruct, r io.Reader) error
 	WrapEncoding(encoding.Encoding) Deserializer
 }
 
@@ -43,7 +43,7 @@ func (dw decoderWrapper) transport(r io.Reader) (thrift.TTransport, error) {
 }
 
 func (td *tDeserializer) ContentType() string { return td.cType }
-func (td *tDeserializer) ReadFrom(msg TStruct, r io.Reader) error {
+func (td *tDeserializer) ReadFrom(msg thrift.TStruct, r io.Reader) error {
 	var t, err = td.rfn(r)
 
 	if err != nil {
@@ -85,10 +85,10 @@ func NewDefaultTDeserializer() *TDeserializer {
 	return NewTDeserializer(thriftutil.JSONProtocolFactory)
 }
 
-func (d *TDeserializer) Read(msg TStruct, p []byte) error {
+func (d *TDeserializer) Read(msg thrift.TStruct, p []byte) error {
 	return d.ReadFrom(msg, bytes.NewReader(p))
 }
 
-func (d *TDeserializer) ReadString(msg TStruct, p string) error {
+func (d *TDeserializer) ReadString(msg thrift.TStruct, p string) error {
 	return d.ReadFrom(msg, strings.NewReader(p))
 }

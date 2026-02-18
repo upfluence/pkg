@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/upfluence/errors"
+	"github.com/upfluence/thrift/lib/go/thrift"
 
 	"github.com/upfluence/pkg/v2/encoding"
 	"github.com/upfluence/pkg/v2/thrift/thriftutil"
@@ -84,7 +85,7 @@ func (mtd *TMultiTypeDeserializer) deserializer(ct string) (*TDeserializer, erro
 	return NewTDeserializer(pf, es...), nil
 }
 
-func (mtd *TMultiTypeDeserializer) ReadFrom(msg TStruct, r io.Reader, ct string) error {
+func (mtd *TMultiTypeDeserializer) ReadFrom(msg thrift.TStruct, r io.Reader, ct string) error {
 	var d, err = mtd.deserializer(ct)
 
 	if err != nil {
@@ -94,7 +95,7 @@ func (mtd *TMultiTypeDeserializer) ReadFrom(msg TStruct, r io.Reader, ct string)
 	return d.ReadFrom(msg, r)
 }
 
-func (mtd *TMultiTypeDeserializer) Read(msg TStruct, p []byte, ct string) error {
+func (mtd *TMultiTypeDeserializer) Read(msg thrift.TStruct, p []byte, ct string) error {
 	var d, err = mtd.deserializer(ct)
 
 	if err != nil {
@@ -104,7 +105,7 @@ func (mtd *TMultiTypeDeserializer) Read(msg TStruct, p []byte, ct string) error 
 	return d.Read(msg, p)
 }
 
-func (mtd *TMultiTypeDeserializer) ReadString(msg TStruct, p, ct string) error {
+func (mtd *TMultiTypeDeserializer) ReadString(msg thrift.TStruct, p, ct string) error {
 	var d, err = mtd.deserializer(ct)
 
 	if err != nil {
