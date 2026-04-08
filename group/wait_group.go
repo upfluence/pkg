@@ -51,9 +51,18 @@ func WaitGroup(ctx context.Context) Group {
 	return &waitGroup{ctx: cctx, fn: fn}
 }
 
+func (wg *waitGroup) appendError(err error) {
+	wg.mu.Lock()
+	defer wg.mu.Unlock()
+
+	wg.errs = append(wg.errs, err)
+}
+
 func (wg *waitGroup) Do(fn Runner) {
 	select {
 	case <-wg.ctx.Done():
+		wg.appendError(context.Cause(wg.ctx))
+
 		return
 	default:
 	}
@@ -64,9 +73,7 @@ func (wg *waitGroup) Do(fn Runner) {
 		defer wg.wg.Done()
 
 		if err := fn(wg.ctx); err != nil {
-			wg.mu.Lock()
-			wg.errs = append(wg.errs, err)
-			wg.mu.Unlock()
+			wg.appendError(err)
 		}
 	}()
 }

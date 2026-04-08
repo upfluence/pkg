@@ -41,9 +41,24 @@ func newErrGroup(ctx context.Context, stopfn func(error) bool) Group {
 	return &errGroup{ctx: cctx, fn: fn, stopfn: stopfn}
 }
 
+func (eg *errGroup) processError(err error) {
+	if !eg.stopfn(err) {
+		return
+	}
+
+	eg.once.Do(func() {
+		eg.fn()
+		eg.err = err
+	})
+}
+
 func (eg *errGroup) Do(fn Runner) {
 	select {
 	case <-eg.ctx.Done():
+		if eg.err == nil {
+			eg.processError(context.Cause(eg.ctx))
+		}
+
 		return
 	default:
 	}
@@ -53,12 +68,7 @@ func (eg *errGroup) Do(fn Runner) {
 	go func() {
 		defer eg.wg.Done()
 
-		if err := fn(eg.ctx); eg.stopfn(err) {
-			eg.once.Do(func() {
-				eg.fn()
-				eg.err = err
-			})
-		}
+		eg.processError(fn(eg.ctx))
 	}()
 }
 
