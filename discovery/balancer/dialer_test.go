@@ -33,7 +33,7 @@ func TestDialer(t *testing.T) {
 	d := balancer.Dialer[static.Peer]{
 		Builder: balancer.ResolverBuilder[static.Peer]{
 			Builder:      r,
-			BalancerFunc: roundrobin.BalancerFunc[static.Peer],
+			BalancerFunc: balancer.PolicyBalancerFunc(roundrobin.NewPolicy[static.Peer]()),
 		},
 	}
 

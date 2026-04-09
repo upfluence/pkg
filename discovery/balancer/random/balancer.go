@@ -2,8 +2,8 @@ package random
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
+	"slices"
 	"sync"
 	"time"
 
@@ -16,118 +16,82 @@ type Rand interface {
 	Intn(int) int
 }
 
-type Balancer[T peer.Peer] struct {
-	*resolver.Puller[T]
-
-	peers   []T
-	peersMu *sync.RWMutex
-	rand    Rand
-
-	notifier chan interface{}
-	closeFn  func()
+type Policy[T peer.Peer] struct {
+	mu       sync.RWMutex
+	peers    []T
+	rand     Rand
+	notifier chan struct{}
 }
 
-func NewBalancer[T peer.Peer](r resolver.Resolver[T]) *Balancer[T] {
-	var b = &Balancer[T]{
+func NewPolicy[T peer.Peer]() *Policy[T] {
+	return &Policy[T]{
 		rand:     rand.New(rand.NewSource(time.Now().UnixNano())),
-		peersMu:  &sync.RWMutex{},
-		notifier: make(chan interface{}),
-	}
-
-	b.Puller, b.closeFn = resolver.NewPuller(r, b.updatePeers)
-
-	return b
-}
-
-func (b *Balancer[T]) String() string {
-	return fmt.Sprintf("loadbalancer/random [resolver: %v]", b.Puller)
-}
-
-func (b *Balancer[T]) updatePeers(u resolver.Update[T]) {
-	b.peersMu.Lock()
-	defer b.peersMu.Unlock()
-
-	var newPeers = make(map[T]interface{})
-
-	for _, p := range b.peers {
-		var found bool
-
-		for _, peer := range u.Deletions {
-			if p.Addr() == peer.Addr() {
-				found = true
-			}
-		}
-
-		if !found {
-			newPeers[p] = nil
-		}
-	}
-
-	for _, p := range u.Additions {
-		var found bool
-
-		for _, peer := range b.peers {
-			if p.Addr() == peer.Addr() {
-				found = true
-			}
-		}
-
-		if !found {
-			newPeers[p] = nil
-		}
-	}
-
-	var (
-		i     = 0
-		empty = len(b.peers) == 0
-	)
-
-	b.peers = make([]T, len(newPeers))
-
-	for p, _ := range newPeers {
-		b.peers[i] = p
-		i++
-	}
-
-	if empty && (len(b.peers) > 0) {
-		for {
-			select {
-			case <-b.notifier:
-			default:
-				return
-			}
-		}
+		notifier: make(chan struct{}),
 	}
 }
 
-func (b *Balancer[T]) hasPeers() bool {
-	b.peersMu.RLock()
-	defer b.peersMu.RUnlock()
+func (p *Policy[T]) Update(u resolver.Update[T]) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
-	return len(b.peers) > 0
+	wasEmpty := len(p.peers) == 0
+
+	peerMap := make(map[string]T)
+	for _, peer := range p.peers {
+		peerMap[peer.Addr()] = peer
+	}
+
+	for _, peer := range u.Deletions {
+		delete(peerMap, peer.Addr())
+	}
+
+	for _, peer := range u.Additions {
+		peerMap[peer.Addr()] = peer
+	}
+
+	p.peers = make([]T, 0, len(peerMap))
+	for _, peer := range peerMap {
+		p.peers = append(p.peers, peer)
+	}
+
+	if wasEmpty && len(p.peers) > 0 {
+		close(p.notifier)
+		p.notifier = make(chan struct{})
+	}
 }
 
-func (b *Balancer[T]) Get(ctx context.Context, opts balancer.GetOptions) (T, func(error), error) {
+func (p *Policy[T]) Get(ctx context.Context, opts balancer.GetOptions) (T, func(error), error) {
 	var zero T
 
-	if !b.hasPeers() {
+	p.mu.RLock()
+	hasPeers := len(p.peers) > 0
+	notifier := p.notifier
+	peers := slices.Clone(p.peers)
+	p.mu.RUnlock()
+
+	if !hasPeers {
 		if opts.NoWait {
 			return zero, nil, balancer.ErrNoPeerAvailable
 		}
 
 		select {
-		case b.notifier <- true:
+		case <-notifier:
 		case <-ctx.Done():
 			return zero, nil, ctx.Err()
 		}
+
+		p.mu.RLock()
+		peers = slices.Clone(p.peers)
+		p.mu.RUnlock()
 	}
 
-	b.peersMu.RLock()
-	defer b.peersMu.RUnlock()
-	return b.peers[b.rand.Intn(len(b.peers))], func(error) {}, nil
+	if len(peers) == 0 {
+		return zero, nil, balancer.ErrNoPeerAvailable
+	}
+
+	return peers[p.rand.Intn(len(peers))], func(error) {}, nil
 }
 
-func (b *Balancer[T]) Close() error {
-	b.closeFn()
-	return nil
+func NewBalancer[T peer.Peer](r resolver.Resolver[T]) balancer.Balancer[T] {
+	return balancer.WrapPolicy(r, NewPolicy[T](), func(p T) (T, error) { return p, nil })
 }
