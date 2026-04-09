@@ -66,32 +66,29 @@ func (p *policy[T]) Update(u resolver.Update[T]) {
 func (p *policy[T]) Get(ctx context.Context, opts balancer.GetOptions) (T, func(error), error) {
 	var zero T
 
-	p.mu.RLock()
-	hasPeers := len(p.peers) > 0
-	notifier := p.notifier
-	peers := slices.Clone(p.peers)
-	p.mu.RUnlock()
-
-	if !hasPeers {
-		if opts.NoWait {
-			return zero, nil, balancer.ErrNoPeerAvailable
-		}
-
-		select {
-		case <-notifier:
-		case <-ctx.Done():
-			return zero, nil, ctx.Err()
-		}
-
+	for {
 		p.mu.RLock()
-		peers = slices.Clone(p.peers)
+		notifier := p.notifier
+		peers := slices.Clone(p.peers)
 		p.mu.RUnlock()
-	}
 
-	if len(peers) == 0 {
-		return zero, nil, balancer.ErrNoPeerAvailable
-	}
+		if len(peers) == 0 {
+			if opts.NoWait {
+				return zero, nil, balancer.ErrNoPeerAvailable
+			}
 
-	peer, err := p.picker.Pick(ctx, peers)
-	return peer, func(error) {}, err
+			select {
+			case <-notifier:
+				// Notifier closed, peers may be available now.
+				// Loop back to re-check in case peers were removed
+				// between the notification and now.
+				continue
+			case <-ctx.Done():
+				return zero, nil, ctx.Err()
+			}
+		}
+
+		peer, err := p.picker.Pick(ctx, peers)
+		return peer, func(error) {}, err
+	}
 }
