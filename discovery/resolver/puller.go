@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/upfluence/errors"
 
@@ -20,6 +21,7 @@ type Puller[T peer.Peer] struct {
 
 	openErr  error
 	openOnce sync.Once
+	opened   atomic.Bool
 }
 
 func NewPuller[T peer.Peer](r Resolver[T], fn func(Update[T])) (*Puller[T], func()) {
@@ -32,11 +34,12 @@ func NewPuller[T peer.Peer](r Resolver[T], fn func(Update[T])) (*Puller[T], func
 }
 
 func (p *Puller[T]) Close() error {
+	p.opened.Store(false)
 	return errors.Combine(p.Monitor.Close(), p.Resolver.Close())
 }
 
 func (p *Puller[T]) IsOpen() bool {
-	return p.openErr == nil && p.openOnce != sync.Once{}
+	return p.opened.Load()
 }
 
 func (p *Puller[T]) String() string {
@@ -48,6 +51,7 @@ func (p *Puller[T]) Open(ctx context.Context) error {
 		p.openErr = p.Resolver.Open(ctx)
 
 		if p.openErr == nil {
+			p.opened.Store(true)
 			p.Monitor.Run(p.pull)
 		}
 	})
@@ -65,6 +69,7 @@ func (p *Puller[T]) pull(ctx context.Context) {
 	)
 
 	for {
+		err = nil
 		w = p.Resolver.Resolve()
 
 		for err == nil {
