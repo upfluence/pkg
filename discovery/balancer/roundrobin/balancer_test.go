@@ -18,38 +18,6 @@ func TestPolicy(t *testing.T) {
 	})
 }
 
-func TestBalanceWithPeers(t *testing.T) {
-	ctx := context.Background()
-	b := NewBalancer(
-		static.NewResolverFromStrings([]string{"localhost:0", "localhost:1"}),
-	)
-
-	err := b.Open(ctx)
-	assert.Nil(t, err)
-
-	time.Sleep(10 * time.Millisecond)
-
-	p, done, err := b.Get(ctx, balancer.GetOptions{})
-	done(nil)
-
-	assert.Nil(t, err)
-	assert.Equal(t, "localhost:0", p.Addr())
-
-	p, done, err = b.Get(ctx, balancer.GetOptions{})
-	done(nil)
-
-	assert.Nil(t, err)
-	assert.Equal(t, "localhost:1", p.Addr())
-
-	p, done, err = b.Get(ctx, balancer.GetOptions{})
-	done(nil)
-
-	assert.Nil(t, err)
-	assert.Equal(t, "localhost:0", p.Addr())
-
-	b.Close()
-}
-
 func TestBalanceRoundRobinOrder(t *testing.T) {
 	ctx := context.Background()
 	b := NewBalancer(
