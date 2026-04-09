@@ -8,8 +8,28 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/upfluence/pkg/v2/discovery/resolver"
+	"github.com/upfluence/pkg/v2/discovery/resolver/resolvertest"
 	"github.com/upfluence/pkg/v2/discovery/resolver/static"
 )
+
+func TestResolver(t *testing.T) {
+	resolvertest.ResolverTest(t, func(peers []static.Peer) (resolver.Resolver[static.Peer], []static.Peer) {
+		inner := static.NewResolver(peers)
+		r := WrapResolver(inner, func(p static.Peer) bool {
+			return strings.HasPrefix(p.Addr(), "localhost")
+		})
+
+		// Filter the expected peers
+		var expected []static.Peer
+		for _, p := range peers {
+			if strings.HasPrefix(p.Addr(), "localhost") {
+				expected = append(expected, p)
+			}
+		}
+
+		return r, expected
+	}, static.PeersFromStrings)
+}
 
 func TestFilterResolverAllowsAdditions(t *testing.T) {
 	ctx := context.Background()

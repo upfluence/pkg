@@ -6,7 +6,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/upfluence/pkg/v2/discovery/resolver"
+	"github.com/upfluence/pkg/v2/discovery/resolver/resolvertest"
 )
+
+func TestResolver(t *testing.T) {
+	resolvertest.ResolverTest(t, func(peers []Peer) (resolver.Resolver[Peer], []Peer) {
+		return NewResolver(peers), peers
+	}, PeersFromStrings)
+}
 
 func TestResolve(t *testing.T) {
 	ctx := context.Background()
