@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"sync/atomic"
 
 	"github.com/upfluence/pkg/v2/closer"
 	"github.com/upfluence/pkg/v2/discovery/peer"
@@ -91,6 +90,7 @@ func (r *Resolver[T]) UpdatePeers(peers []T) {
 
 	if len(u.Additions) == 0 && len(u.Deletions) == 0 {
 		r.mu.Unlock()
+
 		return
 	}
 
@@ -99,7 +99,23 @@ func (r *Resolver[T]) UpdatePeers(peers []T) {
 	r.mu.Unlock()
 
 	for _, ch := range chs {
-		ch <- u
+		// Non-blocking send: if the watcher's buffer is already full (slow
+		// consumer), merge the pending update with the new one so no update
+		// is silently dropped and the caller is never blocked.
+		select {
+		case ch <- u:
+		default:
+			select {
+			case pending := <-ch:
+				pending.Additions = append(pending.Additions, u.Additions...)
+
+				pending.Deletions = append(pending.Deletions, u.Deletions...)
+				ch <- pending
+			default:
+				// Channel was drained concurrently; just send the new update.
+				ch <- u
+			}
+		}
 	}
 }
 
@@ -123,6 +139,7 @@ func (r *Resolver[T]) unsubscribe(ch chan resolver.Update[T]) {
 	for i, c := range r.chs {
 		if c == ch {
 			r.chs = append(r.chs[:i], r.chs[i+1:]...)
+
 			return
 		}
 	}
@@ -152,21 +169,26 @@ func (r *Resolver[T]) Resolve() resolver.Watcher[T] {
 type watcher[T peer.Peer] struct {
 	closer.Monitor
 
-	r       *Resolver[T]
+	r *Resolver[T]
+
+	mu      sync.Mutex
 	ch      chan resolver.Update[T]
-	initial int32
+	initial bool
 }
 
 func (w *watcher[T]) Next(ctx context.Context, opts resolver.ResolveOptions) (resolver.Update[T], error) {
-	ok := atomic.CompareAndSwapInt32(&w.initial, 0, 1)
-
-	if ok {
+	w.mu.Lock()
+	if !w.initial {
+		w.initial = true
 		ch, peers := w.r.subscribe()
 		w.ch = ch
+		w.mu.Unlock()
 
 		if len(peers) > 0 {
 			return resolver.Update[T]{Additions: peers}, nil
 		}
+	} else {
+		w.mu.Unlock()
 	}
 
 	if opts.NoWait {
@@ -190,13 +212,18 @@ func (w *watcher[T]) Next(ctx context.Context, opts resolver.ResolveOptions) (re
 		return resolver.Update[T]{}, wctx.Err()
 	case <-rctx.Done():
 		w.Close()
-		return resolver.Update[T]{}, wctx.Err()
+
+		return resolver.Update[T]{}, rctx.Err()
 	}
 }
 
 func (w *watcher[T]) Close() error {
-	if w.ch != nil {
-		w.r.unsubscribe(w.ch)
+	w.mu.Lock()
+	ch := w.ch
+	w.mu.Unlock()
+
+	if ch != nil {
+		w.r.unsubscribe(ch)
 	}
 
 	return w.Monitor.Close()

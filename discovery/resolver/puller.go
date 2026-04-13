@@ -19,23 +19,30 @@ type Puller[T peer.Peer] struct {
 	Monitor    closer.Monitor
 	NoWait     bool
 
-	openErr  error
-	openOnce sync.Once
-	opened   atomic.Bool
+	openErr   error
+	openOnce  sync.Once
+	closeOnce sync.Once
+	opened    atomic.Bool
 }
 
-func NewPuller[T peer.Peer](r Resolver[T], fn func(Update[T])) (*Puller[T], func()) {
+func NewPuller[T peer.Peer](r Resolver[T], fn func(Update[T])) (*Puller[T], func() error) {
 	var p = &Puller[T]{
 		Resolver:   r,
 		UpdateFunc: fn,
 	}
 
-	return p, func() { p.Close() }
+	return p, p.Close
 }
 
 func (p *Puller[T]) Close() error {
-	p.opened.Store(false)
-	return errors.Combine(p.Monitor.Close(), p.Resolver.Close())
+	var err error
+
+	p.closeOnce.Do(func() {
+		p.opened.Store(false)
+		err = errors.Combine(p.Monitor.Close(), p.Resolver.Close())
+	})
+
+	return err
 }
 
 func (p *Puller[T]) IsOpen() bool {
@@ -75,9 +82,19 @@ func (p *Puller[T]) pull(ctx context.Context) {
 		for err == nil {
 			u, err = w.Next(ctx, ResolveOptions{NoWait: noWait})
 
-			if err == nil || err == ErrNoUpdates {
+			if err == nil {
 				noWait = false
+
 				p.UpdateFunc(u)
+
+				continue
+			}
+
+			if errors.Is(err, ErrNoUpdates) {
+				// No update available right now; reset noWait and keep going
+				// without calling UpdateFunc with a meaningless empty update.
+				noWait = false
+
 				continue
 			}
 

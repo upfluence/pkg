@@ -3,9 +3,9 @@ package simple
 import (
 	"context"
 	"errors"
+	"runtime"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/upfluence/pkg/v2/discovery/balancer"
 	"github.com/upfluence/pkg/v2/discovery/balancer/balancertest"
@@ -25,7 +25,7 @@ type roundRobinPicker struct {
 	index int
 }
 
-func (p *roundRobinPicker) Pick(ctx context.Context, peers []static.Peer) (static.Peer, error) {
+func (p *roundRobinPicker) Pick(_ context.Context, peers []static.Peer) (static.Peer, error) {
 	if len(peers) == 0 {
 		return static.Peer(""), errors.New("no peers available")
 	}
@@ -47,22 +47,24 @@ func TestPickerDelegation(t *testing.T) {
 		static.Peer("peer3"),
 	}
 
+	// Update is synchronous: peers are visible to Get immediately after return.
 	policy.Update(resolver.Update[static.Peer]{Additions: peers})
-	time.Sleep(10 * time.Millisecond)
 
 	peer, _, err := policy.Get(context.Background(), balancer.GetOptions{NoWait: true})
 	if err != nil {
 		t.Fatalf("Get() error = %v", err)
 	}
 
-	// Verify we got one of the peers (order from map is not guaranteed)
 	found := false
+
 	for _, p := range peers {
 		if peer.Addr() == p.Addr() {
 			found = true
+
 			break
 		}
 	}
+
 	if !found {
 		t.Errorf("Get() returned unexpected peer %q", peer.Addr())
 	}
@@ -72,8 +74,8 @@ func TestPickerError(t *testing.T) {
 	policy := NewPolicy(&errorPicker{})
 
 	peers := []static.Peer{static.Peer("peer1")}
+	// Update is synchronous: no sleep needed before Get.
 	policy.Update(resolver.Update[static.Peer]{Additions: peers})
-	time.Sleep(10 * time.Millisecond)
 
 	_, _, err := policy.Get(context.Background(), balancer.GetOptions{NoWait: true})
 	if err == nil {
@@ -88,31 +90,37 @@ func TestPickerError(t *testing.T) {
 // lastPicker picks the last peer from the list
 type lastPicker struct{}
 
-func (p *lastPicker) Pick(ctx context.Context, peers []static.Peer) (static.Peer, error) {
+func (p *lastPicker) Pick(_ context.Context, peers []static.Peer) (static.Peer, error) {
 	if len(peers) == 0 {
 		return static.Peer(""), errors.New("no peers available")
 	}
+
 	return peers[len(peers)-1], nil
 }
 
 // errorPicker always returns an error
 type errorPicker struct{}
 
-func (p *errorPicker) Pick(ctx context.Context, peers []static.Peer) (static.Peer, error) {
+func (p *errorPicker) Pick(_ context.Context, _ []static.Peer) (static.Peer, error) {
 	return static.Peer(""), errors.New("picker error")
 }
 
-// TestRaceConditionPeerRemovalAfterWakeup tests the race condition where
-// peers are removed after Get() wakes up from the notifier but before it
-// re-reads the peer list. The fix should retry waiting in this case.
+// TestRaceConditionPeerRemovalAfterWakeup verifies that Get() retries when
+// peers are removed between the notifier being closed and Get() re-reading
+// the peer list.
 func TestRaceConditionPeerRemovalAfterWakeup(t *testing.T) {
 	policy := NewPolicy(&roundRobinPicker{})
-	ctx := context.Background()
+	ctx := t.Context()
 
-	// Start a goroutine that will wait for peers
-	gotPeer := make(chan static.Peer)
-	gotErr := make(chan error)
+	// started is closed just before the goroutine enters Get's select, giving
+	// the test a deterministic signal to proceed rather than sleeping.
+	started := make(chan struct{})
+	gotPeer := make(chan static.Peer, 1)
+	gotErr := make(chan error, 1)
+
 	go func() {
+		close(started)
+
 		peer, _, err := policy.Get(ctx, balancer.GetOptions{})
 		if err != nil {
 			gotErr <- err
@@ -121,29 +129,29 @@ func TestRaceConditionPeerRemovalAfterWakeup(t *testing.T) {
 		}
 	}()
 
-	// Give the goroutine time to start waiting
-	time.Sleep(10 * time.Millisecond)
+	// Wait until the goroutine has been scheduled, then yield once more so it
+	// reaches the select inside Get before we send any updates.
+	<-started
+	runtime.Gosched()
 
-	// Add a peer (this will close the notifier)
+	// Add a peer — closes the notifier, waking the goroutine.
 	policy.Update(resolver.Update[static.Peer]{
 		Additions: []static.Peer{static.Peer("localhost:1")},
 	})
 
-	// Immediately remove the peer to simulate the race condition
-	// This happens after the notifier is closed but potentially before
-	// Get() re-reads the peer list
+	// Immediately remove it to exercise the retry path: the goroutine may have
+	// woken from the notifier but not yet re-read the peer slice.
 	policy.Update(resolver.Update[static.Peer]{
 		Deletions: []static.Peer{static.Peer("localhost:1")},
 	})
 
-	// Add the peer back so Get() can eventually succeed
-	time.Sleep(5 * time.Millisecond)
+	// Re-add a peer so Get() can eventually succeed.
+	// No sleep needed: Update() is synchronous and the goroutine will pick up
+	// the new notifier on its next iteration.
 	policy.Update(resolver.Update[static.Peer]{
 		Additions: []static.Peer{static.Peer("localhost:2")},
 	})
 
-	// The Get() call should eventually succeed (not return error)
-	// It could get either localhost:1 (if fast enough) or localhost:2 (after retry)
 	select {
 	case peer := <-gotPeer:
 		addr := peer.Addr()
@@ -152,7 +160,7 @@ func TestRaceConditionPeerRemovalAfterWakeup(t *testing.T) {
 		}
 	case err := <-gotErr:
 		t.Fatalf("Get() returned error %v, expected to retry and succeed", err)
-	case <-time.After(200 * time.Millisecond):
-		t.Fatal("Get() did not complete in time")
+	case <-ctx.Done():
+		t.Fatal("Get() did not complete before test deadline")
 	}
 }

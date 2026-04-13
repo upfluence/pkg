@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"sync"
+	"sync/atomic"
 
 	"github.com/upfluence/errors"
 
@@ -16,16 +17,23 @@ type Dialer[T peer.Peer] struct {
 	Dialer  *net.Dialer
 	Options GetOptions
 
+	dialerOnce sync.Once
+	netDialer  *net.Dialer
+
 	mu  sync.Mutex
 	lds map[string]*localDialer[T]
 }
 
 func (d *Dialer[T]) dialer() *net.Dialer {
-	if d.Dialer == nil {
-		d.Dialer = &net.Dialer{}
-	}
+	d.dialerOnce.Do(func() {
+		if d.Dialer != nil {
+			d.netDialer = d.Dialer
+		} else {
+			d.netDialer = &net.Dialer{}
+		}
+	})
 
-	return d.Dialer
+	return d.netDialer
 }
 
 func (d *Dialer[T]) Dial(network, addr string) (net.Conn, error) {
@@ -71,7 +79,7 @@ type localDialer[T peer.Peer] struct {
 	d *Dialer[T]
 	b Balancer[T]
 
-	opened bool
+	opened atomic.Bool
 	sf     syncutil.Singleflight[struct{}]
 }
 
@@ -82,13 +90,13 @@ func (ld *localDialer[T]) open(ctx context.Context) (struct{}, error) {
 		}
 	}
 
-	ld.opened = true
+	ld.opened.Store(true)
 
 	return struct{}{}, nil
 }
 
 func (ld *localDialer[T]) dial(ctx context.Context, network string) (net.Conn, error) {
-	if !ld.opened {
+	if !ld.opened.Load() {
 		if _, _, err := ld.sf.Do(ctx, ld.open); err != nil {
 			return nil, err
 		}
@@ -118,13 +126,14 @@ func (ld *localDialer[T]) close() error {
 type doneCloserConn struct {
 	net.Conn
 
-	done func(error)
+	doneOnce sync.Once
+	done     func(error)
 }
 
 func (dcc *doneCloserConn) Close() error {
 	err := dcc.Conn.Close()
 
-	dcc.done(err)
+	dcc.doneOnce.Do(func() { dcc.done(err) })
 
 	return err
 }

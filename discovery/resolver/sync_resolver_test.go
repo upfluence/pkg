@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/upfluence/pkg/v2/discovery/resolver"
 	"github.com/upfluence/pkg/v2/discovery/resolver/static"
@@ -23,16 +24,16 @@ func TestNameResolverWithPeers(t *testing.T) {
 
 	ps, err := nr.ResolveSync(ctx, "n1")
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.ElementsMatch(t, static.PeersFromStrings("foo", "bar"), ps)
 
 	ps, err = nr.ResolveSync(ctx, "n2")
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.ElementsMatch(t, static.PeersFromStrings("biz", "buz"), ps)
 
 	err = nr.Close()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func TestNameResolverNoPeerNoWait(t *testing.T) {
@@ -41,11 +42,11 @@ func TestNameResolverNoPeerNoWait(t *testing.T) {
 
 	ps, err := nr.ResolveSync(ctx, "n1")
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.ElementsMatch(t, 0, len(ps))
 
 	err = nr.Close()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func TestNameResolverNoPeerWait(t *testing.T) {
@@ -60,5 +61,5 @@ func TestNameResolverNoPeerWait(t *testing.T) {
 	assert.ElementsMatch(t, 0, len(ps))
 
 	err = nr.Close()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 }

@@ -3,9 +3,9 @@ package transform_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/upfluence/pkg/v2/discovery/resolver"
 	"github.com/upfluence/pkg/v2/discovery/resolver/resolvertest"
@@ -27,6 +27,7 @@ func makeWrappedPeers(addrs ...string) []wrappedPeer {
 	for i, addr := range addrs {
 		peers[i] = wrappedPeer{addr: addr, prefix: "prefix-"}
 	}
+
 	return peers
 }
 
@@ -56,7 +57,7 @@ func TestTransformResolverTransformsUpdates(t *testing.T) {
 		return wrappedPeer{addr: p.Addr(), prefix: "transformed-"}
 	})
 
-	assert.Nil(t, tr.Open(ctx))
+	require.NoError(t, tr.Open(ctx))
 	defer tr.Close()
 
 	w := tr.Resolve()
@@ -64,7 +65,7 @@ func TestTransformResolverTransformsUpdates(t *testing.T) {
 
 	// Get initial peers
 	u, err := w.Next(ctx, resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, u.Additions, 1)
 	assert.Equal(t, "transformed-host1:80", u.Additions[0].Addr())
 
@@ -72,7 +73,7 @@ func TestTransformResolverTransformsUpdates(t *testing.T) {
 	source.UpdatePeers(static.PeersFromStrings("host2:80", "host3:80"))
 
 	u, err = w.Next(ctx, resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	// Should have additions and deletions
 	assert.Len(t, u.Additions, 2)
@@ -93,7 +94,7 @@ func TestTransformResolverMultipleWatchers(t *testing.T) {
 		return wrappedPeer{addr: p.Addr(), prefix: "watcher-"}
 	})
 
-	assert.Nil(t, tr.Open(ctx))
+	require.NoError(t, tr.Open(ctx))
 	defer tr.Close()
 
 	w1 := tr.Resolve()
@@ -104,31 +105,29 @@ func TestTransformResolverMultipleWatchers(t *testing.T) {
 
 	// Both watchers should get initial peers
 	u1, err := w1.Next(ctx, resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, u1.Additions, 1)
 	assert.Equal(t, "watcher-host1:80", u1.Additions[0].Addr())
 
 	u2, err := w2.Next(ctx, resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, u2.Additions, 1)
 	assert.Equal(t, "watcher-host1:80", u2.Additions[0].Addr())
 
-	// Update peers
+	// Update peers — UpdatePeers sends synchronously into the watchers'
+	// buffered channels, so the update is available for NoWait reads immediately.
 	source.UpdatePeers(static.PeersFromStrings("host2:80"))
-
-	// Give time for update to propagate
-	time.Sleep(10 * time.Millisecond)
 
 	// Both watchers should receive the update
 	u1, err = w1.Next(ctx, resolver.ResolveOptions{NoWait: true})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, u1.Additions, 1)
 	assert.Equal(t, "watcher-host2:80", u1.Additions[0].Addr())
 	assert.Len(t, u1.Deletions, 1)
 	assert.Equal(t, "watcher-host1:80", u1.Deletions[0].Addr())
 
 	u2, err = w2.Next(ctx, resolver.ResolveOptions{NoWait: true})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, u2.Additions, 1)
 	assert.Equal(t, "watcher-host2:80", u2.Additions[0].Addr())
 	assert.Len(t, u2.Deletions, 1)

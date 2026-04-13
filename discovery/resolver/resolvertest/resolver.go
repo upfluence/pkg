@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/upfluence/pkg/v2/discovery/peer"
 	"github.com/upfluence/pkg/v2/discovery/resolver"
@@ -40,13 +41,13 @@ func ResolverTest[T peer.Peer](t *testing.T, factory ResolverFactory[T], makePee
 	}
 }
 
-func testNoSeeds[T peer.Peer](t *testing.T, factory ResolverFactory[T], makePeers func(...string) []T) {
+func testNoSeeds[T peer.Peer](t *testing.T, factory ResolverFactory[T], _ func(...string) []T) {
 	ctx := context.Background()
 	r, expected := factory(nil)
 
 	assert.Empty(t, expected)
 
-	assert.Nil(t, r.Open(ctx))
+	require.NoError(t, r.Open(ctx))
 	defer r.Close()
 
 	w := r.Resolve()
@@ -64,7 +65,7 @@ func testInitialPeers[T peer.Peer](t *testing.T, factory ResolverFactory[T], mak
 	peers := makePeers("localhost:1", "localhost:2")
 	r, expected := factory(peers)
 
-	assert.Nil(t, r.Open(ctx))
+	require.NoError(t, r.Open(ctx))
 	defer r.Close()
 
 	w := r.Resolve()
@@ -72,7 +73,7 @@ func testInitialPeers[T peer.Peer](t *testing.T, factory ResolverFactory[T], mak
 
 	// Should get initial peers
 	u, err := w.Next(ctx, resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.ElementsMatch(t, expected, u.Additions)
 	assert.Empty(t, u.Deletions)
 }
@@ -82,7 +83,7 @@ func testNoWaitNoUpdates[T peer.Peer](t *testing.T, factory ResolverFactory[T], 
 	peers := makePeers("localhost:1")
 	r, _ := factory(peers)
 
-	assert.Nil(t, r.Open(ctx))
+	require.NoError(t, r.Open(ctx))
 	defer r.Close()
 
 	w := r.Resolve()
@@ -90,7 +91,7 @@ func testNoWaitNoUpdates[T peer.Peer](t *testing.T, factory ResolverFactory[T], 
 
 	// Consume initial update
 	_, err := w.Next(ctx, resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	// NoWait should return ErrNoUpdates when no updates are available
 	u, err := w.Next(ctx, resolver.ResolveOptions{NoWait: true})
@@ -104,7 +105,7 @@ func testContextCancellation[T peer.Peer](t *testing.T, factory ResolverFactory[
 	peers := makePeers("localhost:1")
 	r, _ := factory(peers)
 
-	assert.Nil(t, r.Open(ctx))
+	require.NoError(t, r.Open(ctx))
 	defer r.Close()
 
 	w := r.Resolve()
@@ -112,7 +113,7 @@ func testContextCancellation[T peer.Peer](t *testing.T, factory ResolverFactory[
 
 	// Consume initial update
 	_, err := w.Next(ctx, resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	// Cancel context and try to wait for updates
 	cctx, cancel := context.WithCancel(ctx)
@@ -129,18 +130,18 @@ func testWatcherClose[T peer.Peer](t *testing.T, factory ResolverFactory[T], mak
 	peers := makePeers("localhost:1")
 	r, _ := factory(peers)
 
-	assert.Nil(t, r.Open(ctx))
+	require.NoError(t, r.Open(ctx))
 	defer r.Close()
 
 	w := r.Resolve()
 
 	// Consume initial update
 	_, err := w.Next(ctx, resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	// Close the watcher
 	err = w.Close()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	// Trying to get next update should fail after close
 	// Give a small timeout to avoid blocking forever
@@ -148,6 +149,6 @@ func testWatcherClose[T peer.Peer](t *testing.T, factory ResolverFactory[T], mak
 	defer cancel()
 
 	_, err = w.Next(cctx, resolver.ResolveOptions{})
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	// Should be either context.Canceled, context.DeadlineExceeded, or a close error
 }

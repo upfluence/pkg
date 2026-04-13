@@ -3,9 +3,9 @@ package roundrobin
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/upfluence/pkg/v2/discovery/balancer"
 	"github.com/upfluence/pkg/v2/discovery/balancer/balancertest"
@@ -25,16 +25,34 @@ func TestBalanceRoundRobinOrder(t *testing.T) {
 	)
 
 	err := b.Open(ctx)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
-	time.Sleep(10 * time.Millisecond)
+	// Collect the first full cycle. The initial Get blocks until the Puller
+	// goroutine delivers peers, so this also acts as the synchronisation point.
+	// The policy preserves insertion order, so subsequent cycles are identical.
+	var firstCycle [3]string
 
-	// Verify round-robin cycles through all peers in order
-	for cycle := 0; cycle < 3; cycle++ {
-		for i := 0; i < 3; i++ {
+	for i := range 3 {
+		p, done, err := b.Get(ctx, balancer.GetOptions{})
+
+		require.NoError(t, err)
+
+		firstCycle[i] = p.Addr()
+
+		done(nil)
+	}
+
+	// All three peers must appear in the first cycle.
+	assert.ElementsMatch(t, []string{"localhost:0", "localhost:1", "localhost:2"}, firstCycle[:])
+
+	// Subsequent cycles must repeat in the exact same order.
+	for range 2 {
+		for i := range 3 {
 			p, done, err := b.Get(ctx, balancer.GetOptions{})
-			assert.Nil(t, err)
-			assert.Contains(t, []string{"localhost:0", "localhost:1", "localhost:2"}, p.Addr())
+
+			require.NoError(t, err)
+			assert.Equal(t, firstCycle[i], p.Addr())
+
 			done(nil)
 		}
 	}

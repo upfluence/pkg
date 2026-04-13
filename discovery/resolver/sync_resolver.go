@@ -36,7 +36,7 @@ func (sr *syncResolver[T]) ResolveSync(ctx context.Context, n string) ([]T, erro
 	lr, ok := sr.lrs[n]
 
 	if !ok {
-		lr = &localResolver[T]{readyc: make(chan struct{})}
+		lr = &localResolver[T]{readyc: make(chan struct{}), noWait: sr.noWait}
 
 		lr.p = &Puller[T]{
 			Resolver:   sr.builder.Build(n),
@@ -46,7 +46,7 @@ func (sr *syncResolver[T]) ResolveSync(ctx context.Context, n string) ([]T, erro
 
 		if err := lr.p.Open(ctx); err != nil {
 			sr.mu.Unlock()
-			close(lr.readyc)
+
 			return nil, err
 		}
 
@@ -65,7 +65,7 @@ func (sr *syncResolver[T]) Close() error {
 
 	for _, lr := range sr.lrs {
 		if err := lr.close(); err != nil {
-			errs = append(errs)
+			errs = append(errs, err)
 		}
 	}
 
@@ -76,7 +76,8 @@ func (sr *syncResolver[T]) Close() error {
 }
 
 type localResolver[T peer.Peer] struct {
-	p *Puller[T]
+	p      *Puller[T]
+	noWait bool
 
 	readyOnce sync.Once
 	readyc    chan struct{}
@@ -93,11 +94,7 @@ func (lr *localResolver[T]) update(u Update[T]) {
 	}
 
 	for _, p := range u.Deletions {
-		addr := p.Addr()
-
-		if _, ok := lr.ps[addr]; ok {
-			delete(lr.ps, addr)
-		}
+		delete(lr.ps, p.Addr())
 	}
 
 	for _, p := range u.Additions {
@@ -110,7 +107,7 @@ func (lr *localResolver[T]) update(u Update[T]) {
 }
 
 func (lr *localResolver[T]) close() error {
-	return errors.Combine(lr.p.Close())
+	return lr.p.Close()
 }
 
 func (lr *localResolver[T]) resolve(ctx context.Context) ([]T, error) {
@@ -118,10 +115,21 @@ func (lr *localResolver[T]) resolve(ctx context.Context) ([]T, error) {
 		return nil, ErrClose
 	}
 
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case <-lr.readyc:
+	if lr.noWait {
+		// With noWait, return whatever peers are available right now without
+		// blocking for the first update. If readyc isn't closed yet the
+		// background Puller hasn't delivered anything, so return empty.
+		select {
+		case <-lr.readyc:
+		default:
+			return nil, nil
+		}
+	} else {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-lr.readyc:
+		}
 	}
 
 	lr.mu.RLock()

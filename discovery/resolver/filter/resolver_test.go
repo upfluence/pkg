@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/upfluence/pkg/v2/discovery/resolver"
 	"github.com/upfluence/pkg/v2/discovery/resolver/resolvertest"
@@ -21,6 +22,7 @@ func TestResolver(t *testing.T) {
 
 		// Filter the expected peers
 		var expected []static.Peer
+
 		for _, p := range peers {
 			if strings.HasPrefix(p.Addr(), "localhost") {
 				expected = append(expected, p)
@@ -43,7 +45,7 @@ func TestFilterResolverAllowsAdditions(t *testing.T) {
 
 	u, err := w.Next(ctx, resolver.ResolveOptions{})
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, []static.Peer{static.Peer("allow:1")}, u.Additions)
 	assert.Empty(t, u.Deletions)
 
@@ -64,13 +66,13 @@ func TestFilterResolverTracksDeletions(t *testing.T) {
 	w := r.Resolve()
 
 	_, err := w.Next(ctx, resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	inner.UpdatePeers(static.PeersFromStrings("allow:2", "deny:2"))
 
 	u, err := w.Next(ctx, resolver.ResolveOptions{NoWait: true})
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.ElementsMatch(t, []static.Peer{static.Peer("allow:2")}, u.Additions)
 	assert.ElementsMatch(t, []static.Peer{static.Peer("allow:1")}, u.Deletions)
 }
@@ -94,7 +96,7 @@ func TestFilterResolverNoWaitFilteredEmpty(t *testing.T) {
 
 	u, err = w.Next(ctx, resolver.ResolveOptions{NoWait: true})
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.ElementsMatch(t, []static.Peer{static.Peer("allow:1")}, u.Additions)
 	assert.Empty(t, u.Deletions)
 }

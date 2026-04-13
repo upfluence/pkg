@@ -16,8 +16,13 @@ func WrapResolver[T peer.Peer](r resolver.Resolver[T], allow func(T) bool) resol
 	return &filterResolver[T]{inner: r, allow: allow}
 }
 
-func (r *filterResolver[T]) Open(ctx context.Context) error { return r.inner.Open(ctx) }
-func (r *filterResolver[T]) Close() error                   { return r.inner.Close() }
+func (r *filterResolver[T]) Open(ctx context.Context) error {
+	return r.inner.Open(ctx)
+}
+
+func (r *filterResolver[T]) Close() error {
+	return r.inner.Close()
+}
 
 func (r *filterResolver[T]) Resolve() resolver.Watcher[T] {
 	return &watcher[T]{inner: r.inner.Resolve(), allow: r.allow}
@@ -29,9 +34,31 @@ type watcher[T peer.Peer] struct {
 	admitted map[string]struct{}
 }
 
-func (w *watcher[T]) Close() error { return w.inner.Close() }
+func (w *watcher[T]) Close() error {
+	return w.inner.Close()
+}
 
 func (w *watcher[T]) Next(ctx context.Context, opts resolver.ResolveOptions) (resolver.Update[T], error) {
+	// When NoWait is requested we only attempt one read from the inner watcher.
+	// If that read is empty (ErrNoUpdates) or entirely filtered out, we return
+	// ErrNoUpdates immediately.  We must not keep consuming inner updates in a
+	// loop under NoWait — doing so would silently drain the inner channel and
+	// discard real updates the caller may want to inspect later.
+	if opts.NoWait {
+		u, err := w.inner.Next(ctx, opts)
+		if err != nil {
+			return resolver.Update[T]{}, err
+		}
+
+		filtered := w.filter(u)
+		if len(filtered.Additions) == 0 && len(filtered.Deletions) == 0 {
+			return resolver.Update[T]{}, resolver.ErrNoUpdates
+		}
+
+		return filtered, nil
+	}
+
+	// Blocking path: loop until we get at least one non-empty filtered update.
 	for {
 		u, err := w.inner.Next(ctx, opts)
 		if err != nil {
@@ -39,12 +66,7 @@ func (w *watcher[T]) Next(ctx context.Context, opts resolver.ResolveOptions) (re
 		}
 
 		filtered := w.filter(u)
-
 		if len(filtered.Additions) == 0 && len(filtered.Deletions) == 0 {
-			if opts.NoWait {
-				return resolver.Update[T]{}, resolver.ErrNoUpdates
-			}
-
 			continue
 		}
 

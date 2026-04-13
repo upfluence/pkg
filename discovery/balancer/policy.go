@@ -6,6 +6,7 @@ import (
 
 	"github.com/upfluence/pkg/v2/discovery/peer"
 	"github.com/upfluence/pkg/v2/discovery/resolver"
+	"github.com/upfluence/pkg/v2/log"
 )
 
 type Policy[T peer.Peer] interface {
@@ -14,7 +15,7 @@ type Policy[T peer.Peer] interface {
 }
 
 type policyBalancer[S, T peer.Peer] struct {
-	resolver.Puller[S]
+	*resolver.Puller[S]
 	Policy[T]
 
 	mu      sync.Mutex
@@ -29,7 +30,7 @@ func WrapPolicy[S, T peer.Peer](r resolver.Resolver[S], p Policy[T], build func(
 		builder: build,
 	}
 
-	b.Puller = resolver.Puller[S]{
+	b.Puller = &resolver.Puller[S]{
 		Resolver:   r,
 		UpdateFunc: b.handleUpdate,
 	}
@@ -52,6 +53,8 @@ func (b *policyBalancer[S, T]) handleUpdate(u resolver.Update[S]) {
 	for _, sp := range u.Additions {
 		tp, err := b.builder(sp)
 		if err != nil {
+			log.WithError(err).Errorf("balancer: failed to build peer for %q, skipping", sp.Addr())
+
 			continue
 		}
 
@@ -62,9 +65,10 @@ func (b *policyBalancer[S, T]) handleUpdate(u resolver.Update[S]) {
 	for _, sp := range u.Deletions {
 		if tp, ok := b.peers[sp.Addr()]; ok {
 			delete(b.peers, sp.Addr())
+
 			mapped.Deletions = append(mapped.Deletions, tp)
 		}
 	}
 
-	b.Policy.Update(mapped)
+	b.Update(mapped)
 }

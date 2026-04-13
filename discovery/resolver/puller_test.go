@@ -5,9 +5,9 @@ import (
 	"errors"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/upfluence/pkg/v2/discovery/resolver"
 	"github.com/upfluence/pkg/v2/discovery/resolver/static"
@@ -74,16 +74,16 @@ func TestPullerRecoversAfterWatcherError(t *testing.T) {
 		}
 	})
 
-	assert.Nil(t, p.Open(context.Background()))
+	require.NoError(t, p.Open(context.Background()))
 
 	select {
 	case u := <-updates:
 		assert.Equal(t, []static.Peer{static.Peer("allow:1")}, u.Additions)
-	case <-time.After(200 * time.Millisecond):
+	case <-t.Context().Done():
 		t.Fatal("timed out waiting for update after watcher error")
 	}
 
-	assert.Nil(t, p.Close())
+	assert.NoError(t, p.Close())
 }
 
 func TestPullerIsOpenTracksClose(t *testing.T) {
@@ -91,9 +91,9 @@ func TestPullerIsOpenTracksClose(t *testing.T) {
 	p, _ := resolver.NewPuller(r, func(resolver.Update[static.Peer]) {})
 	assert.False(t, p.IsOpen())
 
-	assert.Nil(t, p.Open(context.Background()))
+	require.NoError(t, p.Open(context.Background()))
 	assert.True(t, p.IsOpen())
 
-	assert.Nil(t, p.Close())
+	require.NoError(t, p.Close())
 	assert.False(t, p.IsOpen())
 }

@@ -14,8 +14,9 @@ type picker[T peer.Peer] struct {
 	index atomic.Uint64
 }
 
-func (p *picker[T]) Pick(ctx context.Context, peers []T) (T, error) {
+func (p *picker[T]) Pick(_ context.Context, peers []T) (T, error) {
 	idx := p.index.Add(1) - 1
+
 	return peers[idx%uint64(len(peers))], nil
 }
 

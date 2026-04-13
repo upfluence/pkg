@@ -2,10 +2,11 @@ package balancertest
 
 import (
 	"context"
+	"runtime"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/upfluence/pkg/v2/discovery/balancer"
 	"github.com/upfluence/pkg/v2/discovery/resolver"
@@ -68,9 +69,10 @@ func testSinglePeer(t *testing.T, factory PolicyFactory) {
 	})
 
 	// Should get the same peer repeatedly
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		p, done, err := policy.Get(ctx, balancer.GetOptions{})
-		assert.Nil(t, err)
+
+		require.NoError(t, err)
 		assert.NotNil(t, done)
 		assert.Equal(t, "localhost:1", p.Addr())
 		done(nil)
@@ -91,11 +93,15 @@ func testAddAndRemovePeers(t *testing.T, factory PolicyFactory) {
 
 	// Verify we can get peers
 	seen := make(map[string]bool)
-	for i := 0; i < 50; i++ {
+
+	for range 50 {
 		p, done, err := policy.Get(ctx, balancer.GetOptions{})
-		assert.Nil(t, err)
+
+		require.NoError(t, err)
 		assert.NotNil(t, done)
+
 		seen[p.Addr()] = true
+
 		done(nil)
 	}
 
@@ -110,11 +116,15 @@ func testAddAndRemovePeers(t *testing.T, factory PolicyFactory) {
 
 	// Verify we only see localhost:2 and localhost:3
 	seen = make(map[string]bool)
-	for i := 0; i < 50; i++ {
+
+	for range 50 {
 		p, done, err := policy.Get(ctx, balancer.GetOptions{})
-		assert.Nil(t, err)
+
+		require.NoError(t, err)
 		assert.NotNil(t, done)
+
 		seen[p.Addr()] = true
+
 		done(nil)
 	}
 
@@ -134,7 +144,7 @@ func testRemoveAllPeers(t *testing.T, factory PolicyFactory) {
 
 	// Verify we can get it
 	p, done, err := policy.Get(ctx, balancer.GetOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "localhost:1", p.Addr())
 	done(nil)
 
@@ -151,33 +161,39 @@ func testRemoveAllPeers(t *testing.T, factory PolicyFactory) {
 }
 
 func testAddPeersToEmpty(t *testing.T, factory PolicyFactory) {
-	ctx := context.Background()
+	ctx := t.Context()
 	policy := factory()
 
-	// Start with no peers, spawn a goroutine that will wait
+	// started is closed just before the goroutine enters Get's select,
+	// giving us a deterministic signal instead of a sleep.
+	started := make(chan struct{})
 	done := make(chan struct{})
+
 	go func() {
+		close(started)
+
 		p, doneFn, err := policy.Get(ctx, balancer.GetOptions{})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.NotNil(t, doneFn)
 		assert.NotEmpty(t, p.Addr())
 		doneFn(nil)
 		close(done)
 	}()
 
-	// Give the goroutine time to start waiting
-	time.Sleep(10 * time.Millisecond)
+	// Wait until the goroutine has been scheduled, then yield once more so
+	// it reaches the select inside Get before we call Update.
+	<-started
+	runtime.Gosched()
 
-	// Add a peer
+	// Add a peer — this closes the notifier and unblocks Get.
 	policy.Update(resolver.Update[static.Peer]{
 		Additions: []static.Peer{static.Peer("localhost:1")},
 	})
 
-	// The waiting goroutine should complete
 	select {
 	case <-done:
-		// Success
-	case <-time.After(100 * time.Millisecond):
+		// success
+	case <-ctx.Done():
 		t.Fatal("Get() did not unblock after adding peers")
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/upfluence/pkg/v2/discovery/balancer"
 	"github.com/upfluence/pkg/v2/discovery/balancer/balancertest"
@@ -24,14 +25,17 @@ func TestBalancerWithPeers(t *testing.T) {
 	)
 
 	err := b.Open(ctx)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	seen := make(map[string]int)
-	for i := 0; i < 100; i++ {
+
+	for range 100 {
 		p, done, err := b.Get(ctx, balancer.GetOptions{})
-		assert.Nil(t, err)
+
+		require.NoError(t, err)
 		assert.NotEmpty(t, p.Addr())
 		seen[p.Addr()]++
+
 		done(nil)
 	}
 

@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/upfluence/pkg/v2/discovery/resolver"
 	"github.com/upfluence/pkg/v2/discovery/resolver/resolvertest"
 )
@@ -23,7 +25,7 @@ func TestResolve(t *testing.T) {
 
 	u, err := w.Next(ctx, resolver.ResolveOptions{})
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(
 		t,
 		resolver.Update[Peer]{
@@ -41,7 +43,7 @@ func TestResolve(t *testing.T) {
 	assert.Equal(t, resolver.Update[Peer]{}, u)
 
 	err = w.Close()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	u, err = w.Next(ctx, resolver.ResolveOptions{})
 
@@ -58,6 +60,7 @@ func TestPeers(t *testing.T) {
 
 	// Mutating the returned slice should not affect the resolver
 	peers[0] = Peer("localhost:99")
+
 	assert.Equal(t, []Peer{Peer("localhost:1"), Peer("localhost:2")}, r.Peers())
 }
 
@@ -73,7 +76,7 @@ func TestUpdatePeers(t *testing.T) {
 
 	// Consume initial update
 	u, err := w.Next(context.Background(), resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(
 		t,
 		resolver.Update[Peer]{
@@ -96,7 +99,7 @@ func TestUpdatePeers(t *testing.T) {
 
 	// The watcher should receive the diff
 	u, err = w.Next(context.Background(), resolver.ResolveOptions{NoWait: true})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.ElementsMatch(t, []Peer{Peer("localhost:3")}, u.Additions)
 	assert.ElementsMatch(t, []Peer{Peer("localhost:1")}, u.Deletions)
 }
@@ -108,7 +111,7 @@ func TestUpdatePeersNoChange(t *testing.T) {
 
 	// Consume initial update
 	_, err := w.Next(context.Background(), resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	// Update with same peers — no diff
 	r.UpdatePeers(PeersFromStrings("localhost:1", "localhost:2"))
@@ -126,18 +129,19 @@ func TestUpdatePeersMultipleWatchers(t *testing.T) {
 
 	// Consume initial updates
 	_, err := w1.Next(context.Background(), resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
+
 	_, err = w2.Next(context.Background(), resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	r.UpdatePeers(PeersFromStrings("localhost:1", "localhost:2"))
 
 	u1, err := w1.Next(context.Background(), resolver.ResolveOptions{NoWait: true})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.ElementsMatch(t, []Peer{Peer("localhost:2")}, u1.Additions)
 
 	u2, err := w2.Next(context.Background(), resolver.ResolveOptions{NoWait: true})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.ElementsMatch(t, []Peer{Peer("localhost:2")}, u2.Additions)
 }
 
@@ -148,11 +152,11 @@ func TestUpdatePeersClosedWatcher(t *testing.T) {
 
 	// Consume initial update
 	_, err := w.Next(context.Background(), resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	// Close the watcher — it should unsubscribe
 	err = w.Close()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	// This should not block or panic
 	r.UpdatePeers(PeersFromStrings("localhost:2"))
@@ -165,13 +169,15 @@ func TestUpdatePeersBlockingWatcher(t *testing.T) {
 
 	// Consume initial update
 	_, err := w.Next(context.Background(), resolver.ResolveOptions{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	// Start a blocking Next call in a goroutine
 	done := make(chan resolver.Update[Peer], 1)
+
 	go func() {
 		u, err := w.Next(context.Background(), resolver.ResolveOptions{})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
+
 		done <- u
 	}()
 

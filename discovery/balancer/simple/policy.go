@@ -20,8 +20,11 @@ type Picker[T peer.Peer] interface {
 type policy[T peer.Peer] struct {
 	picker Picker[T]
 
-	mu       sync.RWMutex
-	peers    []T
+	mu    sync.RWMutex
+	peers []T
+	// peerSet is an auxiliary index for O(1) presence checks; the
+	// authoritative ordering lives in peers.
+	peerSet  map[string]struct{}
 	notifier chan struct{}
 }
 
@@ -29,6 +32,7 @@ type policy[T peer.Peer] struct {
 func NewPolicy[T peer.Peer](picker Picker[T]) balancer.Policy[T] {
 	return &policy[T]{
 		picker:   picker,
+		peerSet:  make(map[string]struct{}),
 		notifier: make(chan struct{}),
 	}
 }
@@ -39,22 +43,26 @@ func (p *policy[T]) Update(u resolver.Update[T]) {
 
 	wasEmpty := len(p.peers) == 0
 
-	peerMap := make(map[string]T)
-	for _, peer := range p.peers {
-		peerMap[peer.Addr()] = peer
-	}
-
+	// Apply deletions: remove from both the set and the ordered slice.
 	for _, peer := range u.Deletions {
-		delete(peerMap, peer.Addr())
+		addr := peer.Addr()
+
+		if _, ok := p.peerSet[addr]; ok {
+			delete(p.peerSet, addr)
+			p.peers = slices.DeleteFunc(p.peers, func(q T) bool {
+				return q.Addr() == addr
+			})
+		}
 	}
 
+	// Apply additions: append new peers while preserving existing order.
 	for _, peer := range u.Additions {
-		peerMap[peer.Addr()] = peer
-	}
+		addr := peer.Addr()
 
-	p.peers = make([]T, 0, len(peerMap))
-	for _, peer := range peerMap {
-		p.peers = append(p.peers, peer)
+		if _, ok := p.peerSet[addr]; !ok {
+			p.peerSet[addr] = struct{}{}
+			p.peers = append(p.peers, peer)
+		}
 	}
 
 	if wasEmpty && len(p.peers) > 0 {
@@ -89,6 +97,7 @@ func (p *policy[T]) Get(ctx context.Context, opts balancer.GetOptions) (T, func(
 		}
 
 		peer, err := p.picker.Pick(ctx, peers)
+
 		return peer, func(error) {}, err
 	}
 }
