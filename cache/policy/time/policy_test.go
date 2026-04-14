@@ -1,32 +1,40 @@
 package time
 
 import (
-	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/upfluence/pkg/v2/cache/policy"
+	"github.com/upfluence/pkg/v2/cache/policy/policytest"
+	"github.com/upfluence/pkg/v2/timeutil/timetest"
 )
 
-// fakeClock lets tests advance time deterministically without sleeping.
-type fakeClock struct {
-	ns atomic.Int64
+// testPolicy bundles a tracker with its own channel so targeted tests can
+// call cleanup() directly and read evictions from ch.
+type testPolicy[K comparable] struct {
+	*tracker[K]
+	ch <-chan K
 }
 
-func (fc *fakeClock) now() int64 { return fc.ns.Load() }
+func newIdleTracker[K comparable](ttl time.Duration) (testPolicy[K], *timetest.Clock) {
+	fc := &timetest.Clock{}
+	ch := make(chan K, 16)
+	evict := func(k K) { ch <- k }
+	t := newTracker[K](ttl, func(tr *tracker[K]) func(K) { return tr.move }, evict, fc)
+	return testPolicy[K]{tracker: t, ch: ch}, fc
+}
 
-func (fc *fakeClock) advance(d time.Duration) { fc.ns.Add(int64(d)) }
-
-// withFakeClock injects a fake clock into a Policy.
-func withFakeClock[K comparable](p *Policy[K]) (*Policy[K], *fakeClock) {
-	fc := &fakeClock{}
-	p.now = fc.now
-	return p, fc
+func newLifetimeTracker[K comparable](ttl time.Duration) (testPolicy[K], *timetest.Clock) {
+	fc := &timetest.Clock{}
+	ch := make(chan K, 16)
+	evict := func(k K) { ch <- k }
+	t := newTracker[K](ttl, func(*tracker[K]) func(K) { return func(K) {} }, evict, fc)
+	return testPolicy[K]{tracker: t, ch: ch}, fc
 }
 
 // collectN reads n keys from ch, returning them in order.
-// It runs concurrently so that the sender (cleanup) is not blocked.
 func collectN(t *testing.T, ch <-chan string, n int) []string {
 	t.Helper()
 	out := make([]string, 0, n)
@@ -45,7 +53,7 @@ func collectN(t *testing.T, ch <-chan string, n int) []string {
 }
 
 func TestIdlePolicy(t *testing.T) {
-	base, fc := withFakeClock(NewIdlePolicy[string](time.Second))
+	base, fc := newIdleTracker[string](time.Second)
 
 	// t=0: insert foo, bar, buz; Get foo; Evict bar.
 	base.Op("foo", policy.Set)
@@ -55,51 +63,47 @@ func TestIdlePolicy(t *testing.T) {
 	base.Op("bar", policy.Evict)
 
 	// Advance to t=1.5s — both buz and foo are idle for >1s.
-	// buz (never accessed after insert) is at front; foo (Get at t=0) is at back.
-	fc.advance(1500 * time.Millisecond)
+	fc.MoveBy(1500 * time.Millisecond)
 
-	// Run cleanup in a goroutine; collectN drains the channel concurrently.
-	go base.cleanup(fc.now())
+	go base.cleanup()
 
-	keys := collectN(t, base.C(), 2)
+	keys := collectN(t, base.ch, 2)
 	assert.Equal(t, []string{"buz", "foo"}, keys)
 
 	assert.Nil(t, base.Close())
 }
 
 func TestIdlePolicyTimestampRefresh(t *testing.T) {
-	// Verifies bug fix #2: Get on idle policy must refresh the timestamp so
-	// the entry is NOT evicted at t=ttl when it was recently accessed.
-	base, fc := withFakeClock(NewIdlePolicy[string](time.Second))
+	base, fc := newIdleTracker[string](time.Second)
 
 	base.Op("foo", policy.Set) // inserted at t=0
 
 	// t=0.8s: Get foo — refreshes its idle timer to t=0.8s.
-	fc.advance(800 * time.Millisecond)
+	fc.MoveBy(800 * time.Millisecond)
 	base.Op("foo", policy.Get)
 
 	// t=1.2s: foo idle for only 0.4s — must NOT be evicted.
-	fc.advance(400 * time.Millisecond)
-	base.cleanup(fc.now())
+	fc.MoveBy(400 * time.Millisecond)
+	base.cleanup()
 
 	select {
-	case k := <-base.C():
+	case k := <-base.ch:
 		t.Errorf("unexpected eviction of %q at t=1.2s (idle only 0.4s)", k)
 	default:
 	}
 
 	// t=1.9s: foo idle for 1.1s > 1s — must be evicted.
-	fc.advance(700 * time.Millisecond)
-	go base.cleanup(fc.now())
+	fc.MoveBy(700 * time.Millisecond)
+	go base.cleanup()
 
-	keys := collectN(t, base.C(), 1)
+	keys := collectN(t, base.ch, 1)
 	assert.Equal(t, []string{"foo"}, keys)
 
 	assert.Nil(t, base.Close())
 }
 
 func TestLifetimePolicy(t *testing.T) {
-	base, fc := withFakeClock(NewLifetimePolicy[string](time.Second))
+	base, fc := newLifetimeTracker[string](time.Second)
 
 	// t=0: insert foo, bar, buz; Get bar (no-op for lifetime); Evict foo.
 	base.Op("foo", policy.Set)
@@ -109,12 +113,36 @@ func TestLifetimePolicy(t *testing.T) {
 	base.Op("foo", policy.Evict)
 
 	// t=1.5s: bar (inserted before buz) should come first.
-	fc.advance(1500 * time.Millisecond)
+	fc.MoveBy(1500 * time.Millisecond)
 
-	go base.cleanup(fc.now())
+	go base.cleanup()
 
-	keys := collectN(t, base.C(), 2)
+	keys := collectN(t, base.ch, 2)
 	assert.Equal(t, []string{"bar", "buz"}, keys)
 
 	assert.Nil(t, base.Close())
+}
+
+func TestIdlePolicyHarness(t *testing.T) {
+	policytest.RunTests(t, func(_ testing.TB) policy.EvictionPolicy[string] {
+		return NewIdlePolicy[string](time.Hour)
+	})
+}
+
+func TestLifetimePolicyHarness(t *testing.T) {
+	policytest.RunTests(t, func(_ testing.TB) policy.EvictionPolicy[string] {
+		return NewLifetimePolicy[string](time.Hour)
+	})
+}
+
+func BenchmarkIdlePolicy(b *testing.B) {
+	policytest.RunBenchmarks(b, func(_ testing.TB) policy.EvictionPolicy[string] {
+		return NewIdlePolicy[string](time.Hour)
+	})
+}
+
+func BenchmarkLifetimePolicy(b *testing.B) {
+	policytest.RunBenchmarks(b, func(_ testing.TB) policy.EvictionPolicy[string] {
+		return NewLifetimePolicy[string](time.Hour)
+	})
 }

@@ -3,6 +3,8 @@ package cache
 import (
 	"sync"
 
+	"github.com/upfluence/errors"
+
 	"github.com/upfluence/pkg/v2/cache/policy"
 )
 
@@ -106,8 +108,8 @@ func (pc *policyCache[K, V]) Close() error {
 	err := pc.ep.Close()
 	pc.wg.Wait()
 
-	if cerr := pc.c.Close(); cerr != nil && err == nil {
-		err = cerr
+	if cerr := pc.c.Close(); cerr != nil {
+		err = errors.Combine(err, cerr)
 	}
 
 	return err

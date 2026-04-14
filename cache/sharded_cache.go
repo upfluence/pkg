@@ -45,7 +45,7 @@ func NewCache[K comparable, V any](kfn func(K) uint64) Cache[K, V] {
 func newShardedCache[K comparable, V any](size int, kfn func(K) uint64) Cache[K, V] {
 	cs := make([]*lockCache[K, V], size)
 
-	for i := 0; i < size; i++ {
+	for i := range size {
 		cs[i] = newLockCache[K, V]()
 	}
 
