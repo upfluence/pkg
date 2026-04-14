@@ -2,27 +2,29 @@ package size
 
 import (
 	"container/list"
-	"context"
 	"sync"
 
 	"github.com/upfluence/pkg/v2/cache/policy"
 )
 
 type Policy[K comparable] struct {
-	sync.Mutex
+	mu sync.Mutex
 
 	size int
 
 	l  *list.List
 	ks map[K]*list.Element
 
-	ctx    context.Context
-	cancel context.CancelFunc
+	closed bool
 
 	fn func(K)
 
-	closeOnce sync.Once
-	ch        chan K
+	// sends tracks the number of goroutines currently blocked on a channel
+	// send. Close() waits for this to reach zero before closing the channel,
+	// ensuring no send-on-closed-channel panic can occur.
+	sends sync.WaitGroup
+
+	ch chan K
 }
 
 func NewLRUPolicy[K comparable](size int) *Policy[K] {
@@ -33,7 +35,6 @@ func NewLRUPolicy[K comparable](size int) *Policy[K] {
 		ch:   make(chan K, 1),
 	}
 
-	p.ctx, p.cancel = context.WithCancel(context.Background())
 	p.fn = p.move
 
 	return &p
@@ -44,29 +45,44 @@ func (p *Policy[K]) C() <-chan K {
 }
 
 func (p *Policy[K]) Op(k K, op policy.OpType) error {
-	if p.ctx.Err() != nil {
+	p.mu.Lock()
+
+	if p.closed {
+		p.mu.Unlock()
 		return policy.ErrClosed
 	}
 
-	p.Lock()
+	var evicted K
+	var hasEviction bool
 
 	switch op {
 	case policy.Set:
-		p.insert(k)
+		evicted, hasEviction = p.insert(k)
 	case policy.Get:
 		p.fn(k)
 	case policy.Evict:
 		p.evict(k)
 	}
 
-	p.Unlock()
+	if hasEviction {
+		// Register the send before releasing the lock so Close() cannot
+		// observe sends==0 and close the channel between Unlock and the
+		// actual send below.
+		p.sends.Add(1)
+	}
+
+	p.mu.Unlock()
+
+	if hasEviction {
+		p.ch <- evicted
+		p.sends.Done()
+	}
 
 	return nil
 }
 
 func (p *Policy[K]) move(k K) {
 	e, ok := p.ks[k]
-
 	if !ok {
 		return
 	}
@@ -74,35 +90,28 @@ func (p *Policy[K]) move(k K) {
 	p.l.MoveToBack(e)
 }
 
-func (p *Policy[K]) insert(k K) {
-	if _, ok := p.ks[k]; ok {
-		return
+// insert adds k to the LRU list. If the list exceeds its size limit the
+// least-recently-used key is removed and returned.
+// Must be called with p.mu held.
+func (p *Policy[K]) insert(k K) (evicted K, ok bool) {
+	if _, exists := p.ks[k]; exists {
+		return evicted, false
 	}
 
-	var e *list.Element
-
-	if p.l.Len() == 0 {
-		e = p.l.PushFront(k)
-	} else {
-		e = p.l.InsertAfter(k, p.l.Back())
-	}
-
-	p.ks[k] = e
+	p.ks[k] = p.l.PushBack(k)
 
 	if p.l.Len() > p.size {
 		v := p.l.Remove(p.l.Front()).(K)
 		delete(p.ks, v)
-
-		select {
-		case <-p.ctx.Done():
-		case p.ch <- v:
-		}
+		return v, true
 	}
+
+	return evicted, false
 }
 
+// evict removes k from the list and map. Must be called with p.mu held.
 func (p *Policy[K]) evict(k K) {
 	e, ok := p.ks[k]
-
 	if !ok {
 		return
 	}
@@ -112,7 +121,15 @@ func (p *Policy[K]) evict(k K) {
 }
 
 func (p *Policy[K]) Close() error {
-	p.cancel()
-	p.closeOnce.Do(func() { close(p.ch) })
+	p.mu.Lock()
+	p.closed = true
+	p.mu.Unlock()
+
+	// Wait for any sends that were registered before we set closed=true to
+	// complete. After this, no new sends can be registered (Op returns
+	// ErrClosed), so it is safe to close the channel.
+	p.sends.Wait()
+
+	close(p.ch)
 	return nil
 }

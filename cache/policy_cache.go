@@ -6,23 +6,41 @@ import (
 	"github.com/upfluence/pkg/v2/cache/policy"
 )
 
-func nop() {}
-
-var testHookEviction = nop
-
 type policyCache[K comparable, V any] struct {
 	c  Cache[K, V]
 	ep policy.EvictionPolicy[K]
 
+	onEvict func(K, error)
+
 	wg sync.WaitGroup
 }
 
-func WithEvictionPolicy[K comparable, V any](c Cache[K, V], ep policy.EvictionPolicy[K]) Cache[K, V] {
-	return newPolicyCache(c, ep)
+// PolicyCacheOption configures a policyCache.
+type PolicyCacheOption[K comparable, V any] func(*policyCache[K, V])
+
+// WithEvictionErrorHandler sets a callback that is invoked whenever the
+// policy-triggered eviction of a key fails.  The default is to discard the
+// error silently.
+func WithEvictionErrorHandler[K comparable, V any](fn func(K, error)) PolicyCacheOption[K, V] {
+	return func(pc *policyCache[K, V]) {
+		pc.onEvict = fn
+	}
 }
 
-func newPolicyCache[K comparable, V any](c Cache[K, V], ep policy.EvictionPolicy[K]) *policyCache[K, V] {
-	pc := policyCache[K, V]{c: c, ep: ep}
+func WithEvictionPolicy[K comparable, V any](c Cache[K, V], ep policy.EvictionPolicy[K], opts ...PolicyCacheOption[K, V]) Cache[K, V] {
+	return newPolicyCache(c, ep, opts...)
+}
+
+func newPolicyCache[K comparable, V any](c Cache[K, V], ep policy.EvictionPolicy[K], opts ...PolicyCacheOption[K, V]) *policyCache[K, V] {
+	pc := policyCache[K, V]{
+		c:       c,
+		ep:      ep,
+		onEvict: func(K, error) {},
+	}
+
+	for _, opt := range opts {
+		opt(&pc)
+	}
 
 	pc.wg.Add(1)
 
@@ -43,8 +61,9 @@ func (pc *policyCache[K, V]) watch() {
 			return
 		}
 
-		pc.c.Evict(k)
-		testHookEviction()
+		if err := pc.c.Evict(k); err != nil {
+			pc.onEvict(k, err)
+		}
 	}
 }
 
@@ -80,9 +99,16 @@ func (pc *policyCache[K, V]) Evict(k K) error {
 	return pc.ep.Op(k, policy.Evict)
 }
 
+// Close closes the eviction policy (which stops the background pump and closes
+// the channel), waits for the watch goroutine to drain, then closes the
+// underlying cache.
 func (pc *policyCache[K, V]) Close() error {
 	err := pc.ep.Close()
-
 	pc.wg.Wait()
+
+	if cerr := pc.c.Close(); cerr != nil && err == nil {
+		err = cerr
+	}
+
 	return err
 }

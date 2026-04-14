@@ -33,7 +33,9 @@ type op struct {
 
 type mockPolicy struct {
 	sync.Mutex
-	ops []op
+
+	closed bool
+	ops    []op
 
 	ch chan string
 
@@ -53,6 +55,14 @@ func (mp *mockPolicy) Op(k string, ot OpType) error {
 }
 
 func (mp *mockPolicy) Close() error {
+	mp.Lock()
+	defer mp.Unlock()
+
+	if mp.closed {
+		return nil
+	}
+
+	mp.closed = true
 	close(mp.ch)
 
 	return mp.cerr
@@ -81,13 +91,17 @@ func TestMultiPolicy(t *testing.T) {
 	wg.Wait()
 
 	assert.Equal(t, "foo", k)
-	assert.Equal(t, []op{op{"foo", Evict}}, m1.ops)
-	assert.Equal(t, []op{op{"foo", Evict}}, m3.ops)
+	assert.Equal(t, []op{{"foo", Evict}}, m1.ops)
+	assert.Equal(t, []op{{"foo", Evict}}, m3.ops)
 
 	assert.Nil(t, p.Close())
 
-	p.Op("bar", Set)
-	assert.Equal(t, []op{op{"foo", Evict}, op{"bar", Set}}, m1.ops)
-	assert.Equal(t, []op{op{"bar", Set}}, m2.ops)
-	assert.Equal(t, []op{op{"foo", Evict}, op{"bar", Set}}, m3.ops)
+	// After Close(), Op is forwarded to child mocks which are also closed.
+	// multiPolicy has no closed check of its own; children return nil from
+	// their mock Op regardless of closed state, so this should not error.
+	err := p.Op("bar", Set)
+	assert.Nil(t, err)
+	assert.Equal(t, []op{{"foo", Evict}, {"bar", Set}}, m1.ops)
+	assert.Equal(t, []op{{"bar", Set}}, m2.ops)
+	assert.Equal(t, []op{{"foo", Evict}, {"bar", Set}}, m3.ops)
 }
