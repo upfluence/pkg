@@ -2,36 +2,36 @@ package policy
 
 import (
 	"sync"
-	"sync/atomic"
 )
 
+// NopPolicy is an eviction policy that never proactively evicts entries.
+// All Op calls are no-ops; C() returns a channel that is only closed when
+// Close() is called.
 type NopPolicy[K comparable] struct {
-	sync.Once
-	sync.Mutex
-
-	closed int32
+	mu     sync.Mutex
+	closed bool
 	ch     chan K
 }
 
 func (np *NopPolicy[K]) C() <-chan K {
-	np.Do(func() {
-		np.Lock()
-		defer np.Unlock()
+	np.mu.Lock()
+	defer np.mu.Unlock()
 
-		if np.ch == nil {
-			np.ch = make(chan K)
-
-			if atomic.LoadInt32(&np.closed) == 1 {
-				close(np.ch)
-			}
+	if np.ch == nil {
+		np.ch = make(chan K)
+		if np.closed {
+			close(np.ch)
 		}
-	})
+	}
 
 	return np.ch
 }
 
-func (np *NopPolicy[K]) Op(K, OpType) error {
-	if atomic.LoadInt32(&np.closed) == 1 {
+func (np *NopPolicy[K]) Op(_ K, _ OpType) error {
+	np.mu.Lock()
+	defer np.mu.Unlock()
+
+	if np.closed {
 		return ErrClosed
 	}
 
@@ -39,12 +39,17 @@ func (np *NopPolicy[K]) Op(K, OpType) error {
 }
 
 func (np *NopPolicy[K]) Close() error {
-	if atomic.CompareAndSwapInt32(&np.closed, 0, 1) {
-		np.Lock()
-		if np.ch != nil {
-			close(np.ch)
-		}
-		np.Unlock()
+	np.mu.Lock()
+	defer np.mu.Unlock()
+
+	if np.closed {
+		return nil
+	}
+
+	np.closed = true
+
+	if np.ch != nil {
+		close(np.ch)
 	}
 
 	return nil
