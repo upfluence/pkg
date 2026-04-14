@@ -10,12 +10,7 @@ import (
 )
 
 func TestPolicyCache(t *testing.T) {
-	var (
-		done sync.WaitGroup
-		once sync.Once
-	)
-
-	done.Add(1)
+	var once sync.Once
 
 	c := WithEvictionPolicy[string](
 		NewStringCache[string](),
@@ -43,7 +38,6 @@ func TestPolicyCache(t *testing.T) {
 		},
 		size.NewLRUPolicy[string](1),
 	)
-	_ = done // silence unused warning; replaced by notifyC
 
 	c.Set("foo", "bar")
 	c.Set("bar", "buz")

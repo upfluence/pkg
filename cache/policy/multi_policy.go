@@ -18,7 +18,7 @@ func CombinePolicies[K comparable](ps ...EvictionPolicy[K]) EvictionPolicy[K] {
 	l := ps[0]
 
 	for i := 1; i < len(ps); i++ {
-		l = newMultiPolicy[K](l, ps[i])
+		l = newMultiPolicy(l, ps[i])
 	}
 
 	return l
@@ -59,14 +59,12 @@ func (mp *multiPolicy[K]) pull() {
 		case <-mp.ctx.Done():
 			return
 		case k, ok := <-lc:
-			// A closed child channel yields the zero value with ok==false.
-			// Treat it the same as a context cancellation — shut down.
 			if !ok {
 				return
 			}
-			// Best-effort cross-eviction: if the sibling is already closed
-			// the error is intentionally ignored (shutdown in progress).
+
 			mp.r.Op(k, Evict) //nolint:errcheck
+
 			select {
 			case <-mp.ctx.Done():
 				return
@@ -76,7 +74,9 @@ func (mp *multiPolicy[K]) pull() {
 			if !ok {
 				return
 			}
+
 			mp.l.Op(k, Evict) //nolint:errcheck
+
 			select {
 			case <-mp.ctx.Done():
 				return
