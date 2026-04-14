@@ -53,7 +53,7 @@ func newShardedCache[K comparable, V any](size int, kfn func(K) uint64) Cache[K,
 }
 
 func (sc *shardedCache[K, V]) shard(k K) *lockCache[K, V] {
-	return sc.cs[sc.kfn(k)%sc.size]
+	return sc.cs[sc.kfn(k)&(sc.size-1)]
 }
 
 func (sc *shardedCache[K, V]) Get(k K) (V, bool, error) {
