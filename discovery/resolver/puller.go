@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/upfluence/errors"
 
@@ -18,25 +19,34 @@ type Puller[T peer.Peer] struct {
 	Monitor    closer.Monitor
 	NoWait     bool
 
-	openErr  error
-	openOnce sync.Once
+	openErr   error
+	openOnce  sync.Once
+	closeOnce sync.Once
+	opened    atomic.Bool
 }
 
-func NewPuller[T peer.Peer](r Resolver[T], fn func(Update[T])) (*Puller[T], func()) {
+func NewPuller[T peer.Peer](r Resolver[T], fn func(Update[T])) (*Puller[T], func() error) {
 	var p = &Puller[T]{
 		Resolver:   r,
 		UpdateFunc: fn,
 	}
 
-	return p, func() { p.Close() }
+	return p, p.Close
 }
 
 func (p *Puller[T]) Close() error {
-	return errors.Combine(p.Monitor.Close(), p.Resolver.Close())
+	var err error
+
+	p.closeOnce.Do(func() {
+		p.opened.Store(false)
+		err = errors.Combine(p.Monitor.Close(), p.Resolver.Close())
+	})
+
+	return err
 }
 
 func (p *Puller[T]) IsOpen() bool {
-	return p.openErr == nil && p.openOnce != sync.Once{}
+	return p.opened.Load()
 }
 
 func (p *Puller[T]) String() string {
@@ -48,6 +58,7 @@ func (p *Puller[T]) Open(ctx context.Context) error {
 		p.openErr = p.Resolver.Open(ctx)
 
 		if p.openErr == nil {
+			p.opened.Store(true)
 			p.Monitor.Run(p.pull)
 		}
 	})
@@ -65,14 +76,25 @@ func (p *Puller[T]) pull(ctx context.Context) {
 	)
 
 	for {
+		err = nil
 		w = p.Resolver.Resolve()
 
 		for err == nil {
 			u, err = w.Next(ctx, ResolveOptions{NoWait: noWait})
 
-			if err == nil || err == ErrNoUpdates {
+			if err == nil {
 				noWait = false
+
 				p.UpdateFunc(u)
+
+				continue
+			}
+
+			if errors.Is(err, ErrNoUpdates) {
+				// No update available right now; reset noWait and keep going
+				// without calling UpdateFunc with a meaningless empty update.
+				noWait = false
+
 				continue
 			}
 

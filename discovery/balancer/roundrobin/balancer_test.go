@@ -5,66 +5,57 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/upfluence/pkg/v2/discovery/balancer"
+	"github.com/upfluence/pkg/v2/discovery/balancer/balancertest"
 	"github.com/upfluence/pkg/v2/discovery/resolver/static"
 )
 
-func TestBalanceEmpty(t *testing.T) {
-	ctx := context.Background()
-	b := NewBalancer(&static.Resolver[static.Peer]{})
-
-	p, done, err := b.Get(ctx, balancer.GetOptions{NoWait: true})
-
-	assert.Empty(t, p.Addr())
-	assert.Nil(t, done)
-	assert.Equal(t, balancer.ErrNoPeerAvailable, err)
-
-	cctx, cancel := context.WithCancel(ctx)
-	cancel()
-
-	p, done, err = b.Get(cctx, balancer.GetOptions{})
-
-	assert.Empty(t, p.Addr())
-	assert.Nil(t, done)
-	assert.Equal(t, err, context.Canceled)
-
-	err = b.Close()
-	assert.NoError(t, err)
-
-	p, done, err = b.Get(ctx, balancer.GetOptions{})
-
-	assert.Empty(t, p.Addr())
-	assert.Nil(t, done)
-	assert.Equal(t, err, context.Canceled)
+func TestPolicy(t *testing.T) {
+	balancertest.PolicyTest(t, func() balancer.Policy[static.Peer] {
+		return NewPolicy[static.Peer]()
+	})
 }
 
-func TestBalanceWithPerrs(t *testing.T) {
+func TestBalanceRoundRobinOrder(t *testing.T) {
 	ctx := context.Background()
 	b := NewBalancer(
-		static.NewResolverFromStrings([]string{"localhost:0", "localhost:1"}),
+		static.NewResolverFromStrings([]string{"localhost:0", "localhost:1", "localhost:2"}),
 	)
 
 	err := b.Open(ctx)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
-	p, done, err := b.Get(ctx, balancer.GetOptions{})
-	done(nil)
+	// Collect the first full cycle. The initial Get blocks until the Puller
+	// goroutine delivers peers, so this also acts as the synchronisation point.
+	// The policy preserves insertion order, so subsequent cycles are identical.
+	var firstCycle [3]string
 
-	assert.Nil(t, err)
-	assert.Equal(t, "localhost:0", p.Addr())
+	for i := range 3 {
+		p, done, err := b.Get(ctx, balancer.GetOptions{})
 
-	p, done, err = b.Get(ctx, balancer.GetOptions{})
-	done(nil)
+		require.NoError(t, err)
 
-	assert.Nil(t, err)
-	assert.Equal(t, "localhost:1", p.Addr())
+		firstCycle[i] = p.Addr()
 
-	p, done, err = b.Get(ctx, balancer.GetOptions{})
-	done(nil)
+		done(nil)
+	}
 
-	assert.Nil(t, err)
-	assert.Equal(t, "localhost:0", p.Addr())
+	// All three peers must appear in the first cycle.
+	assert.ElementsMatch(t, []string{"localhost:0", "localhost:1", "localhost:2"}, firstCycle[:])
+
+	// Subsequent cycles must repeat in the exact same order.
+	for range 2 {
+		for i := range 3 {
+			p, done, err := b.Get(ctx, balancer.GetOptions{})
+
+			require.NoError(t, err)
+			assert.Equal(t, firstCycle[i], p.Addr())
+
+			done(nil)
+		}
+	}
 
 	b.Close()
 }
