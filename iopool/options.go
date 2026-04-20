@@ -3,9 +3,10 @@ package iopool
 import (
 	"time"
 
+	"github.com/upfluence/stats"
+
 	"github.com/upfluence/pkg/v2/cache/policy"
 	ptime "github.com/upfluence/pkg/v2/cache/policy/time"
-	"github.com/upfluence/stats"
 )
 
 var defaultOptions = &options{

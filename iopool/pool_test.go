@@ -116,9 +116,9 @@ func TestCloseSync(t *testing.T) {
 func TestLimitedIdleSize(t *testing.T) {
 	i := 0
 	es := []*entity{
-		&entity{isOpen: true},
-		&entity{isOpen: true},
-		&entity{isOpen: true},
+		{isOpen: true},
+		{isOpen: true},
+		{isOpen: true},
 	}
 
 	p := NewPool[*entity](
@@ -149,7 +149,7 @@ func TestLimitedIdleSize(t *testing.T) {
 func TestConcurrentPut(t *testing.T) {
 	i := 0
 	es := []*entity{
-		&entity{isOpen: true},
+		{isOpen: true},
 	}
 
 	p := NewPool[*entity](
@@ -188,8 +188,8 @@ func TestConcurrentPut(t *testing.T) {
 func TestConcurrentDiscard(t *testing.T) {
 	i := 0
 	es := []*entity{
-		&entity{isOpen: true},
-		&entity{isOpen: true},
+		{isOpen: true},
+		{isOpen: true},
 	}
 
 	p := NewPool[*entity](
