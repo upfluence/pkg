@@ -12,7 +12,7 @@ import (
 // Close must stop any background activity and release resources, but must NOT
 // close the eviction channel — Wrap does that after all in-flight Ops
 // complete.
-type Tracker[K comparable] interface {
+type Tracker[K any] interface {
 	Op(K, OpType) error
 	io.Closer
 }
@@ -23,7 +23,7 @@ type Tracker[K comparable] interface {
 // callback may be called from within Op (synchronous policies) or from a
 // background goroutine (asynchronous policies like time). Either way, Wrap
 // ensures the channel send completes before the channel is closed.
-func Wrap[K comparable](build func(evict func(K)) Tracker[K]) EvictionPolicy[K] {
+func Wrap[K any](build func(evict func(K)) Tracker[K]) EvictionPolicy[K] {
 	ch := make(chan K, 1)
 
 	return &wrapper[K]{
@@ -32,7 +32,7 @@ func Wrap[K comparable](build func(evict func(K)) Tracker[K]) EvictionPolicy[K] 
 	}
 }
 
-type wrapper[K comparable] struct {
+type wrapper[K any] struct {
 	inner Tracker[K]
 
 	closeOnce sync.Once

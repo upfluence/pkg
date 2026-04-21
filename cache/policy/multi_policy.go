@@ -7,7 +7,7 @@ import (
 	"github.com/upfluence/errors"
 )
 
-func CombinePolicies[K comparable](ps ...EvictionPolicy[K]) EvictionPolicy[K] {
+func CombinePolicies[K any](ps ...EvictionPolicy[K]) EvictionPolicy[K] {
 	switch len(ps) {
 	case 0:
 		return &NopPolicy[K]{}
@@ -24,7 +24,7 @@ func CombinePolicies[K comparable](ps ...EvictionPolicy[K]) EvictionPolicy[K] {
 	return l
 }
 
-type multiPolicy[K comparable] struct {
+type multiPolicy[K any] struct {
 	wg     sync.WaitGroup
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -33,7 +33,7 @@ type multiPolicy[K comparable] struct {
 	l, r EvictionPolicy[K]
 }
 
-func newMultiPolicy[K comparable](l, r EvictionPolicy[K]) *multiPolicy[K] {
+func newMultiPolicy[K any](l, r EvictionPolicy[K]) *multiPolicy[K] {
 	mp := multiPolicy[K]{
 		l:  l,
 		r:  r,

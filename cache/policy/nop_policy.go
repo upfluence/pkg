@@ -7,7 +7,7 @@ import (
 // NopPolicy is an eviction policy that never proactively evicts entries.
 // All Op calls are no-ops; C() returns a channel that is only closed when
 // Close() is called.
-type NopPolicy[K comparable] struct {
+type NopPolicy[K any] struct {
 	mu     sync.Mutex
 	closed bool
 	ch     chan K

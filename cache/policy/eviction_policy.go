@@ -16,7 +16,7 @@ const (
 	Evict
 )
 
-type EvictionPolicy[K comparable] interface {
+type EvictionPolicy[K any] interface {
 	C() <-chan K
 
 	Op(K, OpType) error
