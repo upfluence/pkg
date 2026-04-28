@@ -1,27 +1,13 @@
 package cache
 
 import (
+	"hash/maphash"
+
 	"github.com/upfluence/errors"
 	"golang.org/x/exp/constraints"
 )
 
-const (
-	defaultSharding = 256
-
-	offset64 uint64 = 14695981039346656037
-	prime64  uint64 = 1099511628211
-)
-
-func fnv64a(s string) uint64 {
-	var h = offset64
-
-	for i := 0; i < len(s); i++ {
-		h ^= uint64(s[i])
-		h *= prime64
-	}
-
-	return h
-}
+const defaultSharding = 256
 
 type shardedCache[K comparable, V any] struct {
 	cs []*lockCache[K, V]
@@ -30,12 +16,22 @@ type shardedCache[K comparable, V any] struct {
 	size uint64
 }
 
-func NewStringCache[V any]() Cache[string, V] {
-	return NewCache[string, V](fnv64a)
+func NewDefaultCache[K comparable, V any]() Cache[K, V] {
+	var seed = maphash.MakeSeed()
+
+	return NewCache[K, V](func(k K) uint64 {
+		return maphash.Comparable(seed, k)
+	})
 }
 
+// Deprecated: Use NewDefaultCache instead.
+func NewStringCache[V any]() Cache[string, V] {
+	return NewDefaultCache[string, V]()
+}
+
+// Deprecated: Use NewDefaultCache instead.
 func NewIntegerCache[K constraints.Integer, V any]() Cache[K, V] {
-	return NewCache[K, V](func(k K) uint64 { return uint64(k) })
+	return NewDefaultCache[K, V]()
 }
 
 func NewCache[K comparable, V any](kfn func(K) uint64) Cache[K, V] {
