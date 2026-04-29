@@ -7,7 +7,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AC">AC</a>, ASC, -1,
 		 * Exceptionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "Ascension Island",
 			Alpha2:      "AC",
 			Alpha3:      "ASC",
@@ -21,7 +21,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AD">AD</a>, AND, 16,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Andorra",
 			Alpha2:      "AD",
 			Alpha3:      "AND",
@@ -35,7 +35,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AE">AE</a>, AE, 784,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "United Arab Emirates",
 			Alpha2:      "AE",
 			Alpha3:      "ARE",
@@ -49,7 +49,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AF">AF</a>, AFG, 4,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Afghanistan",
 			Alpha2:      "AF",
 			Alpha3:      "AFG",
@@ -63,7 +63,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AG">AG</a>, ATG, 28,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Antigua and Barbuda",
 			Alpha2:      "AG",
 			Alpha3:      "ATG",
@@ -77,7 +77,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AI">AI</a>, AIA, 660,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Anguilla",
 			Alpha2:      "AI",
 			Alpha3:      "AIA",
@@ -91,7 +91,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AL">AL</a>, ALB, 8,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Albania",
 			Alpha2:      "AL",
 			Alpha3:      "ALB",
@@ -105,7 +105,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AM">AM</a>, ARM, 51,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Armenia",
 			Alpha2:      "AM",
 			Alpha3:      "ARM",
@@ -119,7 +119,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AN">AN</a>, ANHH, 530,
 		 * Traditionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "Netherlands Antilles",
 			Alpha2:      "AN",
 			Alpha3:      "ANHH",
@@ -133,7 +133,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AO">AO</a>, AGO, 24,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Angola",
 			Alpha2:      "AO",
 			Alpha3:      "AGO",
@@ -147,7 +147,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AQ">AQ</a>, ATA, 10,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Antarctica",
 			Alpha2:      "AQ",
 			Alpha3:      "ATA",
@@ -161,7 +161,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AR">AR</a>, ARG, 32,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Argentina",
 			Alpha2:      "AR",
 			Alpha3:      "ARG",
@@ -175,7 +175,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AS">AS</a>, ASM, 16,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "American Samoa",
 			Alpha2:      "AS",
 			Alpha3:      "ASM",
@@ -189,7 +189,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AT">AT</a>, AUT, 40,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Austria",
 			Alpha2:      "AT",
 			Alpha3:      "AUT",
@@ -203,7 +203,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AU">AU</a>, AUS, 36,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Australia",
 			Alpha2:      "AU",
 			Alpha3:      "AUS",
@@ -217,7 +217,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AW">AW</a>, ABW, 533,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Aruba",
 			Alpha2:      "AW",
 			Alpha3:      "ABW",
@@ -231,7 +231,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AX">AX</a>, ALA, 248,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "\u212Bland Islands",
 			Alpha2:      "AX",
 			Alpha3:      "ALA",
@@ -245,7 +245,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#AZ">AZ</a>, AZE, 31,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Azerbaijan",
 			Alpha2:      "AZ",
 			Alpha3:      "AZE",
@@ -259,7 +259,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BA">BA</a>, BIH, 70,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Bosnia and Herzegovina",
 			Alpha2:         "BA",
 			Alpha3:         "BIH",
@@ -274,7 +274,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BB">BB</a>, BRB, 52,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Barbados",
 			Alpha2:      "BB",
 			Alpha3:      "BRB",
@@ -288,7 +288,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BD">BD</a>, BGD, 50,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Bangladesh",
 			Alpha2:      "BD",
 			Alpha3:      "BGD",
@@ -302,7 +302,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BE">BE</a>, BEL, 56,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Belgium",
 			Alpha2:      "BE",
 			Alpha3:      "BEL",
@@ -316,7 +316,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BF">BF</a>, BFA, 854,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Burkina Faso",
 			Alpha2:      "BF",
 			Alpha3:      "BFA",
@@ -330,7 +330,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BG">BG</a>, BGR, 100,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Bulgaria",
 			Alpha2:      "BG",
 			Alpha3:      "BGR",
@@ -344,7 +344,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BH">BH</a>, BHR, 48,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Bahrain",
 			Alpha2:      "BH",
 			Alpha3:      "BHR",
@@ -358,7 +358,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BI">BI</a>, BDI, 108,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Burundi",
 			Alpha2:      "BI",
 			Alpha3:      "BDI",
@@ -372,7 +372,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BJ">BJ</a>, BEN, 204,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Benin",
 			Alpha2:      "BJ",
 			Alpha3:      "BEN",
@@ -386,7 +386,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BL">BL</a>, BLM, 652,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Saint Barth\u00E9lemy",
 			Alpha2:         "BL",
 			Alpha3:         "BLM",
@@ -401,7 +401,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BM">BM</a>, BMU, 60,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Bermuda",
 			Alpha2:      "BM",
 			Alpha3:      "BMU",
@@ -415,7 +415,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BN">BN</a>, BRN, 96,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Brunei Darussalam",
 			Alpha2:      "BN",
 			Alpha3:      "BRN",
@@ -429,7 +429,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BO">BO</a>, BOL, 68,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Bolivia, Plurinational State of",
 			Alpha2:      "BO",
 			Alpha3:      "BOL",
@@ -443,7 +443,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BQ">BQ</a>, BES, 535,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Bonaire, Sint Eustatius and Saba",
 			Alpha2:      "BQ",
 			Alpha3:      "BES",
@@ -457,7 +457,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BR">BR</a>, BRA, 76,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Brazil",
 			Alpha2:      "BR",
 			Alpha3:      "BRA",
@@ -471,7 +471,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BS">BS</a>, BHS, 44,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Bahamas",
 			Alpha2:      "BS",
 			Alpha3:      "BHS",
@@ -485,7 +485,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BT">BT</a>, BTN, 64,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Bhutan",
 			Alpha2:      "BT",
 			Alpha3:      "BTN",
@@ -501,7 +501,7 @@ var (
 		 *
 		 * @see #MM
 		 */
-		CountryCode{
+		{
 			Name:        "Burma",
 			Alpha2:      "BU",
 			Alpha3:      "BUMM",
@@ -515,7 +515,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BV">BV</a>, BVT, 74,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Bouvet Island",
 			Alpha2:      "BV",
 			Alpha3:      "BVT",
@@ -529,7 +529,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BW">BW</a>, BWA, 72,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Botswana",
 			Alpha2:      "BW",
 			Alpha3:      "BWA",
@@ -543,7 +543,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BY">BY</a>, BLR, 112,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Belarus",
 			Alpha2:      "BY",
 			Alpha3:      "BLR",
@@ -557,7 +557,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#BZ">BZ</a>, BLZ, 84,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Belize",
 			Alpha2:      "BZ",
 			Alpha3:      "BLZ",
@@ -571,7 +571,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CA">CA</a>, CAN, 124,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Canada",
 			Alpha2:      "CA",
 			Alpha3:      "CAN",
@@ -584,7 +584,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CC">CC</a>, CCK, 166,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Cocos (Keeling) Islands",
 			Alpha2:      "CC",
 			Alpha3:      "CCK",
@@ -598,7 +598,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CD">CD</a>, COD, 180,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Congo, the Democratic Republic of the",
 			Alpha2:      "CD",
 			Alpha3:      "COD",
@@ -612,7 +612,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CF">CF</a>, CAF, 140,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Central African Republic",
 			Alpha2:      "CF",
 			Alpha3:      "CAF",
@@ -626,7 +626,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CG">CG</a>, COG, 178,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Congo",
 			Alpha2:      "CG",
 			Alpha3:      "COG",
@@ -640,7 +640,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CH">CH</a>, CHE, 756,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Switzerland",
 			Alpha2:      "CH",
 			Alpha3:      "CHE",
@@ -654,7 +654,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CI">CI</a>, CIV, 384,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "C\u00F4te d'Ivoire",
 			Alpha2:      "CI",
 			Alpha3:      "CIV",
@@ -668,7 +668,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CK">CK</a>, COK, 184,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Cook Islands",
 			Alpha2:      "CK",
 			Alpha3:      "COK",
@@ -682,7 +682,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CL">CL</a>, CHL, 152,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Chile",
 			Alpha2:      "CL",
 			Alpha3:      "CHL",
@@ -696,7 +696,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CM">CM</a>, CMR, 120,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Cameroon",
 			Alpha2:      "CM",
 			Alpha3:      "CMR",
@@ -710,7 +710,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CN">CN</a>, CHN, 156,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "China",
 			Alpha2:      "CN",
 			Alpha3:      "CHN",
@@ -723,7 +723,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CO">CO</a>, COL, 170,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Colombia",
 			Alpha2:      "CO",
 			Alpha3:      "COL",
@@ -737,7 +737,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CP">CP</a>, CPT, -1,
 		 * Exceptionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "Clipperton Island",
 			Alpha2:      "CP",
 			Alpha3:      "CPT",
@@ -751,7 +751,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CR">CR</a>, CRI, 188,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Costa Rica",
 			Alpha2:      "CR",
 			Alpha3:      "CRI",
@@ -765,7 +765,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CS">CS</a>, CSXX, 891,
 		 * Traditionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "Serbia and Montenegro",
 			Alpha2:      "CS",
 			Alpha3:      "CSXX",
@@ -779,7 +779,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CU">CU</a>, CUB, 192,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Cuba",
 			Alpha2:      "CU",
 			Alpha3:      "CUB",
@@ -793,7 +793,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CV">CV</a>, CPV, 132,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Cape Verde",
 			Alpha2:      "CV",
 			Alpha3:      "CPV",
@@ -807,7 +807,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CW">CW</a>, CUW, 531,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Cura\u00E7ao",
 			Alpha2:      "CW",
 			Alpha3:      "CUW",
@@ -821,7 +821,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CX">CX</a>, CXR, 162,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Christmas Island",
 			Alpha2:      "CX",
 			Alpha3:      "CXR",
@@ -835,7 +835,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CY">CY</a>, CYP, 196,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Cyprus",
 			Alpha2:      "CY",
 			Alpha3:      "CYP",
@@ -849,7 +849,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#CZ">CZ</a>, CZE, 203,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Czech Republic",
 			Alpha2:      "CZ",
 			Alpha3:      "CZE",
@@ -863,7 +863,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#DE">DE</a>, DEU, 276,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Germany",
 			Alpha2:      "DE",
 			Alpha3:      "DEU",
@@ -877,7 +877,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#DG">DG</a>, DGA, -1,
 		 * Exceptionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "Diego Garcia",
 			Alpha2:      "DG",
 			Alpha3:      "DGA",
@@ -891,7 +891,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#DJ">DJ</a>, DJI, 262,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Djibouti",
 			Alpha2:      "DJ",
 			Alpha3:      "DJI",
@@ -905,7 +905,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#DK">DK</a>, DNK, 208,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Denmark",
 			Alpha2:      "DK",
 			Alpha3:      "DNK",
@@ -919,7 +919,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#DM">DM</a>, DMA, 212,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Dominica",
 			Alpha2:      "DM",
 			Alpha3:      "DMA",
@@ -933,7 +933,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#DO">DO</a>, DOM, 214,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Dominican Republic",
 			Alpha2:      "DO",
 			Alpha3:      "DOM",
@@ -947,7 +947,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#DZ">DZ</a>, DZA, 12,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Algeria",
 			Alpha2:      "DZ",
 			Alpha3:      "DZA",
@@ -962,7 +962,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#EA">EA</a>, null, -1,
 		 * Exceptionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "Ceuta, Melilla",
 			Alpha2:      "EA",
 			Alpha3:      "",
@@ -976,7 +976,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#EC">EC</a>, ECU, 218,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Ecuador",
 			Alpha2:      "EC",
 			Alpha3:      "ECU",
@@ -990,7 +990,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#EE">EE</a>, EST, 233,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Estonia",
 			Alpha2:      "EE",
 			Alpha3:      "EST",
@@ -1004,7 +1004,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#EG">EG</a>, EGY, 818,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Egypt",
 			Alpha2:      "EG",
 			Alpha3:      "EGY",
@@ -1018,7 +1018,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#EH">EH</a>, ESH, 732,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Western Sahara",
 			Alpha2:      "EH",
 			Alpha3:      "ESH",
@@ -1032,7 +1032,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ER">ER</a>, ERI, 232,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Eritrea",
 			Alpha2:      "ER",
 			Alpha3:      "ERI",
@@ -1046,7 +1046,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ES">ES</a>, ESP, 724,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Spain",
 			Alpha2:      "ES",
 			Alpha3:      "ESP",
@@ -1060,7 +1060,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ET">ET</a>, ETH, 231,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Ethiopia",
 			Alpha2:      "ET",
 			Alpha3:      "ETH",
@@ -1074,7 +1074,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#EU">EU</a>, null, -1,
 		 * Exceptionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "European Union",
 			Alpha2:      "EU",
 			Alpha3:      "",
@@ -1090,7 +1090,7 @@ var (
 		 *
 		 * @see #SF
 		 */
-		CountryCode{
+		{
 			Name:        "Finland",
 			Alpha2:      "FI",
 			Alpha3:      "FIN",
@@ -1104,7 +1104,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#">FJ</a>, FJI, 242,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Fiji",
 			Alpha2:      "FJ",
 			Alpha3:      "FJI",
@@ -1118,7 +1118,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#FK">FK</a>, FLK, 238,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Falkland Islands (Malvinas)",
 			Alpha2:      "FK",
 			Alpha3:      "FLK",
@@ -1132,7 +1132,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#FM">FM</a>, FSM, 583,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Micronesia, Federated States of",
 			Alpha2:      "FM",
 			Alpha3:      "FSM",
@@ -1146,7 +1146,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#FO">FO</a>, FRO, 234,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Faroe Islands",
 			Alpha2:      "FO",
 			Alpha3:      "FRO",
@@ -1160,7 +1160,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#FR">FR</a>, FRA, 250,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "France",
 			Alpha2:      "FR",
 			Alpha3:      "FRA",
@@ -1174,7 +1174,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#FX">FX</a>, FXX, -1,
 		 * Exceptionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "France, Metropolitan",
 			Alpha2:      "FX",
 			Alpha3:      "FXX",
@@ -1188,7 +1188,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GA">GA</a>, GAB, 266,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Gabon",
 			Alpha2:      "GA",
 			Alpha3:      "GAB",
@@ -1202,7 +1202,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GB">GB</a>, GBR, 826,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "United Kingdom",
 			Alpha2:      "GB",
 			Alpha3:      "GBR",
@@ -1216,7 +1216,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GD">GD</a>, GRD, 308,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Grenada",
 			Alpha2:      "GD",
 			Alpha3:      "GRD",
@@ -1230,7 +1230,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GE">GE</a>, GEO, 268,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Georgia",
 			Alpha2:      "GE",
 			Alpha3:      "GEO",
@@ -1244,7 +1244,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GF">GF</a>, GUF, 254,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "French Guiana",
 			Alpha2:      "GF",
 			Alpha3:      "GUF",
@@ -1258,7 +1258,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GG">GG</a>, GGY, 831,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Guernsey",
 			Alpha2:      "GG",
 			Alpha3:      "GGY",
@@ -1272,7 +1272,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GH">GH</a>, GHA, 288,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Ghana",
 			Alpha2:      "GH",
 			Alpha3:      "GHA",
@@ -1286,7 +1286,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GI">GI</a>, GIB, 292,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Gibraltar",
 			Alpha2:      "GI",
 			Alpha3:      "GIB",
@@ -1300,7 +1300,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GL">GL</a>, GRL, 304,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Greenland",
 			Alpha2:      "GL",
 			Alpha3:      "GRL",
@@ -1314,7 +1314,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GM">GM</a>, GMB, 270,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Gambia",
 			Alpha2:      "GM",
 			Alpha3:      "GMB",
@@ -1328,7 +1328,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GN">GN</a>, GIN, 324,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Guinea",
 			Alpha2:      "GN",
 			Alpha3:      "GIN",
@@ -1342,7 +1342,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GP">GP</a>, GLP, 312,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Guadeloupe",
 			Alpha2:      "GP",
 			Alpha3:      "GLP",
@@ -1356,7 +1356,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GQ">GQ</a>, GNQ, 226,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Equatorial Guinea",
 			Alpha2:      "GQ",
 			Alpha3:      "GNQ",
@@ -1370,7 +1370,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GR">GR</a>, GRC, 300,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Greece",
 			Alpha2:      "GR",
 			Alpha3:      "GRC",
@@ -1384,7 +1384,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GS">GS</a>, SGS, 239,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "South Georgia and the South Sandwich Islands",
 			Alpha2:      "GS",
 			Alpha3:      "SGS",
@@ -1398,7 +1398,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GT">GT</a>, GTM, 320,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Guatemala",
 			Alpha2:      "GT",
 			Alpha3:      "GTM",
@@ -1412,7 +1412,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GU">GU</a>, GUM, 316,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Guam",
 			Alpha2:      "GU",
 			Alpha3:      "GUM",
@@ -1426,7 +1426,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GW">GW</a>, GNB, 624,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Guinea-Bissau",
 			Alpha2:      "GW",
 			Alpha3:      "GNB",
@@ -1440,7 +1440,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#GY">GY</a>, GUY, 328,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Guyana",
 			Alpha2:      "GY",
 			Alpha3:      "GUY",
@@ -1454,7 +1454,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#HK">HK</a>, HKG, 344,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Hong Kong",
 			Alpha2:         "HK",
 			Alpha3:         "HKG",
@@ -1469,7 +1469,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#HM">HM</a>, HMD, 334,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Heard Island and McDonald Islands",
 			Alpha2:      "HM",
 			Alpha3:      "HMD",
@@ -1483,7 +1483,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#HN">HN</a>, HND, 340,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Honduras",
 			Alpha2:      "HN",
 			Alpha3:      "HND",
@@ -1497,7 +1497,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#HR">HR</a>, HRV, 191,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Croatia",
 			Alpha2:      "HR",
 			Alpha3:      "HRV",
@@ -1511,7 +1511,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#HT">HT</a>, HTI, 332,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Haiti",
 			Alpha2:      "HT",
 			Alpha3:      "HTI",
@@ -1525,7 +1525,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#HU">HU</a>, HUN, 348,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Hungary",
 			Alpha2:      "HU",
 			Alpha3:      "HUN",
@@ -1539,7 +1539,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IC">IC</a>, null, -1,
 		 * Exceptionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "Canary Islands",
 			Alpha2:      "IC",
 			Alpha3:      "",
@@ -1553,7 +1553,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ID">ID</a>, IDN, 360,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Indonesia",
 			Alpha2:      "ID",
 			Alpha3:      "IDN",
@@ -1567,7 +1567,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IE">IE</a>, IRL, 372,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Ireland",
 			Alpha2:      "IE",
 			Alpha3:      "IRL",
@@ -1581,7 +1581,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IL">IL</a>, ISR, 376,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Israel",
 			Alpha2:      "IL",
 			Alpha3:      "ISR",
@@ -1595,7 +1595,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IM">IM</a>, IMN, 833,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Isle of Man",
 			Alpha2:      "IM",
 			Alpha3:      "IMN",
@@ -1609,7 +1609,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IN">IN</a>, IND, 356,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "India",
 			Alpha2:      "IN",
 			Alpha3:      "IND",
@@ -1623,7 +1623,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IO">IO</a>, IOT, 86,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "British Indian Ocean Territory",
 			Alpha2:      "IO",
 			Alpha3:      "IOT",
@@ -1637,7 +1637,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IQ">IQ</a>, IRQ, 368,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Iraq",
 			Alpha2:      "IQ",
 			Alpha3:      "IRQ",
@@ -1651,7 +1651,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IR">IR</a>, IRN, 364,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Iran, Islamic Republic of",
 			Alpha2:         "IR",
 			Alpha3:         "IRN",
@@ -1666,7 +1666,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IS">IS</a>, ISL, 352,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Iceland",
 			Alpha2:      "IS",
 			Alpha3:      "ISL",
@@ -1680,7 +1680,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#IT">IT</a>, ITA, 380,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Italy",
 			Alpha2:      "IT",
 			Alpha3:      "ITA",
@@ -1693,7 +1693,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#JE">JE</a>, JEY, 832,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Jersey",
 			Alpha2:      "JE",
 			Alpha3:      "JEY",
@@ -1707,7 +1707,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#JM">JM</a>, JAM, 388,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Jamaica",
 			Alpha2:      "JM",
 			Alpha3:      "JAM",
@@ -1721,7 +1721,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#JO">JO</a>, JOR, 400,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Jordan",
 			Alpha2:      "JO",
 			Alpha3:      "JOR",
@@ -1735,7 +1735,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#JP">JP</a>, JPN, 392,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Japan",
 			Alpha2:      "JP",
 			Alpha3:      "JPN",
@@ -1748,7 +1748,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KE">KE</a>, KEN, 404,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Kenya",
 			Alpha2:      "KE",
 			Alpha3:      "KEN",
@@ -1762,7 +1762,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KG">KG</a>, KGZ, 417,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Kyrgyzstan",
 			Alpha2:      "KG",
 			Alpha3:      "KGZ",
@@ -1776,7 +1776,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KH">KH</a>, KHM, 116,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Cambodia",
 			Alpha2:      "KH",
 			Alpha3:      "KHM",
@@ -1790,7 +1790,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KI">KI</a>, KIR, 296,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Kiribati",
 			Alpha2:      "KI",
 			Alpha3:      "KIR",
@@ -1804,7 +1804,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KM">KM</a>, COM, 174,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Comoros",
 			Alpha2:      "KM",
 			Alpha3:      "COM",
@@ -1818,7 +1818,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KN">KN</a>, KNA, 659,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Saint Kitts and Nevis",
 			Alpha2:      "KN",
 			Alpha3:      "KNA",
@@ -1832,7 +1832,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KP">KP</a>, PRK, 408,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Korea, Democratic People's Republic of",
 			Alpha2:      "KP",
 			Alpha3:      "PRK",
@@ -1846,7 +1846,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KR">KR</a>, KOR, 410,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Korea, Republic of",
 			Alpha2:         "KR",
 			Alpha3:         "KOR",
@@ -1861,7 +1861,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KW">KW</a>, KWT, 414,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Kuwait",
 			Alpha2:      "KW",
 			Alpha3:      "KWT",
@@ -1875,7 +1875,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KY">KY</a>, CYM, 136,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Cayman Islands",
 			Alpha2:      "KY",
 			Alpha3:      "CYM",
@@ -1889,7 +1889,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#KZ">KZ</a>, KAZ, 398,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Kazakhstan",
 			Alpha2:      "KZ",
 			Alpha3:      "KAZ",
@@ -1903,7 +1903,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LA">LA</a>, LAO, 418,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Lao People's Democratic Republic",
 			Alpha2:      "LA",
 			Alpha3:      "LAO",
@@ -1917,7 +1917,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LB">LB</a>, LBN, 422,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Lebanon",
 			Alpha2:      "LB",
 			Alpha3:      "LBN",
@@ -1931,7 +1931,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LC">LC</a>, LCA, 662,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Saint Lucia",
 			Alpha2:      "LC",
 			Alpha3:      "LCA",
@@ -1945,7 +1945,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LI">LI</a>, LIE, 438,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Liechtenstein",
 			Alpha2:      "LI",
 			Alpha3:      "LIE",
@@ -1959,7 +1959,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LK">LK</a>, LKA, 144,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Sri Lanka",
 			Alpha2:      "LK",
 			Alpha3:      "LKA",
@@ -1973,7 +1973,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LR">LR</a>, LBR, 430,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Liberia",
 			Alpha2:      "LR",
 			Alpha3:      "LBR",
@@ -1987,7 +1987,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LS">LS</a>, LSO, 426,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Lesotho",
 			Alpha2:      "LS",
 			Alpha3:      "LSO",
@@ -2001,7 +2001,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LT">LT</a>, LTU, 440,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Lithuania",
 			Alpha2:      "LT",
 			Alpha3:      "LTU",
@@ -2015,7 +2015,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LU">LU</a>, LUX, 442,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Luxembourg",
 			Alpha2:      "LU",
 			Alpha3:      "LUX",
@@ -2029,7 +2029,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LV">LV</a>, LVA, 428,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Latvia",
 			Alpha2:      "LV",
 			Alpha3:      "LVA",
@@ -2043,7 +2043,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#LY">LY</a>, LBY, 434,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Libya",
 			Alpha2:      "LY",
 			Alpha3:      "LBY",
@@ -2057,7 +2057,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MA">MA</a>, MAR, 504,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Morocco",
 			Alpha2:      "MA",
 			Alpha3:      "MAR",
@@ -2071,7 +2071,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MC">MC</a>, MCO, 492,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Monaco",
 			Alpha2:      "MC",
 			Alpha3:      "MCO",
@@ -2085,7 +2085,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MD">MD</a>, MDA, 498,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Moldova, Republic of",
 			Alpha2:      "MD",
 			Alpha3:      "MDA",
@@ -2099,7 +2099,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ME">ME</a>, MNE, 499,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Montenegro",
 			Alpha2:      "ME",
 			Alpha3:      "MNE",
@@ -2113,7 +2113,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MF">MF</a>, MAF, 663,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Saint Martin (French part)",
 			Alpha2:         "MF",
 			Alpha3:         "MAF",
@@ -2128,7 +2128,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MG">MG</a>, MDG, 450,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Madagascar",
 			Alpha2:      "MG",
 			Alpha3:      "MDG",
@@ -2142,7 +2142,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MH">MH</a>, MHL, 584,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Marshall Islands",
 			Alpha2:      "MH",
 			Alpha3:      "MHL",
@@ -2156,7 +2156,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MK">MK</a>, MKD, 807,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Macedonia, the former Yugoslav Republic of",
 			Alpha2:      "MK",
 			Alpha3:      "MKD",
@@ -2170,7 +2170,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ML">ML</a>, MLI, 466,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Mali",
 			Alpha2:      "ML",
 			Alpha3:      "MLI",
@@ -2186,7 +2186,7 @@ var (
 		 *
 		 * @see #BU
 		 */
-		CountryCode{
+		{
 			Name:        "Myanmar",
 			Alpha2:      "MM",
 			Alpha3:      "MMR",
@@ -2200,7 +2200,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MN">MN</a>, MNG, 496,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Mongolia",
 			Alpha2:      "MN",
 			Alpha3:      "MNG",
@@ -2214,7 +2214,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MO">MO</a>, MCO, 492,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Macao",
 			Alpha2:      "MO",
 			Alpha3:      "MAC",
@@ -2228,7 +2228,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MP">MP</a>, MNP, 580,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Northern Mariana Islands",
 			Alpha2:      "MP",
 			Alpha3:      "MNP",
@@ -2242,7 +2242,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MQ">MQ</a>, MTQ, 474,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Martinique",
 			Alpha2:      "MQ",
 			Alpha3:      "MTQ",
@@ -2256,7 +2256,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MR">MR</a>, MRT, 478,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Mauritania",
 			Alpha2:      "MR",
 			Alpha3:      "MRT",
@@ -2270,7 +2270,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MS">MS</a>, MSR, 500,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Montserrat",
 			Alpha2:      "MS",
 			Alpha3:      "MSR",
@@ -2284,7 +2284,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MT">MT</a>, MLT, 470,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Malta",
 			Alpha2:      "MT",
 			Alpha3:      "MLT",
@@ -2298,7 +2298,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MU">MU</a>, MUS, 480,
 		 * Officially assigned]]
 		 */
-		CountryCode{
+		{
 			Name:        "Mauritius",
 			Alpha2:      "MU",
 			Alpha3:      "MUS",
@@ -2312,7 +2312,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MV">MV</a>, MDV, 462,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Maldives",
 			Alpha2:      "MV",
 			Alpha3:      "MDV",
@@ -2326,7 +2326,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MW">MW</a>, MWI, 454,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Malawi",
 			Alpha2:      "MW",
 			Alpha3:      "MWI",
@@ -2340,7 +2340,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MX">MX</a>, MEX, 484,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Mexico",
 			Alpha2:      "MX",
 			Alpha3:      "MEX",
@@ -2354,7 +2354,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MY">MY</a>, MYS, 458,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Malaysia",
 			Alpha2:      "MY",
 			Alpha3:      "MYS",
@@ -2368,7 +2368,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#MZ">MZ</a>, MOZ, 508,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Mozambique",
 			Alpha2:      "MZ",
 			Alpha3:      "MOZ",
@@ -2382,7 +2382,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NA">NA</a>, NAM, 516,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Namibia",
 			Alpha2:      "NA",
 			Alpha3:      "NAM",
@@ -2396,7 +2396,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NC">NC</a>, NCL, 540,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "New Caledonia",
 			Alpha2:      "NC",
 			Alpha3:      "NCL",
@@ -2410,7 +2410,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NE">NE</a>, NER, 562,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Niger",
 			Alpha2:      "NE",
 			Alpha3:      "NER",
@@ -2424,7 +2424,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NF">NF</a>, NFK, 574,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Norfolk Island",
 			Alpha2:      "NF",
 			Alpha3:      "NFK",
@@ -2438,7 +2438,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NG">NG</a>, NGA, 566,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Nigeria",
 			Alpha2:      "NG",
 			Alpha3:      "NGA",
@@ -2452,7 +2452,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NI">NI</a>, NIC, 558,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Nicaragua",
 			Alpha2:      "NI",
 			Alpha3:      "NIC",
@@ -2466,7 +2466,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NL">NL</a>, NLD, 528,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Netherlands",
 			Alpha2:      "NL",
 			Alpha3:      "NLD",
@@ -2480,7 +2480,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NO">NO</a>, NOR, 578,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Norway",
 			Alpha2:      "NO",
 			Alpha3:      "NOR",
@@ -2494,7 +2494,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NP">NP</a>, NPL, 524,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Nepal",
 			Alpha2:      "NP",
 			Alpha3:      "NPL",
@@ -2508,7 +2508,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NR">NR</a>, NRU, 520,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Nauru",
 			Alpha2:      "NR",
 			Alpha3:      "NRU",
@@ -2522,7 +2522,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NT">NT</a>, NTHH, 536,
 		 * Traditionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "Neutral Zone",
 			Alpha2:      "NT",
 			Alpha3:      "NTHH",
@@ -2536,7 +2536,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NU">NU</a>, NIU, 570,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Niue",
 			Alpha2:      "NU",
 			Alpha3:      "NIU",
@@ -2550,7 +2550,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#NZ">NZ</a>, NZL, 554,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "New Zealand",
 			Alpha2:      "NZ",
 			Alpha3:      "NZL",
@@ -2564,7 +2564,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#OM">OM</a>, OMN, 512,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Oman",
 			Alpha2:      "OM",
 			Alpha3:      "OMN",
@@ -2578,7 +2578,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PA">PA</a>, PAN, 591,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Panama",
 			Alpha2:      "PA",
 			Alpha3:      "PAN",
@@ -2592,7 +2592,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PE">PE</a>, PER, 604,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Peru",
 			Alpha2:      "PE",
 			Alpha3:      "PER",
@@ -2606,7 +2606,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PF">PF</a>, PYF, 258,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "French Polynesia",
 			Alpha2:      "PF",
 			Alpha3:      "PYF",
@@ -2620,7 +2620,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PG">PG</a>, PNG, 598,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Papua New Guinea",
 			Alpha2:      "PG",
 			Alpha3:      "PNG",
@@ -2634,7 +2634,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PH">PH</a>, PHL, 608,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Philippines",
 			Alpha2:      "PH",
 			Alpha3:      "PHL",
@@ -2648,7 +2648,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PK">PK</a>, PAK, 586,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Pakistan",
 			Alpha2:      "PK",
 			Alpha3:      "PAK",
@@ -2662,7 +2662,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PL">PL</a>, POL, 616,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Poland",
 			Alpha2:      "PL",
 			Alpha3:      "POL",
@@ -2676,7 +2676,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PM">PM</a>, SPM, 666,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Saint Pierre and Miquelon",
 			Alpha2:      "PM",
 			Alpha3:      "SPM",
@@ -2690,7 +2690,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PN">PN</a>, PCN, 612,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Pitcairn",
 			Alpha2:      "PN",
 			Alpha3:      "PCN",
@@ -2704,7 +2704,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PR">PR</a>, PRI, 630,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Puerto Rico",
 			Alpha2:      "PR",
 			Alpha3:      "PRI",
@@ -2718,7 +2718,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PS">PS</a>, PSE, 275,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Palestine, State of",
 			Alpha2:      "PS",
 			Alpha3:      "PSE",
@@ -2732,7 +2732,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PT">PT</a>, PRT, 620,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Portugal",
 			Alpha2:      "PT",
 			Alpha3:      "PRT",
@@ -2746,7 +2746,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PW">PW</a>, PLW, 585,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Palau",
 			Alpha2:      "PW",
 			Alpha3:      "PLW",
@@ -2760,7 +2760,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#PY">PY</a>, PRY, 600,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Paraguay",
 			Alpha2:      "PY",
 			Alpha3:      "PRY",
@@ -2774,7 +2774,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#QA">QA</a>, QAT, 634,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Qatar",
 			Alpha2:      "QA",
 			Alpha3:      "QAT",
@@ -2788,7 +2788,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#RE">RE</a>, REU, 638,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "R\u00E9union",
 			Alpha2:      "RE",
 			Alpha3:      "REU",
@@ -2802,7 +2802,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#RO">RO</a>, ROU, 642,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Romania",
 			Alpha2:      "RO",
 			Alpha3:      "ROU",
@@ -2816,7 +2816,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#RS">RS</a>, SRB, 688,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Serbia",
 			Alpha2:      "RS",
 			Alpha3:      "SRB",
@@ -2830,7 +2830,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#RU">RU</a>, RUS, 643,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Russian Federation",
 			Alpha2:         "RU",
 			Alpha3:         "RUS",
@@ -2845,7 +2845,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#RW">RW</a>, RWA, 646,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Rwanda",
 			Alpha2:      "RW",
 			Alpha3:      "RWA",
@@ -2859,7 +2859,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SA">SA</a>, SAU, 682,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Saudi Arabia",
 			Alpha2:      "SA",
 			Alpha3:      "SAU",
@@ -2873,7 +2873,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SB">SB</a>, SLB, 90,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Solomon Islands",
 			Alpha2:      "SB",
 			Alpha3:      "SLB",
@@ -2887,7 +2887,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SC">SC</a>, SYC, 690,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Seychelles",
 			Alpha2:      "SC",
 			Alpha3:      "SYC",
@@ -2901,7 +2901,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SD">SD</a>, SDN, 729,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Sudan",
 			Alpha2:      "SD",
 			Alpha3:      "SDN",
@@ -2915,7 +2915,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SE">SE</a>, SWE, 752,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Sweden",
 			Alpha2:      "SE",
 			Alpha3:      "SWE",
@@ -2931,7 +2931,7 @@ var (
 		 *
 		 * @see #FI
 		 */
-		CountryCode{
+		{
 			Name:        "Finland",
 			Alpha2:      "SF",
 			Alpha3:      "FIN",
@@ -2945,7 +2945,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SG">SG</a>, SGP, 702,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Singapore",
 			Alpha2:      "SG",
 			Alpha3:      "SGP",
@@ -2959,7 +2959,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SH">SH</a>, SHN, 654,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Saint Helena, Ascension and Tristan da Cunha",
 			Alpha2:      "SH",
 			Alpha3:      "SHN",
@@ -2973,7 +2973,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SI">SI</a>, SVN, 705,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Slovenia",
 			Alpha2:      "SI",
 			Alpha3:      "SVN",
@@ -2987,7 +2987,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SJ">SJ</a>, SJM, 744,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Svalbard and Jan Mayen",
 			Alpha2:      "SJ",
 			Alpha3:      "SJM",
@@ -3001,7 +3001,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SK">SK</a>, SVK, 703,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Slovakia",
 			Alpha2:      "SK",
 			Alpha3:      "SVK",
@@ -3015,7 +3015,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SL">SL</a>, SLE, 694,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Sierra Leone",
 			Alpha2:      "SL",
 			Alpha3:      "SLE",
@@ -3029,7 +3029,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SM">SM</a>, SMR, 674,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "San Marino",
 			Alpha2:      "SM",
 			Alpha3:      "SMR",
@@ -3043,7 +3043,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SN">SN</a>, SEN, 686,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Senegal",
 			Alpha2:      "SN",
 			Alpha3:      "SEN",
@@ -3057,7 +3057,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SO">SO</a>, SOM, 706,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Somalia",
 			Alpha2:      "SO",
 			Alpha3:      "SOM",
@@ -3071,7 +3071,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SR">SR</a>, SUR, 740,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Suriname",
 			Alpha2:      "SR",
 			Alpha3:      "SUR",
@@ -3085,7 +3085,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SS">SS</a>, SSD, 728,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "South Sudan",
 			Alpha2:      "SS",
 			Alpha3:      "SSD",
@@ -3099,7 +3099,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ST">ST</a>, STP, 678,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Sao Tome and Principe",
 			Alpha2:      "ST",
 			Alpha3:      "STP",
@@ -3113,7 +3113,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SU">SU</a>, SUN, -1,
 		 * Exceptionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "USSR",
 			Alpha2:      "SU",
 			Alpha3:      "SUN",
@@ -3127,7 +3127,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SV">SV</a>, SLV, 222,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "El Salvador",
 			Alpha2:      "SV",
 			Alpha3:      "SLV",
@@ -3141,7 +3141,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SX">SX</a>, SXM, 534,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Sint Maarten (Dutch part)",
 			Alpha2:      "SX",
 			Alpha3:      "SXM",
@@ -3155,7 +3155,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SY">SY</a>, SYR, 760,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Syrian Arab Republic",
 			Alpha2:      "SY",
 			Alpha3:      "SYR",
@@ -3169,7 +3169,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#SZ">SZ</a>, SWZ, 748,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Swaziland",
 			Alpha2:      "SZ",
 			Alpha3:      "SWZ",
@@ -3183,7 +3183,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TA">TA</a>, TAA, -1,
 		 * Exceptionally reserved.
 		 */
-		CountryCode{
+		{
 			Name:        "Tristan da Cunha",
 			Alpha2:      "TA",
 			Alpha3:      "TAA",
@@ -3197,7 +3197,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TC">TC</a>, TCA, 796,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Turks and Caicos Islands",
 			Alpha2:      "TC",
 			Alpha3:      "TCA",
@@ -3211,7 +3211,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TD">TD</a>, TCD, 148,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Chad",
 			Alpha2:      "TD",
 			Alpha3:      "TCD",
@@ -3225,7 +3225,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TF">TF</a>, ATF, 260,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "French Southern Territories",
 			Alpha2:      "TF",
 			Alpha3:      "ATF",
@@ -3239,7 +3239,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TG">TG</a>, TGO, 768,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Togo",
 			Alpha2:      "TG",
 			Alpha3:      "TGO",
@@ -3253,7 +3253,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TH">TH</a>, THA, 764,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Thailand",
 			Alpha2:      "TH",
 			Alpha3:      "THA",
@@ -3267,7 +3267,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TJ">TJ</a>, TJK, 762,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Tajikistan",
 			Alpha2:      "TJ",
 			Alpha3:      "TJK",
@@ -3281,7 +3281,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TK">TK</a>, TKL, 772,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Tokelau",
 			Alpha2:      "TK",
 			Alpha3:      "TKL",
@@ -3295,7 +3295,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TL">TL</a>, TLS, 626,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Timor-Leste",
 			Alpha2:      "TL",
 			Alpha3:      "TLS",
@@ -3309,7 +3309,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TM">TM</a>, TKM, 795,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Turkmenistan",
 			Alpha2:      "TM",
 			Alpha3:      "TKM",
@@ -3323,7 +3323,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TN">TN</a>, TUN, 788,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Tunisia",
 			Alpha2:      "TN",
 			Alpha3:      "TUN",
@@ -3337,7 +3337,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TO">TO</a>, TON, 776,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Tonga",
 			Alpha2:      "TO",
 			Alpha3:      "TON",
@@ -3355,7 +3355,7 @@ var (
 		 * ISO 3166-1 numeric code is unknown.
 		 * </p>
 		 */
-		CountryCode{
+		{
 			Name:        "East Timor",
 			Alpha2:      "TP",
 			Alpha3:      "TPTL",
@@ -3369,7 +3369,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TR">TR</a>, TUR, 792,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Turkey",
 			Alpha2:         "TR",
 			Alpha3:         "TUR",
@@ -3384,7 +3384,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TT">TT</a>, TTO, 780,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Trinidad and Tobago",
 			Alpha2:      "TT",
 			Alpha3:      "TTO",
@@ -3398,7 +3398,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TV">TV</a>, TUV, 798,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Tuvalu",
 			Alpha2:      "TV",
 			Alpha3:      "TUV",
@@ -3412,7 +3412,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TW">TW</a>, TWN, 158,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Taiwan, Province of China",
 			Alpha2:         "TW",
 			Alpha3:         "TWN",
@@ -3427,7 +3427,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#TZ">TZ</a>, TZA, 834,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Tanzania, United Republic of",
 			Alpha2:         "TZ",
 			Alpha3:         "TZA",
@@ -3442,7 +3442,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#UA">UA</a>, UKR, 804,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Ukraine",
 			Alpha2:      "UA",
 			Alpha3:      "UKR",
@@ -3456,7 +3456,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#UG">UG</a>, UGA, 800,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Uganda",
 			Alpha2:      "UG",
 			Alpha3:      "UGA",
@@ -3470,7 +3470,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#UK">UK</a>, null, -1,
 		 * Exceptionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:           "United Kingdom",
 			Alpha2:         "UK",
 			Alpha3:         "",
@@ -3484,7 +3484,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#UM">UM</a>, UMI, 581,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "United States Minor Outlying Islands",
 			Alpha2:      "UM",
 			Alpha3:      "UMI",
@@ -3498,7 +3498,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#US">US</a>, USA, 840,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "United States",
 			Alpha2:      "US",
 			Alpha3:      "USA",
@@ -3511,7 +3511,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#UY">UY</a>, URY, 858,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Uruguay",
 			Alpha2:      "UY",
 			Alpha3:      "URY",
@@ -3525,7 +3525,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#UZ">UZ</a>, UZB, 860,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Uzbekistan",
 			Alpha2:      "UZ",
 			Alpha3:      "UZB",
@@ -3539,7 +3539,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#VA">VA</a>, VAT, 336,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Holy See (Vatican City State)",
 			Alpha2:      "VA",
 			Alpha3:      "VAT",
@@ -3553,7 +3553,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#VC">VC</a>, VCT, 670,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Saint Vincent and the Grenadines",
 			Alpha2:      "VC",
 			Alpha3:      "VCT",
@@ -3567,7 +3567,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#VE">VE</a>, VEN, 862,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Venezuela, Bolivarian Republic of",
 			Alpha2:      "VE",
 			Alpha3:      "VEN",
@@ -3582,7 +3582,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#VG">VG</a>, VGB, 92,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Virgin Islands, British",
 			Alpha2:      "VG",
 			Alpha3:      "VGB",
@@ -3596,7 +3596,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#VI">VI</a>, VIR, 850,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Virgin Islands, U.S.",
 			Alpha2:      "VI",
 			Alpha3:      "VIR",
@@ -3610,7 +3610,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#VN">VN</a>, VNM, 704,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:           "Viet Nam",
 			Alpha2:         "VN",
 			Alpha3:         "VNM",
@@ -3625,7 +3625,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#VU">VU</a>, VUT, 548,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Vanuatu",
 			Alpha2:      "VU",
 			Alpha3:      "VUT",
@@ -3639,7 +3639,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#WF">WF</a>, WLF, 876,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Wallis and Futuna",
 			Alpha2:      "WF",
 			Alpha3:      "WLF",
@@ -3653,7 +3653,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#WS">WS</a>, WSM, 882,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Samoa",
 			Alpha2:      "WS",
 			Alpha3:      "WSM",
@@ -3667,7 +3667,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#XK">XK</a>, XXK, -1,
 		 * User assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Kosovo, Republic of",
 			Alpha2:      "XK",
 			Alpha3:      "XXK",
@@ -3681,7 +3681,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#YE">YE</a>, YEM, 887,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Yemen",
 			Alpha2:      "YE",
 			Alpha3:      "YEM",
@@ -3695,7 +3695,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#YT">YT</a>, MYT, 175,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Mayotte",
 			Alpha2:      "YT",
 			Alpha3:      "MYT",
@@ -3709,7 +3709,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#YU">YU</a>, YUCS, 890,
 		 * Traditionally reserved]
 		 */
-		CountryCode{
+		{
 			Name:        "Yugoslavia",
 			Alpha2:      "YU",
 			Alpha3:      "YUCS",
@@ -3723,7 +3723,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ZA">ZA</a>, ZAF, 710,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "South Africa",
 			Alpha2:      "ZA",
 			Alpha3:      "ZAF",
@@ -3737,7 +3737,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ZM">ZM</a>, ZMB, 894,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Zambia",
 			Alpha2:      "ZM",
 			Alpha3:      "ZMB",
@@ -3755,7 +3755,7 @@ var (
 		 * ISO 3166-1 numeric code is unknown.
 		 * </p>
 		 */
-		CountryCode{
+		{
 			Name:        "Zaire",
 			Alpha2:      "ZR",
 			Alpha3:      "ZRCD",
@@ -3769,7 +3769,7 @@ var (
 		 * [<a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#ZW">ZW</a>, ZWE, 716,
 		 * Officially assigned]
 		 */
-		CountryCode{
+		{
 			Name:        "Zimbabwe",
 			Alpha2:      "ZW",
 			Alpha3:      "ZWE",

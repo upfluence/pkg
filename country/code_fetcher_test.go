@@ -6,20 +6,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCodeFetcher(t *testing.T) {
-	var (
-		zeroValue CountryCode
+func mustFetch(k string) CountryCode {
+	cc, ok := Alpha2CodeFetcher.Fetch(k)
 
-		mustFetch = func(k string) CountryCode {
-			cc, ok := Alpha2CodeFetcher.Fetch(k)
+	if !ok {
+		panic("not found")
+	}
 
-			if !ok {
-				panic("not found")
-			}
+	return cc
+}
 
-			return cc
-		}
-	)
+func TestCodeFetcher_Fetch(t *testing.T) {
+	var zeroValue CountryCode
 
 	for _, tt := range []struct {
 		k    string
@@ -69,5 +67,67 @@ func TestCodeFetcher(t *testing.T) {
 		} else {
 			assert.Equal(t, zeroValue, cc)
 		}
+	}
+}
+
+func TestCodeFetcher_Search(t *testing.T) {
+	for _, tt := range []struct {
+		searchTerm      string
+		searchOperatior SearchOperator
+		want            []CountryCode
+	}{
+		{
+			searchTerm:      "United",
+			searchOperatior: SearchOperatorContains,
+			want: []CountryCode{
+				mustFetch("US"),
+				mustFetch("UM"),
+				mustFetch("AE"),
+				mustFetch("TZ"),
+				mustFetch("UK"),
+			},
+		},
+		{
+			searchTerm:      "fRa",
+			searchOperatior: SearchOperatorContains,
+			want: []CountryCode{
+				mustFetch("FR"),
+				mustFetch("FX"),
+			},
+		},
+		{
+			searchTerm:      "DE",
+			searchOperatior: SearchOperatorContains,
+			want: []CountryCode{
+				mustFetch("CD"),
+				mustFetch("FM"),
+				mustFetch("GP"),
+				mustFetch("RU"),
+				mustFetch("DE"),
+				mustFetch("LA"),
+				mustFetch("CV"),
+				mustFetch("BD"),
+				mustFetch("KP"),
+				mustFetch("DK"),
+				mustFetch("SE"),
+			},
+		},
+		{
+			searchTerm:      "States Mi",
+			searchOperatior: SearchOperatorContains,
+			want: []CountryCode{
+				mustFetch("UM"),
+			},
+		},
+		{
+			searchTerm:      "States Mi",
+			searchOperatior: SearchOperatorMatchBoolPrefix,
+			want: []CountryCode{
+				mustFetch("UM"), // "United States Minor Outlying Islands"
+				mustFetch("FM"), // "Micronesia, Federated States of"
+			},
+		},
+	} {
+		assert.ElementsMatch(t, tt.want, DefaultCodeFetcher.Search(tt.searchTerm, tt.searchOperatior))
 	}
 }
