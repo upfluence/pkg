@@ -146,10 +146,8 @@ func (icf *IndexedCodeFetcher) prepareIndex() {
 		for _, k := range icf.ExtractKeys(cc) {
 			normalizedKey := icf.NormalizeKey(k)
 
-			if assigned, ok := icf.indexedCountryCodes[normalizedKey]; ok {
-				if assigned.Assignment < cc.Assignment {
-					continue
-				}
+			if assigned, ok := icf.indexedCountryCodes[normalizedKey]; ok && assigned.Assignment < cc.Assignment {
+				continue
 			}
 
 			icf.indexedCountryCodes[normalizedKey] = cc
