@@ -134,17 +134,25 @@ func (icf *IndexedCodeFetcher) Search(searchTerm string, operator SearchOperator
 }
 
 func (icf *IndexedCodeFetcher) prepareIndex() {
-	ccs := icf.CountryCodes
+	codes := icf.CountryCodes
 
-	if ccs == nil {
-		ccs = DefaultCountryCodes
+	if codes == nil {
+		codes = DefaultCountryCodes
 	}
 
-	icf.indexedCountryCodes = make(map[string]CountryCode, len(ccs))
+	icf.indexedCountryCodes = make(map[string]CountryCode, len(codes))
 
-	for _, cc := range ccs {
-		for _, k := range icf.ExtractKeys(cc) {
-			icf.indexedCountryCodes[icf.NormalizeKey(k)] = cc
+	for _, code := range codes {
+		for _, k := range icf.ExtractKeys(code) {
+			normalizedKey := icf.NormalizeKey(k)
+
+			// prevent codes with assignments with smaller priority to overwrite
+			// those with higher priority
+			if cc, ok := icf.indexedCountryCodes[normalizedKey]; ok && cc.Assignment < code.Assignment {
+				continue
+			}
+
+			icf.indexedCountryCodes[normalizedKey] = code
 		}
 	}
 }

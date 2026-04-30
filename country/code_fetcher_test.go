@@ -84,7 +84,7 @@ func TestCodeFetcher_Search(t *testing.T) {
 				mustFetch("UM"),
 				mustFetch("AE"),
 				mustFetch("TZ"),
-				mustFetch("UK"),
+				mustFetch("GB"),
 			},
 		},
 		{
