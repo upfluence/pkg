@@ -144,7 +144,15 @@ func (icf *IndexedCodeFetcher) prepareIndex() {
 
 	for _, cc := range ccs {
 		for _, k := range icf.ExtractKeys(cc) {
-			icf.indexedCountryCodes[icf.NormalizeKey(k)] = cc
+			normalizedKey := icf.NormalizeKey(k)
+
+			if assigned, ok := icf.indexedCountryCodes[normalizedKey]; ok {
+				if assigned.Assignment < cc.Assignment {
+					continue
+				}
+			}
+
+			icf.indexedCountryCodes[normalizedKey] = cc
 		}
 	}
 }
