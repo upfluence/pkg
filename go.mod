@@ -7,6 +7,7 @@ require (
 	github.com/upfluence/cfg v0.3.6
 	github.com/upfluence/errors v0.2.18
 	github.com/upfluence/log v0.0.6
+	github.com/upfluence/pkg v1.14.0
 	github.com/upfluence/stats v0.1.9
 	github.com/upfluence/thrift v2.6.10+incompatible
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
@@ -17,10 +18,10 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/getsentry/sentry-go v0.35.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
