@@ -7,6 +7,10 @@ import "context"
 // MapWithContextError transforms a slice of a given type to a new slice of a
 // different type using a context and can return an error.
 func MapWithContextError[T, K any](ctx context.Context, ss []T, fn func(context.Context, T) (K, error)) ([]K, error) {
+	if ss == nil {
+		return nil, nil
+	}
+
 	var res = make([]K, len(ss))
 
 	for i, v := range ss {

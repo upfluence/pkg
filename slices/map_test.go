@@ -41,6 +41,12 @@ func TestMapWithContextError(t *testing.T) {
 			},
 			want: []int64{1, 22},
 		},
+		{
+			name: "nil",
+			fn: func(context.Context, string) (int64, error) {
+				return 0, nil
+			},
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := MapWithContextError(ctx, tt.in, tt.fn)
