@@ -3,6 +3,8 @@ package policy
 import (
 	"io"
 	"sync"
+
+	"github.com/upfluence/errors"
 )
 
 // Tracker is the pure eviction logic without any channel machinery. It is
@@ -52,7 +54,7 @@ func (w *wrapper[K]) Op(k K, op OpType) error {
 		return ErrClosed
 	}
 
-	return w.inner.Op(k, op)
+	return errors.Wrap(w.inner.Op(k, op), "inner op")
 }
 
 func (w *wrapper[K]) Close() error {
@@ -63,7 +65,9 @@ func (w *wrapper[K]) Close() error {
 		w.closed = true
 		w.mu.Unlock()
 
-		err = w.inner.Close()
+		if cerr := w.inner.Close(); cerr != nil {
+			err = errors.Wrap(cerr, "inner close")
+		}
 
 		close(w.ch)
 	})

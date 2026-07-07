@@ -41,7 +41,7 @@ func newMultiPolicy[K any](l, r EvictionPolicy[K]) *multiPolicy[K] {
 	}
 
 	mp.wg.Add(1)
-	mp.ctx, mp.cancel = context.WithCancel(context.Background())
+	mp.ctx, mp.cancel = context.WithCancel(context.Background()) //nolint:gosec
 
 	go mp.pull()
 

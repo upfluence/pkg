@@ -73,12 +73,12 @@ func (pc *policyCache[K, V]) Get(k K) (V, bool, error) {
 	v, ok, err := pc.c.Get(k)
 
 	if err != nil {
-		return v, false, err
+		return v, false, errors.Wrap(err, "cache get")
 	}
 
 	if ok {
 		if err := pc.ep.Op(k, policy.Get); err != nil {
-			return v, false, err
+			return v, false, errors.Wrap(err, "policy op")
 		}
 	}
 
@@ -87,18 +87,18 @@ func (pc *policyCache[K, V]) Get(k K) (V, bool, error) {
 
 func (pc *policyCache[K, V]) Set(k K, v V) error {
 	if err := pc.c.Set(k, v); err != nil {
-		return err
+		return errors.Wrap(err, "cache set")
 	}
 
-	return pc.ep.Op(k, policy.Set)
+	return errors.Wrap(pc.ep.Op(k, policy.Set), "policy op")
 }
 
 func (pc *policyCache[K, V]) Evict(k K) error {
 	if err := pc.c.Evict(k); err != nil {
-		return err
+		return errors.Wrap(err, "cache evict")
 	}
 
-	return pc.ep.Op(k, policy.Evict)
+	return errors.Wrap(pc.ep.Op(k, policy.Evict), "policy op")
 }
 
 // Close closes the eviction policy (which stops the background pump and closes

@@ -46,6 +46,7 @@ func NewList[K comparable, E any]() *List[K, E] {
 	l.sentinel.Next = &l.sentinel
 	l.sentinel.Prev = &l.sentinel
 	l.pool.New = func() any { return new(Node[K, E]) }
+
 	return l
 }
 

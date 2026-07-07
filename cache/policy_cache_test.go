@@ -12,31 +12,22 @@ import (
 func TestPolicyCache(t *testing.T) {
 	var once sync.Once
 
-	c := WithEvictionPolicy[string](
-		NewStringCache[string](),
-		size.NewLRUPolicy[string](1),
-		WithEvictionErrorHandler[string, string](func(_ string, err error) {
-			t.Errorf("unexpected eviction error: %v", err)
-		}),
-		// Use a test hook via the error handler option — instead we need
-		// a post-eviction notification.  Inject via a wrapper cache.
-	)
-
 	// Wrap the cache to intercept the eviction notification.
-	// Since WithEvictionErrorHandler only fires on error, we instead use a
-	// wrapping approach: override the cache with a spy.
 	notifyC := make(chan struct{}, 1)
 
-	c = WithEvictionPolicy[string](
+	c := WithEvictionPolicy[string](
 		&evictSpy[string, string]{
 			Cache: NewStringCache[string](),
-			onEvict: func() {
+			onEvict: func(string) {
 				once.Do(func() {
 					notifyC <- struct{}{}
 				})
 			},
 		},
 		size.NewLRUPolicy[string](1),
+		WithEvictionErrorHandler[string, string](func(_ string, err error) {
+			t.Errorf("unexpected eviction error: %v", err)
+		}),
 	)
 
 	c.Set("foo", "bar")
@@ -47,19 +38,20 @@ func TestPolicyCache(t *testing.T) {
 	_, ok, err := c.Get("foo")
 
 	assert.False(t, ok)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
-	assert.Nil(t, c.Close())
+	assert.NoError(t, c.Close())
 }
 
 // evictSpy wraps a Cache and calls onEvict whenever Evict is called.
 type evictSpy[K comparable, V any] struct {
 	Cache[K, V]
-	onEvict func()
+	onEvict func(K)
 }
 
 func (s *evictSpy[K, V]) Evict(k K) error {
 	err := s.Cache.Evict(k)
-	s.onEvict()
+	s.onEvict(k)
+
 	return err
 }

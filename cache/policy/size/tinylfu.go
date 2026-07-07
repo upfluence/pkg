@@ -41,18 +41,18 @@ import (
 type tnode[K comparable] = lru.Node[K, *lfuSegment[K]]
 
 type lfuSegment[K comparable] struct {
-	l   *lru.List[K, *lfuSegment[K]]
-	cap int
+	l        *lru.List[K, *lfuSegment[K]]
+	capacity int
 }
 
-func newLFUSegment[K comparable](cap int) *lfuSegment[K] {
+func newLFUSegment[K comparable](capacity int) *lfuSegment[K] {
 	return &lfuSegment[K]{
-		l:   lru.NewList[K, *lfuSegment[K]](),
-		cap: cap,
+		l:        lru.NewList[K, *lfuSegment[K]](),
+		capacity: capacity,
 	}
 }
 
-func (s *lfuSegment[K]) full() bool             { return s.l.Len >= s.cap }
+func (s *lfuSegment[K]) full() bool             { return s.l.Len >= s.capacity }
 func (s *lfuSegment[K]) len() int               { return s.l.Len }
 func (s *lfuSegment[K]) victim() *tnode[K]      { return s.l.Front() }
 func (s *lfuSegment[K]) remove(n *tnode[K])     { s.l.Remove(n) }
@@ -76,25 +76,30 @@ type lfuSketch struct {
 	resetAt int
 }
 
-func newLFUSketch(capacity int) lfuSketch {
+func newLFUSketch(capacity int) lfuSketch { //nolint:gosec
 	w := uint64(16)
-	target := uint64(capacity) * 10
+	target := uint64(capacity) * 10 //nolint:gosec
+
 	for w < target {
 		w <<= 1
 	}
+
 	s := lfuSketch{
 		w:       w,
 		mask:    w - 1,
 		resetAt: capacity * 10,
 	}
+
 	for i := range s.rows {
 		s.rows[i] = make([]uint8, w/2)
 	}
+
 	return s
 }
 
 func (s *lfuSketch) increment(h1, h2 uint64) {
 	s.total++
+
 	if s.total >= s.resetAt {
 		s.halve()
 	}
@@ -102,6 +107,7 @@ func (s *lfuSketch) increment(h1, h2 uint64) {
 	for i, row := range s.rows {
 		idx := (h1 + uint64(i)*h2) & s.mask
 		byteIdx := idx >> 1
+
 		if idx&1 == 0 {
 			if row[byteIdx]&0x0f < 0x0f {
 				row[byteIdx]++
@@ -115,21 +121,26 @@ func (s *lfuSketch) increment(h1, h2 uint64) {
 }
 
 func (s *lfuSketch) estimate(h1, h2 uint64) uint8 {
-	var min uint8 = 0xff
+	var minVal uint8 = 0xff
+
 	for i, row := range s.rows {
 		idx := (h1 + uint64(i)*h2) & s.mask
 		byteIdx := idx >> 1
+
 		var v uint8
+
 		if idx&1 == 0 {
 			v = row[byteIdx] & 0x0f
 		} else {
 			v = (row[byteIdx] >> 4) & 0x0f
 		}
-		if v < min {
-			min = v
+
+		if v < minVal {
+			minVal = v
 		}
 	}
-	return min
+
+	return minVal
 }
 
 func (s *lfuSketch) halve() {
@@ -138,6 +149,7 @@ func (s *lfuSketch) halve() {
 			row[i] = ((b >> 1) & 0x07) | ((b >> 1) & 0x70)
 		}
 	}
+
 	s.total >>= 1
 }
 
@@ -153,12 +165,14 @@ type lfuDoorkeeper struct {
 	total   int
 }
 
-func newLFUDoorkeeper(capacity int) lfuDoorkeeper {
+func newLFUDoorkeeper(capacity int) lfuDoorkeeper { //nolint:gosec
 	m := uint64(16)
-	target := uint64(capacity) * 10
+	target := uint64(capacity) * 10 //nolint:gosec
+
 	for m < target {
 		m <<= 1
 	}
+
 	return lfuDoorkeeper{
 		bits:    make([]uint64, m/64),
 		m:       m,
@@ -169,6 +183,7 @@ func newLFUDoorkeeper(capacity int) lfuDoorkeeper {
 
 func (d *lfuDoorkeeper) contains(h1, h2 uint64) bool {
 	d.total++
+
 	if d.total >= d.resetAt {
 		d.reset()
 	}
@@ -182,6 +197,7 @@ func (d *lfuDoorkeeper) contains(h1, h2 uint64) bool {
 	seen := (d.bits[w1]>>b1)&1 == 1 && (d.bits[w2]>>b2)&1 == 1
 	d.bits[w1] |= 1 << b1
 	d.bits[w2] |= 1 << b2
+
 	return seen
 }
 
@@ -189,6 +205,7 @@ func (d *lfuDoorkeeper) reset() {
 	for i := range d.bits {
 		d.bits[i] = 0
 	}
+
 	d.total = 0
 }
 
@@ -207,6 +224,7 @@ func (b *tinylfuBackend[K]) hash(k K) (uint64, uint64) {
 	h1 := maphash.Comparable(b.seed1, k)
 	h2 := maphash.Comparable(b.seed2, k)
 	h2 |= 1
+
 	return h1, h2
 }
 
@@ -229,6 +247,7 @@ func (b *tinylfuBackend[K]) insert(k K) (K, bool, *tnode[K]) {
 
 	if !b.window.full() {
 		var zero K
+
 		return zero, false, n
 	}
 
@@ -236,16 +255,19 @@ func (b *tinylfuBackend[K]) insert(k K) (K, bool, *tnode[K]) {
 	b.window.remove(candidate)
 
 	evicted, ok := b.admitToMain(candidate)
+
 	return evicted, ok, n
 }
 
 func (b *tinylfuBackend[K]) admitToMain(candidate *tnode[K]) (K, bool) {
 	totalMain := b.protected.len() + b.probation.len()
-	mainCap := b.protected.cap + b.probation.cap
+	mainCap := b.protected.capacity + b.probation.capacity
 
 	if totalMain < mainCap {
 		b.probation.pushBack(candidate)
+
 		var zero K
+
 		return zero, false
 	}
 
@@ -259,11 +281,13 @@ func (b *tinylfuBackend[K]) admitToMain(candidate *tnode[K]) (K, bool) {
 		b.probation.remove(victim)
 		b.window.l.Free(victim)
 		b.probation.pushBack(candidate)
+
 		return evicted, true
 	}
 
 	evicted := candidate.Key
 	b.window.l.Free(candidate)
+
 	return evicted, true
 }
 
@@ -311,25 +335,10 @@ func NewTinyLFUPolicy[K comparable](capacity int) policy.EvictionPolicy[K] {
 		capacity = 1
 	}
 
-	windowCap := capacity / 100
-	if windowCap < 1 {
-		windowCap = 1
-	}
-
-	mainCap := capacity - windowCap
-	if mainCap < 2 {
-		mainCap = 2
-	}
-
-	protectedCap := mainCap * 8 / 10
-	if protectedCap < 1 {
-		protectedCap = 1
-	}
-
-	probationCap := mainCap - protectedCap
-	if probationCap < 1 {
-		probationCap = 1
-	}
+	windowCap := max(capacity/100, 1)
+	mainCap := max(capacity-windowCap, 2)
+	protectedCap := max(mainCap*8/10, 1)
+	probationCap := max(mainCap-protectedCap, 1)
 
 	return newPolicy[K, *tnode[K]](
 		&tinylfuBackend[K]{

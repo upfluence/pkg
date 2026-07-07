@@ -22,6 +22,7 @@ func (b *lruBackend[K]) insert(k K) (K, bool, *lru.Node[K, struct{}]) {
 		n = b.l.Front()
 		evicted = n.Key
 		b.l.Remove(n)
+
 		ok = true
 	} else {
 		n = b.l.Alloc()
