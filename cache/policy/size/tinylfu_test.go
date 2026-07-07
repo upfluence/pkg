@@ -51,6 +51,7 @@ func TestTinyLFUAdmissionFrequencyWins(t *testing.T) {
 	require.NoError(t, p.Op("z", policy.Set))
 
 	evicted := drainTinyLFUPending(p.C())
+
 	for _, k := range evicted {
 		assert.NotEqual(t, "a", k, "high-frequency key 'a' must not be evicted")
 	}
@@ -81,13 +82,14 @@ func TestTinyLFUSketchSaturation(t *testing.T) {
 	defer p.Close()
 
 	go func() {
-		for range p.C() {
+		for range p.C() { //nolint:revive
 		}
 	}()
 
 	for range 500 {
 		p.Op("hot", policy.Set) //nolint:errcheck
 	}
+
 	require.NoError(t, p.Op("hot", policy.Get))
 }
 
@@ -97,7 +99,7 @@ func TestTinyLFUDoorkeeperAging(t *testing.T) {
 	defer p.Close()
 
 	go func() {
-		for range p.C() {
+		for range p.C() { //nolint:revive
 		}
 	}()
 
@@ -111,12 +113,14 @@ func TestTinyLFUDoorkeeperAging(t *testing.T) {
 
 func drainTinyLFUPending(ch <-chan string) []string {
 	var out []string
+
 	for {
 		select {
 		case k, ok := <-ch:
 			if !ok {
 				return out
 			}
+
 			out = append(out, k)
 		default:
 			return out

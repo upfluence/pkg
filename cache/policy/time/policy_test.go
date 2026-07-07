@@ -23,6 +23,7 @@ func newIdleTracker[K comparable](ttl time.Duration) (testPolicy[K], *timetest.C
 	ch := make(chan K, 16)
 	evict := func(k K) { ch <- k }
 	t := newTracker[K](ttl, func(tr *tracker[K]) func(K) { return tr.move }, evict, fc)
+
 	return testPolicy[K]{tracker: t, ch: ch}, fc
 }
 
@@ -31,24 +32,29 @@ func newLifetimeTracker[K comparable](ttl time.Duration) (testPolicy[K], *timete
 	ch := make(chan K, 16)
 	evict := func(k K) { ch <- k }
 	t := newTracker[K](ttl, func(*tracker[K]) func(K) { return func(K) {} }, evict, fc)
+
 	return testPolicy[K]{tracker: t, ch: ch}, fc
 }
 
 // collectN reads n keys from ch, returning them in order.
 func collectN(t *testing.T, ch <-chan string, n int) []string {
 	t.Helper()
+
 	out := make([]string, 0, n)
-	for i := 0; i < n; i++ {
+
+	for range n {
 		select {
 		case k, ok := <-ch:
 			if !ok {
-				t.Fatalf("channel closed prematurely after %d/%d keys", i, n)
+				t.Fatalf("channel closed prematurely after %d/%d keys", len(out), n)
 			}
+
 			out = append(out, k)
 		case <-time.After(5 * time.Second):
-			t.Fatalf("timed out waiting for eviction %d/%d", i+1, n)
+			t.Fatalf("timed out waiting for eviction %d/%d", len(out)+1, n)
 		}
 	}
+
 	return out
 }
 
@@ -70,7 +76,7 @@ func TestIdlePolicy(t *testing.T) {
 	keys := collectN(t, base.ch, 2)
 	assert.Equal(t, []string{"buz", "foo"}, keys)
 
-	assert.Nil(t, base.Close())
+	assert.NoError(t, base.Close())
 }
 
 func TestIdlePolicyTimestampRefresh(t *testing.T) {
@@ -94,12 +100,13 @@ func TestIdlePolicyTimestampRefresh(t *testing.T) {
 
 	// t=1.9s: foo idle for 1.1s > 1s — must be evicted.
 	fc.MoveBy(700 * time.Millisecond)
+
 	go base.cleanup()
 
 	keys := collectN(t, base.ch, 1)
 	assert.Equal(t, []string{"foo"}, keys)
 
-	assert.Nil(t, base.Close())
+	assert.NoError(t, base.Close())
 }
 
 func TestLifetimePolicy(t *testing.T) {
@@ -120,7 +127,7 @@ func TestLifetimePolicy(t *testing.T) {
 	keys := collectN(t, base.ch, 2)
 	assert.Equal(t, []string{"bar", "buz"}, keys)
 
-	assert.Nil(t, base.Close())
+	assert.NoError(t, base.Close())
 }
 
 func TestIdlePolicyHarness(t *testing.T) {

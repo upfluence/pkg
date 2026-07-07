@@ -45,7 +45,7 @@ func newShardedCache[K comparable, V any](size int, kfn func(K) uint64) Cache[K,
 		cs[i] = newLockCache[K, V]()
 	}
 
-	return &shardedCache[K, V]{cs: cs, kfn: kfn, size: uint64(size)}
+	return &shardedCache[K, V]{cs: cs, kfn: kfn, size: uint64(size)} //nolint:gosec
 }
 
 func (sc *shardedCache[K, V]) shard(k K) *lockCache[K, V] {

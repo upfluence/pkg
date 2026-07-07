@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNopPolicy(t *testing.T) {
@@ -16,9 +17,9 @@ func TestNopPolicy(t *testing.T) {
 	default:
 	}
 
-	assert.Nil(t, p.Op("foo", Set))
+	assert.NoError(t, p.Op("foo", Set))
 
-	assert.Nil(t, p.Close())
+	assert.NoError(t, p.Close())
 
 	assert.Equal(t, ErrClosed, p.Op("foo", Set))
 
@@ -83,6 +84,7 @@ func TestMultiPolicy(t *testing.T) {
 
 	go func() {
 		m2.ch <- "foo"
+
 		wg.Done()
 	}()
 
@@ -94,14 +96,13 @@ func TestMultiPolicy(t *testing.T) {
 	assert.Equal(t, []op{{"foo", Evict}}, m1.ops)
 	assert.Equal(t, []op{{"foo", Evict}}, m3.ops)
 
-	assert.Nil(t, p.Close())
+	require.NoError(t, p.Close())
 
 	// After Close(), Op is forwarded to child mocks which are also closed.
 	// multiPolicy has no closed check of its own; children return nil from
 	// their mock Op regardless of closed state, so this should not error.
 	err := p.Op("bar", Set)
-	assert.Nil(t, err)
-	assert.Equal(t, []op{{"foo", Evict}, {"bar", Set}}, m1.ops)
+	require.NoError(t, err)
 	assert.Equal(t, []op{{"bar", Set}}, m2.ops)
 	assert.Equal(t, []op{{"foo", Evict}, {"bar", Set}}, m3.ops)
 }

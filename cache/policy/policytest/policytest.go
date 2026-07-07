@@ -62,44 +62,6 @@ func RunBenchmarks(b *testing.B, f Factory) {
 // helpers
 // ---------------------------------------------------------------------------
 
-// drain reads from ch until it is closed or the deadline expires, returning
-// all received keys.
-func drain(t testing.TB, ch <-chan string, deadline time.Duration) []string {
-	t.Helper()
-
-	timer := time.NewTimer(deadline)
-	defer timer.Stop()
-
-	var out []string
-
-	for {
-		select {
-		case k, ok := <-ch:
-			if !ok {
-				return out
-			}
-			out = append(out, k)
-		case <-timer.C:
-			return out
-		}
-	}
-}
-
-// receiveOne waits up to deadline for a single value from ch.
-func receiveOne(t testing.TB, ch <-chan string, deadline time.Duration) (string, bool) {
-	t.Helper()
-
-	timer := time.NewTimer(deadline)
-	defer timer.Stop()
-
-	select {
-	case k, ok := <-ch:
-		return k, ok
-	case <-timer.C:
-		return "", false
-	}
-}
-
 // assertChannelClosed asserts that ch is closed within the deadline.
 func assertChannelClosed(t testing.TB, ch <-chan string, deadline time.Duration) {
 	t.Helper()
@@ -241,6 +203,7 @@ var testCases = []testCase{
 			// The race detector is the real assertion here; we just need no
 			// panic and no deadlock.
 			const goroutines = 8
+
 			const opsEach = 200
 
 			keys := [4]string{"a", "b", "c", "d"}
@@ -249,8 +212,11 @@ var testCases = []testCase{
 
 			// Drain the channel so senders are never blocked indefinitely.
 			wg.Add(1)
+
 			go func() {
 				defer wg.Done()
+
+				//nolint:revive
 				for range p.C() {
 				}
 			}()
@@ -258,8 +224,10 @@ var testCases = []testCase{
 			// Writers.
 			for i := range goroutines {
 				wg.Add(1)
+
 				go func(i int) {
 					defer wg.Done()
+
 					for j := range opsEach {
 						op := policy.OpType(j % 3)  // Set, Get, Evict
 						p.Op(keys[i%len(keys)], op) //nolint:errcheck
@@ -276,10 +244,11 @@ var testCases = []testCase{
 	},
 	{
 		name: "concurrent_close_calls_no_race",
-		fn: func(t *testing.T, p policy.EvictionPolicy[string]) {
+		fn: func(_ *testing.T, p policy.EvictionPolicy[string]) {
 			// Multiple goroutines closing simultaneously must not panic or race.
 			// Drain so senders don't block.
 			go func() {
+				//nolint:revive
 				for range p.C() {
 				}
 			}()
@@ -288,8 +257,10 @@ var testCases = []testCase{
 
 			for range 8 {
 				wg.Add(1)
+
 				go func() {
 					defer wg.Done()
+
 					p.Close() //nolint:errcheck
 				}()
 			}
@@ -330,8 +301,11 @@ var benchCases = []benchCase{
 		fn: func(b *testing.B, f Factory) {
 			p := f(b)
 			defer p.Close() //nolint:errcheck
-			keys := makeBenchKeys(64)
+
+			keys := makeBenchKeys()
+
 			drainAsync(b, p)
+
 			b.ResetTimer()
 
 			for i := range b.N {
@@ -345,7 +319,8 @@ var benchCases = []benchCase{
 		fn: func(b *testing.B, f Factory) {
 			p := f(b)
 			defer p.Close() //nolint:errcheck
-			keys := makeBenchKeys(64)
+
+			keys := makeBenchKeys()
 
 			// Drain must start before the pre-warm loop so that evictions
 			// produced by inserting more keys than the policy's capacity do
@@ -374,8 +349,11 @@ var benchCases = []benchCase{
 		fn: func(b *testing.B, f Factory) {
 			p := f(b)
 			defer p.Close() //nolint:errcheck
-			keys := makeBenchKeys(64)
+
+			keys := makeBenchKeys()
+
 			drainAsync(b, p)
+
 			b.ResetTimer()
 
 			for i := range b.N {
@@ -393,7 +371,8 @@ var benchCases = []benchCase{
 		fn: func(b *testing.B, f Factory) {
 			p := f(b)
 			defer p.Close() //nolint:errcheck
-			keys := makeBenchKeys(64)
+
+			keys := makeBenchKeys()
 
 			// Drain must start before the pre-warm loop (same reason as
 			// get_heavy: pre-warming more keys than the policy capacity would
@@ -423,12 +402,16 @@ var benchCases = []benchCase{
 		fn: func(b *testing.B, f Factory) {
 			p := f(b)
 			defer p.Close() //nolint:errcheck
-			keys := makeBenchKeys(64)
+
+			keys := makeBenchKeys()
+
 			drainAsync(b, p)
+
 			b.ResetTimer()
 
 			for i := range b.N {
 				k := keys[i%len(keys)]
+
 				if i%2 == 0 {
 					p.Op(k, policy.Set) //nolint:errcheck
 				} else {
@@ -444,14 +427,19 @@ var benchCases = []benchCase{
 		fn: func(b *testing.B, f Factory) {
 			p := f(b)
 			defer p.Close() //nolint:errcheck
-			keys := makeBenchKeys(64)
+
+			keys := makeBenchKeys()
+
 			drainAsync(b, p)
+
 			b.ResetTimer()
 
 			b.RunParallel(func(pb *testing.PB) {
 				var i int
+
 				for pb.Next() {
 					k := keys[i%len(keys)]
+
 					switch i % 3 {
 					case 0:
 						p.Op(k, policy.Set) //nolint:errcheck
@@ -460,6 +448,7 @@ var benchCases = []benchCase{
 					case 2:
 						p.Op(k, policy.Evict) //nolint:errcheck
 					}
+
 					i++
 				}
 			})
@@ -472,25 +461,31 @@ var benchCases = []benchCase{
 		// time.
 		name: "close_under_load",
 		fn: func(b *testing.B, f Factory) {
-			keys := makeBenchKeys(64)
+			keys := makeBenchKeys()
+
 			b.ResetTimer()
 
 			for range b.N {
 				pp := f(b)
 
 				go func() {
+					//nolint:revive
 					for range pp.C() {
 					}
 				}()
 
 				done := make(chan struct{})
+
 				var wg sync.WaitGroup
 
 				for range 4 {
 					wg.Add(1)
+
 					go func() {
 						defer wg.Done()
+
 						var i int
+
 						for {
 							select {
 							case <-done:
@@ -512,14 +507,19 @@ var benchCases = []benchCase{
 	},
 }
 
-// makeBenchKeys returns n distinct string keys for benchmark use.
-func makeBenchKeys(n int) []string {
+// makeBenchKeys returns 64 distinct string keys for benchmark use.
+func makeBenchKeys() []string {
+	const n = 64
+
 	keys := make([]string, n)
+
 	const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_-"
+
 	for i := range keys {
 		// Two-character key from the alphabet — sufficient for n <= 64*64.
 		keys[i] = string([]byte{alphabet[i/len(alphabet)], alphabet[i%len(alphabet)]})
 	}
+
 	return keys
 }
 
@@ -529,6 +529,7 @@ func drainAsync(b *testing.B, p policy.EvictionPolicy[string]) {
 	b.Helper()
 
 	go func() {
+		//nolint:revive
 		for range p.C() {
 		}
 	}()

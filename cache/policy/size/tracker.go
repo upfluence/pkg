@@ -8,13 +8,13 @@ import (
 
 // backend is the pure eviction-data-structure contract.
 //
-// Insert adds k and returns:
+// insert adds k and returns:
 //   - evicted: the key that was displaced (zero value when ok is false)
 //   - ok:      true if a key was displaced
 //   - handle:  an opaque value identifying k's slot in the structure
 //
-// Remove deletes the slot identified by handle.
-// Get records a hit for k, given its handle (e.g. move-to-back for LRU).
+// remove deletes the slot identified by handle.
+// get records a hit for k, given its handle (e.g. move-to-back for LRU).
 type backend[K comparable, V any] interface {
 	insert(K) (K, bool, V)
 	remove(V)
@@ -41,6 +41,7 @@ func newPolicy[K comparable, V any](b backend[K, V], size int) policy.EvictionPo
 			evict: evict,
 		}
 		t.fn = t.move
+
 		return t
 	})
 }
@@ -76,6 +77,7 @@ func (t *tracker[K, V]) Close() error { return nil }
 // move moves k to the MRU position. Intended to be assigned to fn.
 func (t *tracker[K, V]) move(k K) {
 	n, ok := t.ks[k]
+
 	if !ok {
 		return
 	}

@@ -45,7 +45,7 @@ func newTracker[K comparable](ttl time.Duration, fn func(*tracker[K]) func(K), e
 	}
 
 	t.fn = fn(t)
-	t.ctx, t.cancel = context.WithCancel(context.Background())
+	t.ctx, t.cancel = context.WithCancel(context.Background()) //nolint:gosec
 	t.wg.Add(1)
 
 	go t.pump()
@@ -97,6 +97,7 @@ func (t *tracker[K]) Op(k K, op policy.OpType) error {
 func (t *tracker[K]) Close() error {
 	t.cancel()
 	t.wg.Wait()
+
 	return nil
 }
 
