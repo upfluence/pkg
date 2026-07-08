@@ -11,6 +11,7 @@ import (
 	"github.com/upfluence/pkg/v2/closer"
 	"github.com/upfluence/pkg/v2/discovery/peer"
 	"github.com/upfluence/pkg/v2/log"
+	"github.com/upfluence/pkg/v2/syncutil"
 )
 
 type Puller[T peer.Peer] struct {
@@ -19,8 +20,7 @@ type Puller[T peer.Peer] struct {
 	Monitor    closer.Monitor
 	NoWait     bool
 
-	openErr   error
-	openOnce  sync.Once
+	openOnce  syncutil.RetryableOnce
 	closeOnce sync.Once
 	opened    atomic.Bool
 }
@@ -54,16 +54,16 @@ func (p *Puller[T]) String() string {
 }
 
 func (p *Puller[T]) Open(ctx context.Context) error {
-	p.openOnce.Do(func() {
-		p.openErr = p.Resolver.Open(ctx)
-
-		if p.openErr == nil {
-			p.opened.Store(true)
-			p.Monitor.Run(p.pull)
+	return p.openOnce.Do(func() error {
+		if err := p.Resolver.Open(ctx); err != nil {
+			return err
 		}
-	})
 
-	return p.openErr
+		p.opened.Store(true)
+		p.Monitor.Run(p.pull)
+
+		return nil
+	})
 }
 
 func (p *Puller[T]) pull(ctx context.Context) {
