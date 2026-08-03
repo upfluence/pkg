@@ -65,11 +65,9 @@ func (tw *TaskWrapper) Execute(ctx context.Context, t Task) error {
 				kerr := le.KeepAlive(ctx, tw.deadline())
 
 				switch {
-				case kerr == nil || errors.Is(kerr, context.Canceled):
+				case kerr == nil || isContextError(err):
 				case errors.Is(kerr, lock.ErrLeaseNotFound):
-					select {
-					case <-cctx.Done():
-					default:
+					if cctx.Err() == nil {
 						log.WithError(kerr).Error("lost lease")
 					}
 
@@ -90,10 +88,13 @@ func (tw *TaskWrapper) Execute(ctx context.Context, t Task) error {
 
 	if rerr := le.Release(
 		ctx,
-	); rerr != nil && !errors.Is(rerr, context.Canceled) &&
-		!errors.Is(rerr, lock.ErrLeaseNotFound) {
+	); rerr != nil && !errors.Is(rerr, lock.ErrLeaseNotFound) && !isContextError(rerr) {
 		log.WithError(rerr).Error("cant release lock")
 	}
 
 	return err
+}
+
+func isContextError(err error) bool {
+	return errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
 }
