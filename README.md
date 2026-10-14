@@ -1,5 +1,9 @@
 # `pkg`
 
+> **Deprecated:** `github.com/upfluence/pkg` (v1) is no longer maintained and
+> will not receive any fix, including security fixes. Migrate to
+> `github.com/upfluence/pkg/v2`, see [MIGRATING.md](./MIGRATING.md).
+
 This repository holds commonly used packages that provide various self-contained utilities and business logic helpers.
 
 Here is a brief summary of a selection of packages:

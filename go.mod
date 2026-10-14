@@ -1,3 +1,5 @@
+// Deprecated: use github.com/upfluence/pkg/v2 instead. v1 is no longer
+// maintained and will not receive any fix; see MIGRATING.md.
 module github.com/upfluence/pkg
 
 go 1.23.0
