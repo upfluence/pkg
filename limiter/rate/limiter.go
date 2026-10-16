@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/upfluence/errors"
 	"golang.org/x/time/rate"
 
 	"github.com/upfluence/pkg/v2/limiter"
@@ -69,4 +70,59 @@ func (l *Limiter) Allow(ctx context.Context, opts limiter.AllowOptions) (limiter
 	}
 
 	return noopDone, nil
+}
+
+// Reserve takes the tokens like Allow, the cancel func gives them back.
+//
+// The underlying limiter can not refund tokens already due, so the cancel
+// func reserves a negative number of tokens, which adds them back to the
+// bucket, the burst caps it.
+func (l *Limiter) Reserve(ctx context.Context, opts limiter.AllowOptions) (limiter.DoneFunc, limiter.CancelFunc, error) {
+	select {
+	case <-ctx.Done():
+		return nil, nil, ctx.Err() //nolint:wrapcheck
+	default:
+	}
+
+	refund := func() { l.l.ReserveN(time.Now(), -opts.N) }
+	now := time.Now()
+
+	if opts.NoWait {
+		if !l.l.AllowN(now, opts.N) {
+			return nil, nil, limiter.ErrLimited
+		}
+
+		return noopDone, refund, nil
+	}
+
+	r := l.l.ReserveN(now, opts.N)
+
+	if !r.OK() {
+		return nil, nil, errors.Newf("limiter/rate: n=%d exceeds the burst %d", opts.N, l.l.Burst())
+	}
+
+	delay := r.DelayFrom(now)
+
+	if d, ok := ctx.Deadline(); ok && d.Sub(now) < delay {
+		refund()
+
+		return nil, nil, context.DeadlineExceeded
+	}
+
+	if delay == 0 {
+		return noopDone, refund, nil
+	}
+
+	t := time.NewTimer(delay)
+
+	defer t.Stop()
+
+	select {
+	case <-t.C:
+		return noopDone, refund, nil
+	case <-ctx.Done():
+		refund()
+
+		return nil, nil, ctx.Err() //nolint:wrapcheck
+	}
 }

@@ -101,3 +101,15 @@ func (l *Limiter) Allow(ctx context.Context, opts limiter.AllowOptions) (limiter
 
 	return donefn, nil
 }
+
+// Reserve takes the slots like Allow, the cancel func gives them back like
+// the done one does.
+func (l *Limiter) Reserve(ctx context.Context, opts limiter.AllowOptions) (limiter.DoneFunc, limiter.CancelFunc, error) {
+	done, err := l.Allow(ctx, opts)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return done, limiter.CancelFunc(done), nil
+}

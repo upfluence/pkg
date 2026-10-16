@@ -19,6 +19,10 @@ func (openLimiter) Allow(context.Context, limiter.AllowOptions) (limiter.DoneFun
 	return noopDone, nil
 }
 
+func (openLimiter) Reserve(context.Context, limiter.AllowOptions) (limiter.DoneFunc, limiter.CancelFunc, error) {
+	return noopDone, noopDone, nil
+}
+
 func (openLimiter) String() string { return "limiter/static/open" }
 
 type closedLimiter struct{}
@@ -29,7 +33,14 @@ func (closedLimiter) Allow(ctx context.Context, opts limiter.AllowOptions) (limi
 	}
 
 	<-ctx.Done()
-	return nil, ctx.Err()
+
+	return nil, ctx.Err() //nolint:wrapcheck
+}
+
+func (cl closedLimiter) Reserve(ctx context.Context, opts limiter.AllowOptions) (limiter.DoneFunc, limiter.CancelFunc, error) {
+	_, err := cl.Allow(ctx, opts)
+
+	return nil, nil, err
 }
 
 func (closedLimiter) String() string { return "limiter/static/open" }

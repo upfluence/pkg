@@ -93,3 +93,21 @@ func TestLimiteWaitSuccess(t *testing.T) {
 	fn()
 	wg.Wait()
 }
+
+func TestReserve(t *testing.T) {
+	l := NewLimiter(2)
+	opts := limiter.AllowOptions{NoWait: true, N: 2}
+
+	done, cancel, err := l.Reserve(context.Background(), opts)
+
+	assert.NoError(t, err) //nolint:testifylint
+	assert.NotNil(t, done)
+
+	_, _, err = l.Reserve(context.Background(), opts)
+
+	assert.Equal(t, limiter.ErrLimited, err)
+
+	cancel()
+
+	assert.Equal(t, 2, l.remaining)
+}
